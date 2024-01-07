@@ -4,11 +4,11 @@ import java.util.UUID;
 import org.jspace.*;
 public class Broker implements Runnable {
 
-    UUID brokerUuid;
+    String brokerUuid;
     SequentialSpace requestSpace = new SequentialSpace();
 
-    public Broker(UUID brokerUuid){
-        this.brokerUuid = UUID.randomUUID();
+    public Broker(String brokerUuid){
+        this.brokerUuid = brokerUuid;
         this.requestSpace = new SequentialSpace();
     }
 
@@ -18,8 +18,13 @@ public class Broker implements Runnable {
 
     public void run() {
         while(true) {
-
-
+            try {
+                System.out.println("Broker " + brokerUuid + " waiting for order");
+                Object[] request = requestSpace.get(new ActualField(brokerUuid), new FormalField(String.class), new FormalField(Order.class));
+                System.out.println("Broker " + request[0].toString() + " received order" + request[2].toString());
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
         }
     }
 }

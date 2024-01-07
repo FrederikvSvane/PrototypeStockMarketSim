@@ -30,27 +30,28 @@ public class Trader implements Runnable {
     }
 
     private void sendOrderToBroker(String orderType, Order order) throws IOException, InterruptedException {
-        UUID brokerUuid = UUID.randomUUID();
+        String brokerUuid = UUID.randomUUID().toString();
         Broker broker = new Broker(brokerUuid);
         new Thread(broker).start();
 
         if (orderType.equals("buy")){
-            sendBuyOrder(traderUuidUri, broker, order);
+            sendBuyOrder(brokerUuid, broker, order);
+            System.out.println("Buy order sent to broker with id " + brokerUuid);
         }
         else if (orderType.equals("sell")){
-            sendSellOrder(traderUuidUri, broker, order);
+            sendSellOrder(brokerUuid, broker, order);
         }
     }
 
-    public void sendBuyOrder(UUID traderUuidUri, Broker broker, Order order) throws IOException, InterruptedException {
+    public void sendBuyOrder(String brokerUuid, Broker broker, Order order) throws IOException, InterruptedException {
         Space brokerSpace = broker.getSpace();
-        brokerSpace.put(traderUuidUri, "buy", order);
+        brokerSpace.put(brokerUuid, "buy", order);
         //TODO get response of order completion result from broker here?
     }
 
-    public void sendSellOrder(UUID traderUuidUri, Broker broker, Order order) throws IOException, InterruptedException {
+    public void sendSellOrder(String brokerUuid, Broker broker, Order order) throws IOException, InterruptedException {
         Space brokerSpace = broker.getSpace();
-        brokerSpace.put(traderUuidUri, "sell", order);
+        brokerSpace.put(brokerUuid, "sell", order);
         //TODO get response of order completion result from broker here?
     }
 
@@ -58,7 +59,7 @@ public class Trader implements Runnable {
         Scanner terminalIn = new Scanner(System.in);
         System.out.println("Enter order with format {buy/sell, stock name, amount, price}: ");
         String orderString = terminalIn.nextLine();
-        String[] orderParts = orderString.split(",");
+        String[] orderParts = orderString.split(" ");
         String orderType = orderParts[0];
         String stockName = orderParts[1];
         int amount = Integer.parseInt(orderParts[2]);
@@ -86,5 +87,14 @@ class Order {
         this.stockName = stockName;
         this.amount = amount;
         this.price = price;
+    }
+
+    @Override
+    public String toString() {
+        return "Order{" +
+                "stockName='" + stockName + '\'' +
+                ", amount=" + amount +
+                ", price=" + price +
+                '}';
     }
 }
