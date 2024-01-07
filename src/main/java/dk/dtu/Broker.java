@@ -1,14 +1,25 @@
 package dk.dtu;
 
-public class Broker implements Runnable{
-    String brokerUuidUri;
+import java.util.UUID;
+import org.jspace.*;
+public class Broker implements Runnable {
 
-    public Broker(String brokerUuidUri){
-        this.brokerUuidUri = brokerUuidUri;
+    UUID brokerUuid;
+    SequentialSpace requestSpace = new SequentialSpace();
 
+    public Broker(UUID brokerUuid){
+        this.brokerUuid = UUID.randomUUID();
+        this.requestSpace = new SequentialSpace();
+    }
+
+    public Space getSpace(){
+        return requestSpace;
     }
 
     public void run() {
+        while(true) {
 
+
+        }
     }
 }
