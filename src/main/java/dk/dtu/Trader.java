@@ -1,19 +1,19 @@
 package dk.dtu;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.Scanner;
 import java.util.UUID;
+
 import org.jspace.*;
 
-import static java.util.UUID.fromString;
-
 public class Trader implements Runnable {
-    UUID traderUuidUri;
+    String traderId;
     String hostIp;
     int hostPort;
 
-    public Trader(String hostIp, int hostPort){
-        this.traderUuidUri = UUID.randomUUID();
+    public Trader(String hostIp, int hostPort) {
+        this.traderId = UUID.randomUUID().toString();
         this.hostIp = hostIp;
         this.hostPort = hostPort;
     }
@@ -30,28 +30,25 @@ public class Trader implements Runnable {
     }
 
     private void sendOrderToBroker(String orderType, Order order) throws IOException, InterruptedException {
-        String brokerUuid = UUID.randomUUID().toString();
-        Broker broker = new Broker(brokerUuid);
+        Broker broker = new Broker(hostIp, hostPort);
         new Thread(broker).start();
 
-        if (orderType.equals("buy")){
-            sendBuyOrder(brokerUuid, broker, order);
-            System.out.println("Buy order sent to broker with id " + brokerUuid);
-        }
-        else if (orderType.equals("sell")){
-            sendSellOrder(brokerUuid, broker, order);
+        if (orderType.equals("buy")) {
+            sendBuyOrder(broker.brokerUuid, broker, order);
+        } else if (orderType.equals("sell")) {
+            sendSellOrder(broker.brokerUuid, broker, order);
         }
     }
 
     public void sendBuyOrder(String brokerUuid, Broker broker, Order order) throws IOException, InterruptedException {
-        Space brokerSpace = broker.getSpace();
-        brokerSpace.put(brokerUuid, "buy", order);
+        Space requestSpace = broker.getRequestSpace();
+        requestSpace.put(brokerUuid, order.getOrderId(), "buy", order);
         //TODO get response of order completion result from broker here?
     }
 
     public void sendSellOrder(String brokerUuid, Broker broker, Order order) throws IOException, InterruptedException {
-        Space brokerSpace = broker.getSpace();
-        brokerSpace.put(brokerUuid, "sell", order);
+        Space requestSpace = broker.getRequestSpace();
+        requestSpace.put(brokerUuid, order.getOrderId(), "sell", order);
         //TODO get response of order completion result from broker here?
     }
 
@@ -64,26 +61,32 @@ public class Trader implements Runnable {
         String stockName = orderParts[1];
         int amount = Integer.parseInt(orderParts[2]);
         float price = Float.parseFloat(orderParts[3]);
-        Order order = new Order(stockName, amount, price);
+        Order order = new Order(traderId, stockName, amount, price);
         sendOrderToBroker(orderType, order);
     }
-
-
-
-
-
-
-
-
-
 }
 
 class Order {
-    String stockName;
-    int amount;
-    float price;
+    private String orderId;
+    private String traderId;
+    private String stockName;
+    private int amount;
+    private float price;
 
-    public Order(String stockName, int amount, float price) {
+    private HashMap<String, String> tickerMap = new HashMap<String, String>();
+
+    public Order(String traderId, String stockName, int amount, float price) {
+        this.orderId = UUID.randomUUID().toString();
+        this.stockName = stockName;
+        this.amount = amount;
+        this.price = price;
+
+        tickerMap.put("Apple", "AAPL");
+    }
+
+    public Order(String traderId, String orderId, String stockName, int amount, float price) {
+        this.traderId = traderId;
+        this.orderId = orderId;
         this.stockName = stockName;
         this.amount = amount;
         this.price = price;
@@ -96,5 +99,44 @@ class Order {
                 ", amount=" + amount +
                 ", price=" + price +
                 '}';
+    }
+
+    public float getPrice() {
+        return price;
+    }
+
+    public int getAmount() {
+        return amount;
+    }
+
+    public String getStockName() {
+        return stockName;
+    }
+
+    public String getTicker() {
+        return tickerMap.get(stockName);
+    }
+
+    public String getOrderId() {
+        return orderId;
+    }
+
+    public String getTraderId() { return traderId;
+    }
+
+    public void setAmount(int n) { amount = n; }
+}
+
+class CompanySellOrder extends Order {
+
+    String brokerUUID;
+
+    public CompanySellOrder(String traderId, String brokerUUID, String orderId, String companyName, int amount, float price) {
+        super(traderId, orderId, companyName, amount, price);
+        this.brokerUUID = brokerUUID;
+    }
+
+    public String getbrokerUUID() {
+        return brokerUUID;
     }
 }
