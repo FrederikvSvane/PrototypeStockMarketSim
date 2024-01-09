@@ -164,7 +164,10 @@ public class Trader extends DistributedClient implements Runnable{
         {
             traderToLobby.put(traderId, "join");
             Object[] response = lobbyToTrader.get(new ActualField(traderId), new FormalField(String.class));
-            System.out.println(response[0]);
+            String responseMessage = (String) response[1];
+            System.out.println(responseMessage);
+            if(responseMessage.equals("Create room it doesn't exist")){sendCreateChatProtocol();}
+
         }
         else{
             System.out.println("Invalid input, please press the number of the option you want to choose");

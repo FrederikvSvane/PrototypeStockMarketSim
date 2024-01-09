@@ -110,6 +110,7 @@ public class Lobby implements Runnable {
             //If a room doesn't exist we create it.
             if(chatRoom == null) {
                 System.out.println("Room: " + roomName + " doesn't exist we're trying to create a new");
+                lobbyToTrader.put(traderUuid,"Create room it doesn't exist");
                 createRoom(traderUuid);
                 return;
             }
@@ -177,7 +178,7 @@ class ChatRoom implements Runnable
     }
 
     public void sendChatroomResponse(String response_message) throws InterruptedException {
-        chatRoomLobby.put("Chat room response",name,"Wrong password");
+        chatRoomLobby.put("Chat room response",name, response_message);
     }
 
     public boolean recordNewUser(String userID) throws InterruptedException {
@@ -198,7 +199,7 @@ class ChatRoom implements Runnable
 
         this.totalCapactiy -= 1;
         this.usersRegister.add(userID);
-        return false;
+        return true;
     }
 
     public void run()
@@ -206,11 +207,11 @@ class ChatRoom implements Runnable
         while (true)
         {
             try {
-                System.out.println(name);
+                //System.out.println(name);
                 Object[] req = chatRoomLobby.get(new FormalField(String.class),new FormalField(String.class));
                 String attemptedName = (String) req[0];
                 String command = (String) req[1];
-                System.out.println("Room " + attemptedName + " received command " + command);
+                //System.out.println("Room " + attemptedName + " received command " + command);
 
                 switch (command)
                 {
@@ -219,9 +220,8 @@ class ChatRoom implements Runnable
                         String userID = (String) joinAttempt[0];
                         String attemptedPassword = (String) joinAttempt[1];
 
-                        System.out.println("User " + userID + " tried to log in to chatroom with passwrd " + attemptedPassword);
-
-                        if(attemptedPassword.equals(password))
+                        //System.out.println("User " + userID + " tried to log in to chatroom with passwrd " + attemptedPassword);
+                        if(!attemptedPassword.equals(password))
                         {
                             sendChatroomResponse("Wrong password");
                         }
