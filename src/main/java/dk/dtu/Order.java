@@ -10,25 +10,35 @@ class Order {
     private int amount;
     private float price;
 
-    private HashMap<String, String> tickerMap = new HashMap<String, String>();
-
+    /**
+     * Construct an order with a randomly generated orderId
+     * @param traderId
+     * @param stockName
+     * @param amount
+     * @param price
+     */
     public Order(String traderId, String stockName, int amount, float price) {
+        this.traderId = traderId;
         this.orderId = UUID.randomUUID().toString();
         this.stockName = stockName;
         this.amount = amount;
         this.price = price;
-
-        tickerMap.put("Apple", "AAPL");
     }
 
+    /**
+     * Construct an order with a given/known orderId
+     * @param traderId
+     * @param orderId
+     * @param stockName
+     * @param amount
+     * @param price
+     */
     public Order(String traderId, String orderId, String stockName, int amount, float price) {
         this.traderId = traderId;
         this.orderId = orderId;
         this.stockName = stockName;
         this.amount = amount;
         this.price = price;
-
-        tickerMap.put("Apple", "AAPL");
     }
 
     @Override
@@ -50,10 +60,6 @@ class Order {
 
     public String getStockName() {
         return stockName;
-    }
-
-    public String getTicker() {
-        return tickerMap.get(stockName);
     }
 
     public String getOrderId() {

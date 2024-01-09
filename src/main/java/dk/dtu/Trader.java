@@ -33,22 +33,25 @@ public class Trader implements Runnable {
         Broker broker = new Broker(hostIp, hostPort);
         new Thread(broker).start();
 
+        //TODO det skal faktisk bare sendes til brokeren, og så skal den sende det videre til exchange
+        //TODO så både sendBuyOrder og sendSellOrder skal ligge inde i Broker.java
+
         if (orderType.equals("buy")) {
-            sendBuyOrder(broker.getBrokerId(), broker, order);
+            sendBuyOrder(traderId, broker, order);
         } else if (orderType.equals("sell")) {
-            sendSellOrder(broker.getBrokerId(), broker, order);
+            sendSellOrder(traderId, broker, order);
         }
     }
 
-    public void sendBuyOrder(String brokerUuid, Broker broker, Order order) throws IOException, InterruptedException {
+    public void sendBuyOrder(String traderId, Broker broker, Order order) throws IOException, InterruptedException { //TODO fjern traderId fordi det allerede kendes i hele scope. Samme i metoden under
         Space requestSpace = broker.getRequestSpace();
-        requestSpace.put(brokerUuid, order.getOrderId(), "buy", order);
+        requestSpace.put(traderId, order.getOrderId(), "buy", order);
         //TODO get response of order completion result from broker here?
     }
 
-    public void sendSellOrder(String brokerUuid, Broker broker, Order order) throws IOException, InterruptedException {
+    public void sendSellOrder(String traderId, Broker broker, Order order) throws IOException, InterruptedException {
         Space requestSpace = broker.getRequestSpace();
-        requestSpace.put(brokerUuid, order.getOrderId(), "sell", order);
+        requestSpace.put(traderId, order.getOrderId(), "sell", order);
         //TODO get response of order completion result from broker here?
     }
 

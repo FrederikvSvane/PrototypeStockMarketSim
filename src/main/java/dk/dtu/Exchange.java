@@ -2,76 +2,74 @@ package dk.dtu;
 
 import org.jspace.*;
 
-import java.util.List;
-
 public class Exchange implements Runnable {
+    private SpaceRepository exchangeRepository;
 
-    Space companyToFromHost = new SequentialSpace();
-    SpaceRepository repository;
+    //This space contains the companies, whose stocks are traded at the exchange, and their current respective prices
+    //Structure: (companyId, companyName, companyTicker, currentStockPrice) + Ticket
+    private Space companiesAndPricesSpace = new SequentialSpace();
 
-    public Exchange(String hostIp, int hostPort, SpaceRepository repository) {
-        this.repository = repository;
-        repository.addGate("tcp://" + hostIp + ":" + hostPort + "/?keep");
+    //This space contains the orders that the exchange has to process
+    //Structure: (orderId, orderType, Company, amount, price)
+    private Space exchangeRequestSpace = new SequentialSpace();
 
-        //
-        repository.add("AAPL", companyToFromHost);
-
-
-        //add company spaces to repository, one for each company
-        Space companySpace = new SequentialSpace();
-        repository.add("companySpace", companySpace);
-
-
+    public Exchange(String hostIp, int hostPort, SpaceRepository exchangeRepository) throws InterruptedException {
+        this.exchangeRepository = exchangeRepository;
+        this.companiesAndPricesSpace.put("ticket");
+        this.exchangeRepository.add("companiesAndPricesSpace", companiesAndPricesSpace);
+        this.exchangeRepository.add("exchangeRequestSpace", exchangeRequestSpace);
+        exchangeRepository.addGate("tcp://" + hostIp + ":" + hostPort + "/?keep");
     }
 
     public void run() {
-
-        boolean resifed = false;
-        while (true) {
-            System.out.println("Host is running");
-            Space companySpace = repository.get("AAPL");
-            Object[] request = null;
-
-
+        while(true){
             try {
-                while (!resifed){
-                    request = companySpace.query(new FormalField(String.class), new FormalField(String.class), new FormalField(String.class), new FormalField(Order.class));
-                    if (request != null){
-                        resifed = true;
+                // Structure: orderId, orderType, Company, amount, price
+                Object[] currentRequest = exchangeRequestSpace.getp(new FormalField(String.class), new FormalField(String.class), new FormalField(Company.class), new FormalField(Integer.class), new FormalField(Float.class));
+                if (currentRequest != null){
+                    String orderType = currentRequest[1].toString();
+                    switch (orderType){
+                        case "IPO": //Initial Public Offering - The first time a company sells its stocks at the exchange
+                            Company company = (Company) currentRequest[2];
+                            String companyName = company.getCompanyName();
+                            String companyId = company.getCompanyId();
+                            String companyTicker = company.getCompanyTicker();
+                            int amount = (int) currentRequest[3];
+                            float price = (float) currentRequest[4];
+
+                            Space companiesAndPricesSpace = exchangeRepository.get("companiesAndPricesSpace");
+                            Object[] currentCompanyStatus = companiesAndPricesSpace.queryp(new ActualField(companyId), new ActualField(companyName), new ActualField(companyTicker), new FormalField(Float.class));
+                            boolean companyExists = currentCompanyStatus != null;
+                            if(companyExists){
+                                throw new RuntimeException("IPO failed: Company is already listed at the exchange");
+                            }else {
+                                createCompanyStockSpace(companyTicker);
+                                Space companyStockSpace = exchangeRepository.get(companyTicker);
+
+                                Order order = new Order(companyId, companyName, amount, price);
+                                String orderId = order.getOrderId();
+                                companyStockSpace.put(companyId, orderId, "sell", order);
+
+                                // Here the currentStockPrice is set as the IPO price. This is an exception. Normally the currentStockPrice is set by latest sold price
+                                companiesAndPricesSpace.put(companyId, companyName, companyTicker, price);
+                            }
+                            break;
                     }
                 }
-            } catch (InterruptedException e) {
+
+
+
+            } catch (Exception e) {
                 throw new RuntimeException(e);
             }
-            System.out.println("Host received request: "+ request[0].toString()+ " " + request[1].toString()+ " " + request[2].toString());
-            Order order = (Order) request[3];
-            String orderinfo = order.toString();
-            System.out.println("Host received request: " + " " + request[2].toString()+ " " + orderinfo);
-            resifed = false;
-            request = null;
-        }
-    }
-
-
-    // getp
-    public void getOrders() {
-
-    }
-
-    public void makeCompany(String[] companys) {
-
-
-    }
-
-    private String[] getNotInitilizedCompany() throws InterruptedException {
-        List<Object[]> company = companyToFromHost.getAll();
-
-        if (company.size() > 0) {
-
-            // aktier støkpris
-            String[] companyNames = new String[company.size()];
 
         }
-        return new String[0];
     }
+
+    public void createCompanyStockSpace(String companyTicker) throws InterruptedException {
+        Space space = new SequentialSpace();
+        space.put("ticket");
+        exchangeRepository.add(companyTicker, space);
+    }
+
 }

@@ -20,7 +20,7 @@ public class Broker implements Runnable {
         this.hostPort = hostPort;
     }
 
-    private void setHostUri(String companyName) {
+    public void setHostUri(String companyName) { //TODO lav det her til en interface med navn alla "ThreadActions" eller noget
         this.hostUri = "tcp://" + hostIp + ":" + hostPort + "/" + companyName + "?keep";
     }
 
@@ -32,12 +32,15 @@ public class Broker implements Runnable {
         while (true) {
             try {
                 // UUID "buy/sell" order
-                Object[] request = requestSpace.get(new ActualField(brokerId), new FormalField(String.class), new FormalField(String.class), new FormalField(Order.class));
+                Object[] request = requestSpace.get(new FormalField(String.class) /*traderId*/, new FormalField(String.class) /*orderId*/, new FormalField(String.class)/*orderType*/, new FormalField(Order.class)/*Order*/);
                 Order order = (Order) request[3];
+
+                //TODO ændre det her i fremtiden, når vi kan hente companies og prices fra CompaniesAndPrices Space i Exchange
                 String companyTicker = order.getTicker();
                 setHostUri(companyTicker);
+
                 String orderType = request[2].toString();
-                switch (request[2].toString()) {
+                switch (orderType) {
                     case "buy":
                         //Query all sell orders of the specific company and sort the results from lowest to highest price
                         List<Object[]> query = querySellOrdersCompanySpace(); //TODO måske queryp?
