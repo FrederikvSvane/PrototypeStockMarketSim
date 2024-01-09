@@ -1,33 +1,67 @@
 package dk.dtu;
 
 import java.io.IOException;
+import java.net.URI;
 import java.util.HashMap;
 import java.util.Scanner;
 import java.util.UUID;
 
 import org.jspace.*;
 
-public class Trader implements Runnable {
+
+public class Trader extends DistributedClient implements Runnable{
     String traderId;
     String hostIp;
+    String traderToLobbyName;
+    String lobbyToTraderName;
+    RemoteSpace traderToLobby;
+    RemoteSpace lobbyToTrader;
     int hostPort;
 
-    public Trader(String hostIp, int hostPort) {
+    public Trader(String hostIp, int hostPort, String traderToLobbyName, String lobbyToTraderName) {
         this.traderId = UUID.randomUUID().toString();
         this.hostIp = hostIp;
         this.hostPort = hostPort;
+        this.traderToLobbyName = traderToLobbyName;
+        this.lobbyToTraderName = lobbyToTraderName;
+        try {
+            this.traderToLobby = new RemoteSpace(createUri(hostIp, hostPort, this.traderToLobbyName));
+            this.lobbyToTrader = new RemoteSpace(createUri(hostIp, hostPort, this.lobbyToTraderName));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     public void run() {
         while (true) {
-            try {
-                consoleInputToBuyOrder();
-            } catch (Exception e) {
-                e.printStackTrace();
-                throw new RuntimeException("Error in trader");
+            String mode = chooseMode();
+
+            switch(mode){
+                case "trade":{
+                    try {
+                        consoleInputToBuyOrder();
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        throw new RuntimeException("Error in trader");
+                    }
+                }
+                case "chat": {
+                    try {
+                        traderToLobby.put(traderId, "create chat");
+                        traderToLobby.put(traderId,"testRoom","testPassword", 10);
+                        Object[] roomCreationAnswer = lobbyToTrader.get(new ActualField(traderId), new FormalField(String.class));
+                        System.out.println("We got the response:" + roomCreationAnswer[0].toString() + roomCreationAnswer[1].toString());
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        throw new RuntimeException("Error in trader");
+                    }
+                }
             }
+
         }
     }
+
+
 
     private void sendOrderToBroker(String orderType, Order order) throws IOException, InterruptedException {
         Broker broker = new Broker(hostIp, hostPort);
@@ -64,6 +98,21 @@ public class Trader implements Runnable {
         float price = Float.parseFloat(orderParts[3]);
         Order order = new Order(traderId, stockName, amount, price);
         sendOrderToBroker(orderType, order);
+    }
+    public String chooseMode(){
+        Scanner terminalIn = new Scanner(System.in);
+        System.out.println("Choose mode: \n1. Create trade \n2. Join chat");
+        String mode = terminalIn.nextLine();
+        if(mode.equals("1")){
+            return "trade";
+        }
+        else if(mode.equals("2")){
+            return "chat";
+        }
+        else{
+            System.out.println("Invalid input");
+            return chooseMode();
+        }
     }
 }
 
@@ -143,3 +192,4 @@ class CompanySellOrder extends Order {
         return brokerUUID;
     }
 }
+
