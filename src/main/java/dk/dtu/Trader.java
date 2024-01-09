@@ -2,6 +2,7 @@ package dk.dtu;
 
 import java.io.IOException;
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Scanner;
 import java.util.UUID;
@@ -47,17 +48,13 @@ public class Trader extends DistributedClient implements Runnable{
                 }
                 case "chat": {
                     try {
-                        traderToLobby.put(traderId, "create chat");
-                        traderToLobby.put(traderId,"testRoom","testPassword", 10);
-                        Object[] roomCreationAnswer = lobbyToTrader.get(new ActualField(traderId), new FormalField(String.class));
-                        System.out.println("We got the response:" + roomCreationAnswer[0].toString() + roomCreationAnswer[1].toString());
+                        chatMenu();
                     } catch (Exception e) {
                         e.printStackTrace();
                         throw new RuntimeException("Error in trader");
                     }
                 }
             }
-
         }
     }
 
@@ -101,7 +98,7 @@ public class Trader extends DistributedClient implements Runnable{
     }
     public String chooseMode(){
         Scanner terminalIn = new Scanner(System.in);
-        System.out.println("Choose mode: \n1. Create trade \n2. Join chat");
+        System.out.println("Choose mode: \n1. Create trade \n2. Open chat");
         String mode = terminalIn.nextLine();
         if(mode.equals("1")){
             return "trade";
@@ -113,6 +110,38 @@ public class Trader extends DistributedClient implements Runnable{
             System.out.println("Invalid input");
             return chooseMode();
         }
+    }
+
+    public void createChatProtocol() throws Exception {
+        Scanner terminalIn = new Scanner(System.in);
+        System.out.println("Enter room name: ");
+        String roomName = terminalIn.nextLine();
+        System.out.println("Enter password: ");
+        String password = terminalIn.nextLine();
+        traderToLobby.put(traderId, "create chat");
+        traderToLobby.put(traderId,roomName,password, 10);
+        Object[] roomCreationAnswer = lobbyToTrader.get(new ActualField(traderId), new FormalField(String.class));
+        System.out.println("We got the response:" + roomCreationAnswer[0].toString() + roomCreationAnswer[1].toString());
+    }
+
+    public Object[] chatMenu() throws Exception {
+        Scanner terminalIn = new Scanner(System.in);
+        System.out.println("Choose mode: \n1. Create chat \n2. Get an overview");
+        String mode = terminalIn.nextLine();
+        if(mode.equals("1")){
+            createChatProtocol();
+        }
+        else if(mode.equals("2")){
+            traderToLobby.put(traderId, "show rooms");
+            Object[] roomOverview = lobbyToTrader.get(new ActualField(traderId), new FormalField(String[].class), new FormalField(int.class));
+            System.out.println("Following rooms are open:" + roomOverview[0].toString() + roomOverview[1].toString());
+            return roomOverview;
+        }
+        else{
+            System.out.println("Invalid input, please press the number of the option you want to choose");
+            return chatMenu();
+        }
+        return null;
     }
 }
 
