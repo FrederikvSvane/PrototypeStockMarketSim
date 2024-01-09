@@ -8,7 +8,7 @@ public class Client {
      static String traderToLobbyName = "traderToLobby";
 
     public static void main(String[] args) {
-        Trader trader = new Trader("192.168.79.195", 32990, traderToLobbyName, lobbyToTraderName);
+        Trader trader = new Trader("192.168.79.195", 32991, traderToLobbyName, lobbyToTraderName);
         new Thread(trader).start();
 
     }

@@ -128,12 +128,12 @@ public class Trader extends DistributedClient implements Runnable{
         }
 
         traderToLobby.put(traderId, "create chat");
-        traderToLobby.put(traderId,roomName,password, capacity);
+        traderToLobby.put(traderId, roomName, password, capacity);
         Object[] roomCreationAnswer = lobbyToTrader.get(new ActualField(traderId), new FormalField(String.class), new FormalField(String.class));
         System.out.println("We got the response:" + roomCreationAnswer[0].toString() + roomCreationAnswer[1].toString() + roomCreationAnswer[2].toString());
     }
 
-    public void sendJoinChatProtocol() throws Exception
+    public String sendJoinChatProtocol() throws Exception
     {
         Scanner terminalIn = new Scanner(System.in);
         System.out.println("Enter room name: ");
@@ -143,7 +143,9 @@ public class Trader extends DistributedClient implements Runnable{
 
         traderToLobby.put(traderId, roomName, password);
         Object[] response = lobbyToTrader.get(new ActualField(traderId), new FormalField(String.class));
-        System.out.println("We got the response: " + response[1].toString());
+        String responseMessage = (String) response[1];
+        System.out.println("We got the response: " + responseMessage);
+        return responseMessage;
     }
 
 
@@ -163,11 +165,11 @@ public class Trader extends DistributedClient implements Runnable{
         else if(mode.equals("3"))
         {
             traderToLobby.put(traderId, "join");
-            sendJoinChatProtocol();
-            Object[] response = lobbyToTrader.get(new ActualField(traderId), new FormalField(String.class));
-            String responseMessage = (String) response[1];
-            System.out.println(responseMessage);
-            if(responseMessage.equals("Create room it doesn't exist")){sendCreateChatProtocol();}
+            String responseMessage = sendJoinChatProtocol();
+            if(responseMessage.equals("Create room it doesn't exist")){
+                System.out.println("Whatever");
+                sendCreateChatProtocol();
+            }
 
         }
         else{
