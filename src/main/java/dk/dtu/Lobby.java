@@ -187,13 +187,12 @@ class ChatRoom implements Runnable
         {
             try {
                 Object[] req = chatRoomLobby.get(new ActualField(name),new FormalField(String.class));
-                String userID = (String) req[0];
                 String command = (String) req[1];
 
                 switch (command)
                 {
                     case "join":
-                        Object[] joinAttempt = chatRoomLobby.get()
+                        Object[] joinAttempt = chatRoomLobby.get(new FormalField(String.class),new FormalField(String.class));
 
                 }
 
