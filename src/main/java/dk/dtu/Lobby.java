@@ -44,6 +44,7 @@ public class Lobby implements Runnable {
                     case "show overview":
                         break;
                     case "join":
+                        System.out.println("Someone attempted to join");
                         joinRoom(requester);
                         break;
                     case "delete room":
@@ -69,6 +70,8 @@ public class Lobby implements Runnable {
             int capacity = (int) req[3];
             Space roomExists =  hostRepo.get(roomName);
 
+            System.out.println("User: " + traderUuid + " created room " + roomName + " with max capacity: " + capacity);
+
             //If the room exists
             if(roomExists != null) {
                 lobbyToTrader.put(traderUuid, "room with name" + roomName + "already exists");
@@ -85,8 +88,6 @@ public class Lobby implements Runnable {
 
 
 
-
-
         } catch (Exception e) {
             e.printStackTrace();
             throw new RuntimeException("Error in lobby");
@@ -98,15 +99,20 @@ public class Lobby implements Runnable {
     {
         try {
             Object[] req = traderToLobby.get(new ActualField(traderUuid), new FormalField(String.class), new FormalField(String.class));
+            String joinRoomTraderUUID = (String) req[0];
             String roomName = (String) req[1];
             String password = (String) req[2];
+            System.out.println("Lobby received room name trying to join: " + roomName + " from user with ID: " + joinRoomTraderUUID + " and password " + password);
+
             Space chatRoom = hostRepo.get(roomName);
+
 
             //If a room doesn't exist we create it.
             if(chatRoom == null) {
+                System.out.println("Room: " + roomName + " doesn't exist we're trying to create a new");
                 createRoom(traderUuid);
+                return;
             }
-
 
             //Check password
             chatRoomLobby.put(roomName,"join");
@@ -114,8 +120,8 @@ public class Lobby implements Runnable {
 
 
             //Check capacity
-            Object[] joinRequest = chatRoomLobby.get(new ActualField(roomName), new FormalField(String.class));
-            String responseMessage = (String) joinRequest[1];
+            Object[] joinRequest = chatRoomLobby.get(new ActualField("Chat room response"),new ActualField(roomName), new FormalField(String.class));
+            String responseMessage = (String) joinRequest[2];
             lobbyToTrader.put(traderUuid,responseMessage);
 
 
@@ -170,22 +176,29 @@ class ChatRoom implements Runnable
         return totalCapactiy;
     }
 
-    public void recordNewUser(String userID) throws InterruptedException {
+    public void sendChatroomResponse(String response_message) throws InterruptedException {
+        chatRoomLobby.put("Chat room response",name,"Wrong password");
+    }
+
+    public boolean recordNewUser(String userID) throws InterruptedException {
+
+        System.out.println("Trying to add user: " + userID + "to chatroom with name: " + name);
 
         if(usersRegister.contains(userID))
         {
-            chatRoomLobby.put(name,"User already exists");
-            return;
+            sendChatroomResponse("User: " + userID + " already exists");
+            return false;
         }
 
         if(this.totalCapactiy == 0)
             {
-                chatRoomLobby.put(name,"capacity full");
-                return;
+                sendChatroomResponse("capacity full");
+                return false;
             }
 
         this.totalCapactiy -= 1;
         this.usersRegister.add(userID);
+        return false;
     }
 
     public void run()
@@ -193,8 +206,11 @@ class ChatRoom implements Runnable
         while (true)
         {
             try {
-                Object[] req = chatRoomLobby.get(new ActualField(name),new FormalField(String.class));
+                System.out.println(name);
+                Object[] req = chatRoomLobby.get(new FormalField(String.class),new FormalField(String.class));
+                String attemptedName = (String) req[0];
                 String command = (String) req[1];
+                System.out.println("Room " + attemptedName + " received command " + command);
 
                 switch (command)
                 {
@@ -203,13 +219,18 @@ class ChatRoom implements Runnable
                         String userID = (String) joinAttempt[0];
                         String attemptedPassword = (String) joinAttempt[1];
 
+                        System.out.println("User " + userID + " tried to log in to chatroom with passwrd " + attemptedPassword);
+
                         if(attemptedPassword.equals(password))
                         {
-                            chatRoomLobby.put(name,"Wrong password");
+                            sendChatroomResponse("Wrong password");
+                        }
+                        if(recordNewUser(userID))
+                        {
+                            sendChatroomResponse("Succesfully joined");
                         }
 
-                        recordNewUser(userID);
-                        chatRoomLobby.put(name,"Succesfully joined");
+                        break;
 
                 }
 

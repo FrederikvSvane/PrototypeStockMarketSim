@@ -9,8 +9,8 @@ import java.net.UnknownHostException;
 
 public class Host {
 
-    static String hostIp = "10.209.69.169";
-    static int hostPort = 32989;
+    static String hostIp = "192.168.79.195";
+    static int hostPort = 32990;
 
     public static void main(String[] args) throws UnknownHostException {
 
