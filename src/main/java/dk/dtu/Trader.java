@@ -112,7 +112,7 @@ public class Trader extends DistributedClient implements Runnable{
         }
     }
 
-    public void createChatProtocol() throws Exception {
+    public void sendCreateChatProtocol() throws Exception {
         Scanner terminalIn = new Scanner(System.in);
         System.out.println("Enter room name: ");
         String roomName = terminalIn.nextLine();
@@ -133,18 +133,38 @@ public class Trader extends DistributedClient implements Runnable{
         System.out.println("We got the response:" + roomCreationAnswer[0].toString() + roomCreationAnswer[1].toString() + roomCreationAnswer[2].toString());
     }
 
+    public void sendJoinChatProtocol() throws Exception
+    {
+        Scanner terminalIn = new Scanner(System.in);
+        System.out.println("Enter room name: ");
+        String roomName = terminalIn.nextLine();
+        System.out.println("Enter password: ");
+        String password = terminalIn.nextLine();
+
+        traderToLobby.put(traderId, roomName, password);
+        Object[] response = lobbyToTrader.get(new ActualField(traderId), new FormalField(String.class));
+        System.out.println("We got the response: " + response[1].toString());
+    }
+
+
     public Object[] chatMenu() throws Exception {
         Scanner terminalIn = new Scanner(System.in);
-        System.out.println("Choose mode: \n1. Create chat \n2. Get an overview");
+        System.out.println("Choose mode: \n1. Create chat \n2. Get an overview\n3. Join a chat");
         String mode = terminalIn.nextLine();
         if(mode.equals("1")){
-            createChatProtocol();
+            sendCreateChatProtocol();
         }
         else if(mode.equals("2")){
             traderToLobby.put(traderId, "show rooms");
             Object[] roomOverview = lobbyToTrader.get(new ActualField(traderId), new FormalField(String[].class), new FormalField(int.class));
             System.out.println("Following rooms are open:" + roomOverview[0].toString() + roomOverview[1].toString());
             return roomOverview;
+        }
+        else if(mode.equals("3"))
+        {
+            traderToLobby.put(traderId, "join");
+            Object[] response = lobbyToTrader.get(new ActualField(traderId), new FormalField(String.class));
+            System.out.println(response[0]);
         }
         else{
             System.out.println("Invalid input, please press the number of the option you want to choose");

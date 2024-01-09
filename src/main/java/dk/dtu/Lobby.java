@@ -114,8 +114,10 @@ public class Lobby implements Runnable {
 
 
             //Check capacity
+            Object[] joinRequest = chatRoomLobby.get(new ActualField(roomName), new FormalField(String.class));
+            String responseMessage = (String) joinRequest[1];
+            lobbyToTrader.put(traderUuid,responseMessage);
 
-            lobbyToTrader.put("We have not finished this yet");
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -172,13 +174,18 @@ class ChatRoom implements Runnable
 
         if(usersRegister.contains(userID))
         {
+            chatRoomLobby.put(name,"User already exists");
             return;
         }
 
         if(this.totalCapactiy == 0)
             {
-                chatRoomLobby.put(userID,name,"capacity full");
+                chatRoomLobby.put(name,"capacity full");
+                return;
             }
+
+        this.totalCapactiy -= 1;
+        this.usersRegister.add(userID);
     }
 
     public void run()
@@ -193,6 +200,16 @@ class ChatRoom implements Runnable
                 {
                     case "join":
                         Object[] joinAttempt = chatRoomLobby.get(new FormalField(String.class),new FormalField(String.class));
+                        String userID = (String) joinAttempt[0];
+                        String attemptedPassword = (String) joinAttempt[1];
+
+                        if(attemptedPassword.equals(password))
+                        {
+                            chatRoomLobby.put(name,"Wrong password");
+                        }
+
+                        recordNewUser(userID);
+                        chatRoomLobby.put(name,"Succesfully joined");
 
                 }
 
