@@ -7,14 +7,14 @@ import java.util.*;
 
 public class Broker implements Runnable {
 
-    String brokerUuid;
-    SequentialSpace requestSpace;
-    String hostIp;
-    int hostPort;
-    String hostUri;
+    private String brokerId;
+    private SequentialSpace requestSpace;
+    private String hostIp;
+    private int hostPort;
+    private String hostUri;
 
     public Broker(String hostIp, int hostPort) {
-        this.brokerUuid = UUID.randomUUID().toString();
+        this.brokerId = UUID.randomUUID().toString();
         this.requestSpace = new SequentialSpace();
         this.hostIp = hostIp;
         this.hostPort = hostPort;
@@ -32,16 +32,19 @@ public class Broker implements Runnable {
         while (true) {
             try {
                 // UUID "buy/sell" order
-                Object[] request = requestSpace.get(new ActualField(brokerUuid), new FormalField(String.class), new FormalField(Order.class));
-                Order order = (Order) request[2];
+                Object[] request = requestSpace.get(new ActualField(brokerId), new FormalField(String.class), new FormalField(String.class), new FormalField(Order.class));
+                System.out.println("Broker " + request[0].toString() + " received order" + request[2].toString());
+                Order order = (Order) request[3];
                 String companyTicker = order.getTicker();
                 setHostUri(companyTicker);
+                String orderType = request[2].toString();
+                System.out.println("Order type is " + orderType + ". And company ticker is " +companyTicker);
 
 
-                switch (request[1].toString()) {
+                switch (request[2].toString()) {
                     case "buy":
                         //Query all sell orders of the specific company and sort the results from lowest to highest price
-                        List<Object[]> query = querySellOrdersCompanySpace();
+                        List<Object[]> query = querySellOrdersCompanySpace(); //TODO måske queryp?
                         ArrayList<CompanySellOrder> sortedSellOrders = sortSellOrders(query);
                         if (sortedSellOrders.size() == 0) {
                             System.out.println("No sell orders found for company: " + companyTicker);
@@ -52,26 +55,29 @@ public class Broker implements Runnable {
                         int maxAmountWanted = order.getAmount();
                         for (CompanySellOrder sellOrder : sortedSellOrders) {
                             int amountRemaning = maxAmountWanted - currentAmountBought;
-                            if (sellOrder.getPrice() <= priceMaxBid || !(currentAmountBought >= maxAmountWanted)) { //TODO burde være ==, ikke >=, men vi skriver det alligevel
+                            if (sellOrder.getPrice() <= priceMaxBid || !(currentAmountBought >= maxAmountWanted)) { //TODO burde være ==, ikke >=, men vi skriver det alligevel. Kan throw error her
                                 //Her har vi fundet en salgsorder, som udbyder til en pris som vi gerne vil give
                                 //Vi skal så handle ud fra hvor mange aktier, som ordren udbyder
                                 int sellOrderStockAmount = sellOrder.getAmount();
                                 if (sellOrderStockAmount <= amountRemaning) {
                                     currentAmountBought += buyEntireOrder(sellOrder);
+                                    //TODO overfør så her penge og aktier fra køber til sælger
                                 } else if (sellOrderStockAmount > amountRemaning) {
+                                    //TODO overfør så her penge og aktier fra køber til sælger
                                     buyPartialOrder(sellOrder, amountRemaning);
                                 }
                             } else{
                                 System.out.println("Couldnt not meet order at price: " + priceMaxBid);
                             }
                         }
-
-                        break;
+                        return;
                     case "sell":
+                        System.out.println("Broker " + request[0].toString() + " received sell order " + request[2].toString());
                         // Get company ticker from order and set hostUri
                         RemoteSpace companySpace = new RemoteSpace(hostUri);
                         // send to host
-                        companySpace.put((String) request[0], (String) request[1], (Order) request[2]);
+                        companySpace.put((String) request[0], (String) request[1], (String) request[2], (Order) request[3]);
+                        System.out.println("Sell order sent to company space");
                         return;
                     default:
                         System.out.println("Broker " + request[0].toString() + " received unknown order" + request[2].toString());
@@ -79,7 +85,7 @@ public class Broker implements Runnable {
                 }
 
                 // This will terminate the broker
-                return;
+                return; //TODO potential error i de her return/break statements
             } catch (Exception e) {
                 e.printStackTrace();
                 throw new RuntimeException("Error in broker");
@@ -88,8 +94,13 @@ public class Broker implements Runnable {
 
     }
 
-    private List<Object[]> querySellOrdersCompanySpace() {
-        return requestSpace.queryAll(new FormalField(String.class), new FormalField(String.class), new ActualField("sell"), new FormalField(Order.class));
+    private List<Object[]> querySellOrdersCompanySpace() throws IOException, InterruptedException {
+        System.out.println("Querying company space for sell orders");
+        RemoteSpace companySpace = new RemoteSpace(hostUri);
+        List<Object[]> result = companySpace.queryAll(new FormalField(String.class), new FormalField(String.class), new ActualField("sell"), new FormalField(Order.class));
+        System.out.println("Query result size: " + result.size());
+        System.out.println("Query result: " + result.toString());
+        return result;
     }
 
     private ArrayList<CompanySellOrder> sortSellOrders(List<Object[]> sellOrders) {
@@ -113,7 +124,7 @@ public class Broker implements Runnable {
 
     private int buyEntireOrder(CompanySellOrder companySellOrder) throws IOException, InterruptedException {
         RemoteSpace companySpace = new RemoteSpace(hostUri);
-        //TODO her bruges getp. Måske skal det laves om til en ticket mechanic?
+        //TODO her bruges getp. Måske skal det laves om til en ticket/lock mechanic?
         Object[] result = companySpace.getp(new FormalField(String.class), new ActualField(companySellOrder.getOrderId()), new FormalField(String.class), new FormalField(Order.class));
         if (result != null) {
             Order order = (Order) result[3];
@@ -133,7 +144,10 @@ public class Broker implements Runnable {
             order.setAmount(order.getAmount() - amountWanted);
             companySpace.put((String) result[0], (String) result[1], (String) result[2], order);
         } else {
+            //TODO throw exception istedet
             System.out.println("Recieved result from company space was null");
         }
     }
+
+    public String getBrokerId() { return brokerId; }
 }

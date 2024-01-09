@@ -19,8 +19,6 @@ public class Host {
         Exchange exchange = new Exchange(hostIp, hostPort, repository);
         new Thread(exchange).start();
 
-            // Object[] request = hostSpace.get(new FormalField(String.class), new FormalField(String.class), new FormalField(Order.class));
-            // System.out.println("Host received request: " + request[0].toString() + " " + request[1].toString()+ " " + request[2].toString());
 
     }
 }

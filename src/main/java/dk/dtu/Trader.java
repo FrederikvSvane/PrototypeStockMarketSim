@@ -34,9 +34,9 @@ public class Trader implements Runnable {
         new Thread(broker).start();
 
         if (orderType.equals("buy")) {
-            sendBuyOrder(broker.brokerUuid, broker, order);
+            sendBuyOrder(broker.getBrokerId(), broker, order);
         } else if (orderType.equals("sell")) {
-            sendSellOrder(broker.brokerUuid, broker, order);
+            sendSellOrder(broker.getBrokerId(), broker, order);
         }
     }
 
@@ -49,6 +49,7 @@ public class Trader implements Runnable {
     public void sendSellOrder(String brokerUuid, Broker broker, Order order) throws IOException, InterruptedException {
         Space requestSpace = broker.getRequestSpace();
         requestSpace.put(brokerUuid, order.getOrderId(), "sell", order);
+        System.out.println("Sell order sent to broker");
         //TODO get response of order completion result from broker here?
     }
 
@@ -90,6 +91,8 @@ class Order {
         this.stockName = stockName;
         this.amount = amount;
         this.price = price;
+
+        tickerMap.put("Apple", "AAPL");
     }
 
     @Override
