@@ -33,14 +33,10 @@ public class Broker implements Runnable {
             try {
                 // UUID "buy/sell" order
                 Object[] request = requestSpace.get(new ActualField(brokerId), new FormalField(String.class), new FormalField(String.class), new FormalField(Order.class));
-                System.out.println("Broker " + request[0].toString() + " received order" + request[2].toString());
                 Order order = (Order) request[3];
                 String companyTicker = order.getTicker();
                 setHostUri(companyTicker);
                 String orderType = request[2].toString();
-                System.out.println("Order type is " + orderType + ". And company ticker is " +companyTicker);
-
-
                 switch (request[2].toString()) {
                     case "buy":
                         //Query all sell orders of the specific company and sort the results from lowest to highest price
@@ -72,7 +68,6 @@ public class Broker implements Runnable {
                         }
                         return;
                     case "sell":
-                        System.out.println("Broker " + request[0].toString() + " received sell order " + request[2].toString());
                         // Get company ticker from order and set hostUri
                         RemoteSpace companySpace = new RemoteSpace(hostUri);
                         // send to host
@@ -95,11 +90,8 @@ public class Broker implements Runnable {
     }
 
     private List<Object[]> querySellOrdersCompanySpace() throws IOException, InterruptedException {
-        System.out.println("Querying company space for sell orders");
         RemoteSpace companySpace = new RemoteSpace(hostUri);
         List<Object[]> result = companySpace.queryAll(new FormalField(String.class), new FormalField(String.class), new ActualField("sell"), new FormalField(Order.class));
-        System.out.println("Query result size: " + result.size());
-        System.out.println("Query result: " + result.toString());
         return result;
     }
 
