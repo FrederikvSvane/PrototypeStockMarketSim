@@ -163,6 +163,7 @@ public class Trader extends DistributedClient implements Runnable{
         else if(mode.equals("3"))
         {
             traderToLobby.put(traderId, "join");
+            sendJoinChatProtocol();
             Object[] response = lobbyToTrader.get(new ActualField(traderId), new FormalField(String.class));
             String responseMessage = (String) response[1];
             System.out.println(responseMessage);
