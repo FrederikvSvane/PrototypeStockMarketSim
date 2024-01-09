@@ -118,10 +118,19 @@ public class Trader extends DistributedClient implements Runnable{
         String roomName = terminalIn.nextLine();
         System.out.println("Enter password: ");
         String password = terminalIn.nextLine();
+        System.out.println("Enter maxCapacity): ");
+        int capacity = Integer.parseInt(terminalIn.nextLine());
+
+        if(capacity <= 0)
+        {
+            System.out.println("Capacity was equal to or below 0, so it is set to 1.");
+            capacity = 1;
+        }
+
         traderToLobby.put(traderId, "create chat");
-        traderToLobby.put(traderId,roomName,password, 10);
-        Object[] roomCreationAnswer = lobbyToTrader.get(new ActualField(traderId), new FormalField(String.class));
-        System.out.println("We got the response:" + roomCreationAnswer[0].toString() + roomCreationAnswer[1].toString());
+        traderToLobby.put(traderId,roomName,password, capacity);
+        Object[] roomCreationAnswer = lobbyToTrader.get(new ActualField(traderId), new FormalField(String.class), new FormalField(String.class));
+        System.out.println("We got the response:" + roomCreationAnswer[0].toString() + roomCreationAnswer[1].toString() + roomCreationAnswer[2].toString());
     }
 
     public Object[] chatMenu() throws Exception {

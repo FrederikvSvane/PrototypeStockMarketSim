@@ -2,26 +2,31 @@ package dk.dtu;
 
 import org.jspace.*;
 
-import java.util.HashMap;
+import java.util.ArrayList;
 
 public class Lobby implements Runnable {
 
     String hostIp;
     int hostPort;
-    SpaceRepository chatRepo;
+    SpaceRepository hostRepo;
     SequentialSpace traderToLobby;
     SequentialSpace lobbyToTrader;
+    Space chatRoomLobby;
+    ArrayList<String> roomRegister = new ArrayList<String>();
+
 
     public Lobby(String hostIp, int hostPort, SpaceRepository chatRepo)
     {
         this.hostIp = hostIp;
         this.hostPort = hostPort;
-        this.chatRepo = chatRepo;
+        this.hostRepo = chatRepo;
         this.traderToLobby = new SequentialSpace();
         this.lobbyToTrader = new SequentialSpace();
-        chatRepo.add("traderToLobby",traderToLobby);
-        chatRepo.add("lobbyToTrader",lobbyToTrader);
-
+        this.chatRoomLobby = new SequentialSpace();
+        hostRepo.add("traderToLobby",traderToLobby);
+        hostRepo.add("lobbyToTrader",lobbyToTrader);
+        //ChatRoomLobby is used to communicate between the chatroom and the lobby
+        hostRepo.add("chatRoomLobby", chatRoomLobby);
     }
 
     public void run()
@@ -36,8 +41,12 @@ public class Lobby implements Runnable {
                     case "create chat":
                         createRoom(requester);
                         break;
+                    case "show overview":
+                        break;
                     case "join":
                         joinRoom(requester);
+                        break;
+                    case "delete room":
                         break;
 
                     default:
@@ -58,16 +67,20 @@ public class Lobby implements Runnable {
             String roomName = (String) req[1];
             String password = (String) req[2];
             int capacity = (int) req[3];
-            Space roomExists =  chatRepo.get(roomName);
+            Space roomExists =  hostRepo.get(roomName);
 
+            //If the room exists
             if(roomExists != null) {
                 lobbyToTrader.put(traderUuid, "room with name" + roomName + "already exists");
                 return;
             }
 
-            Space chatRoom = new SequentialSpace();
-            chatRepo.add(roomName,chatRoom);
-            new Thread(new ChatRoom(chatRoom, roomName, password, capacity)).start();
+            //ChatRoomTrader is used to send messages between traders
+            Space chatRoomTrader = new SequentialSpace();
+
+            hostRepo.add(roomName,chatRoomTrader);
+            new Thread(new ChatRoom(chatRoomLobby,chatRoomTrader, roomName, password, capacity)).start();
+            roomRegister.add(roomName);
             lobbyToTrader.put(traderUuid, "room with name" + roomName + "created");
 
 
@@ -87,13 +100,21 @@ public class Lobby implements Runnable {
             Object[] req = traderToLobby.get(new ActualField(traderUuid), new FormalField(String.class), new FormalField(String.class));
             String roomName = (String) req[1];
             String password = (String) req[2];
-            Space chatRoom = chatRepo.get(roomName);
+            Space chatRoom = hostRepo.get(roomName);
 
+            //If a room doesn't exist we create it.
             if(chatRoom == null) {
                 createRoom(traderUuid);
             }
 
-            //TODO: check if password is correct
+
+            //Check password
+            chatRoomLobby.put(roomName,"join");
+            chatRoomLobby.put(traderUuid,password);
+
+
+            //Check capacity
+
             lobbyToTrader.put("We have not finished this yet");
 
         } catch (Exception e) {
@@ -103,24 +124,31 @@ public class Lobby implements Runnable {
 
     }
 
+    public void getOverview(String traderUuid)
+    {
+
+
+    }
 }
 
 class ChatRoom implements Runnable
 {
-    Space chatRoom;
+    Space chatRoomTrader;
+    Space chatRoomLobby;
     String name;
     String password;
     int totalCapactiy;
     int currentCapacity;
-    String[] users;
+    ArrayList<String> usersRegister = new ArrayList<String>();
 
 
-    public ChatRoom(Space chatRoom, String name, String password, int totalCapactiy)
+    public ChatRoom(Space chatRoomLobby, Space chatRoomTrader, String name, String password, int totalCapactiy)
     {
-        this.chatRoom = chatRoom;
+        this.chatRoomTrader = chatRoomTrader;
         this.name = name;
         this.password = password;
         this.totalCapactiy = totalCapactiy;
+        this.chatRoomLobby = chatRoomLobby;
     }
 
 
@@ -140,9 +168,41 @@ class ChatRoom implements Runnable
         return totalCapactiy;
     }
 
+    public void recordNewUser(String userID) throws InterruptedException {
+
+        if(usersRegister.contains(userID))
+        {
+            return;
+        }
+
+        if(this.totalCapactiy == 0)
+            {
+                chatRoomLobby.put(userID,name,"capacity full");
+            }
+    }
+
     public void run()
     {
-        return;
+        while (true)
+        {
+            try {
+                Object[] req = chatRoomLobby.get(new ActualField(name),new FormalField(String.class));
+                String userID = (String) req[0];
+                String command = (String) req[1];
+
+                switch (command)
+                {
+                    case "join":
+                        Object[] joinAttempt = chatRoomLobby.get()
+
+                }
+
+            } catch (Exception e) {
+                e.printStackTrace();
+                throw new RuntimeException(e);
+            }
+
+        }
     }
 
 }
