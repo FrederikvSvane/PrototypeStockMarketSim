@@ -7,55 +7,82 @@ import java.util.UUID;
 
 import org.jspace.*;
 
-public class Trader implements Runnable {
+public class Trader extends DistributedClient implements Runnable {
     String traderId;
     String hostIp;
+    String traderToLobbyName;
+    String lobbyToTraderName;
+    RemoteSpace traderToLobby;
+    RemoteSpace lobbyToTrader;
     int hostPort;
 
-    public Trader(String hostIp, int hostPort) {
+    public Trader(String traderToLobbyName, String lobbyToTraderName) {
         this.traderId = UUID.randomUUID().toString();
-        this.hostIp = hostIp;
-        this.hostPort = hostPort;
+        this.hostIp = HostUtil.getHostIp();
+        this.hostPort = HostUtil.getHostPort();
+        this.traderToLobbyName = traderToLobbyName;
+        this.lobbyToTraderName = lobbyToTraderName;
+        try {
+            this.traderToLobby = new RemoteSpace(createUri(hostIp, hostPort, this.traderToLobbyName));
+            this.lobbyToTrader = new RemoteSpace(createUri(hostIp, hostPort, this.lobbyToTraderName));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     public void run() {
         while (true) {
-            try {
-                consoleInputToBuyOrder();
-            } catch (Exception e) {
-                e.printStackTrace();
-                throw new RuntimeException("Error in trader");
+            String mode = chooseMode();
+
+            switch (mode) {
+                case "trade": {
+                    try {
+                        consoleInputToBuyOrder();
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        throw new RuntimeException("Error in trader");
+                    }
+                }
+                case "chat": {
+                    try {
+                        chatMenu();
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        throw new RuntimeException("Error in trader");
+                    }
+                }
             }
         }
     }
 
     private void sendOrderToBroker(String orderType, Order order) throws IOException, InterruptedException {
-        Broker broker = new Broker(hostIp, hostPort);
+        Broker broker = new Broker();
         new Thread(broker).start();
 
+        //TODO det skal faktisk bare sendes til brokeren, og så skal den sende det videre til exchange
+        //TODO så både sendBuyOrder og sendSellOrder skal ligge inde i Broker.java
+
         if (orderType.equals("buy")) {
-            sendBuyOrder(broker.getBrokerId(), broker, order);
+            sendBuyOrder(traderId, broker, order);
         } else if (orderType.equals("sell")) {
-            sendSellOrder(broker.getBrokerId(), broker, order);
+            sendSellOrder(traderId, broker, order);
         }
     }
 
-    public void sendBuyOrder(String brokerUuid, Broker broker, Order order) throws IOException, InterruptedException {
+    public void sendBuyOrder(String traderId, Broker broker, Order order) throws IOException, InterruptedException { //TODO fjern traderId fordi det allerede kendes i hele scope. Samme i metoden under
         Space requestSpace = broker.getRequestSpace();
-        requestSpace.put(brokerUuid, order.getOrderId(), "buy", order);
+        requestSpace.put(traderId, order.getOrderId(), "buy", order);
         //TODO get response of order completion result from broker here?
     }
 
-    public void sendSellOrder(String brokerUuid, Broker broker, Order order) throws IOException, InterruptedException {
+    public void sendSellOrder(String traderId, Broker broker, Order order) throws IOException, InterruptedException {
         Space requestSpace = broker.getRequestSpace();
-        requestSpace.put(brokerUuid, order.getOrderId(), "sell", order);
-        System.out.println("Sell order sent to broker");
+        requestSpace.put(traderId, order.getOrderId(), "sell", order);
         //TODO get response of order completion result from broker here?
     }
 
-    private void consoleInputToBuyOrder() throws IOException, InterruptedException {
+    public void consoleInputToBuyOrder() throws IOException, InterruptedException {
         Scanner terminalIn = new Scanner(System.in);
-        System.out.println("Enter order with format {buy/sell, stock name, amount, price}: ");
         String orderString = terminalIn.nextLine();
         String[] orderParts = orderString.split(" ");
         String orderType = orderParts[0];
@@ -65,81 +92,85 @@ public class Trader implements Runnable {
         Order order = new Order(traderId, stockName, amount, price);
         sendOrderToBroker(orderType, order);
     }
+
+    public String chooseMode() {
+        Scanner terminalIn = new Scanner(System.in);
+        System.out.println("Choose mode: \n1. Create trade \n2. Open chat");
+        String mode = terminalIn.nextLine();
+        if (mode.equals("1")) {
+            return "trade";
+        } else if (mode.equals("2")) {
+            return "chat";
+        } else {
+            System.out.println("Invalid input");
+            return chooseMode();
+        }
+    }
+
+    public void sendCreateChatProtocol() throws Exception {
+        Scanner terminalIn = new Scanner(System.in);
+        System.out.println("Enter room name: ");
+        String roomName = terminalIn.nextLine();
+        System.out.println("Enter password: ");
+        String password = terminalIn.nextLine();
+        System.out.println("Enter maxCapacity): ");
+        int capacity = Integer.parseInt(terminalIn.nextLine());
+
+        if (capacity <= 0) {
+            System.out.println("Capacity was equal to or below 0, so it is set to 1.");
+            capacity = 1;
+        }
+
+        traderToLobby.put(traderId, "create chat");
+        traderToLobby.put(traderId, roomName, password, capacity);
+        Object[] roomCreationAnswer = lobbyToTrader.get(new ActualField(traderId), new FormalField(String.class), new FormalField(String.class));
+        System.out.println("We got the response:" + roomCreationAnswer[0].toString() + roomCreationAnswer[1].toString() + roomCreationAnswer[2].toString());
+    }
+
+    public String sendJoinChatProtocol() throws Exception {
+        Scanner terminalIn = new Scanner(System.in);
+        System.out.println("Enter room name: ");
+        String roomName = terminalIn.nextLine();
+        System.out.println("Enter password: ");
+        String password = terminalIn.nextLine();
+
+        traderToLobby.put(traderId, roomName, password);
+        Object[] response = lobbyToTrader.get(new ActualField(traderId), new FormalField(String.class));
+        String responseMessage = (String) response[1];
+        System.out.println("We got the response: " + responseMessage);
+        return responseMessage;
+    }
+
+
+    public Object[] chatMenu() throws Exception {
+        Scanner terminalIn = new Scanner(System.in);
+        System.out.println("Choose mode: \n1. Create chat \n2. Get an overview\n3. Join a chat");
+        String mode = terminalIn.nextLine();
+        if (mode.equals("1")) {
+            sendCreateChatProtocol();
+        } else if (mode.equals("2")) {
+            traderToLobby.put(traderId, "show rooms");
+            Object[] roomOverview = lobbyToTrader.get(new ActualField(traderId), new FormalField(String[].class), new FormalField(int.class));
+            System.out.println("Following rooms are open:" + roomOverview[0].toString() + roomOverview[1].toString());
+            return roomOverview;
+        } else if (mode.equals("3")) {
+            traderToLobby.put(traderId, "join");
+            String responseMessage = sendJoinChatProtocol();
+            if (responseMessage.equals("Create room it doesn't exist")) {
+                System.out.println("Whatever");
+                sendCreateChatProtocol();
+            }
+
+        } else {
+            System.out.println("Invalid input, please press the number of the option you want to choose");
+            return chatMenu();
+        }
+        return null;
+    }
+
+
+    public String getTraderId() {
+        return traderId;
+    }
 }
 
-class Order {
-    private String orderId;
-    private String traderId;
-    private String stockName;
-    private int amount;
-    private float price;
-
-    private HashMap<String, String> tickerMap = new HashMap<String, String>();
-
-    public Order(String traderId, String stockName, int amount, float price) {
-        this.orderId = UUID.randomUUID().toString();
-        this.stockName = stockName;
-        this.amount = amount;
-        this.price = price;
-
-        tickerMap.put("Apple", "AAPL");
-    }
-
-    public Order(String traderId, String orderId, String stockName, int amount, float price) {
-        this.traderId = traderId;
-        this.orderId = orderId;
-        this.stockName = stockName;
-        this.amount = amount;
-        this.price = price;
-
-        tickerMap.put("Apple", "AAPL");
-    }
-
-    @Override
-    public String toString() {
-        return "Order{" +
-                "stockName='" + stockName + '\'' +
-                ", amount=" + amount +
-                ", price=" + price +
-                '}';
-    }
-
-    public float getPrice() {
-        return price;
-    }
-
-    public int getAmount() {
-        return amount;
-    }
-
-    public String getStockName() {
-        return stockName;
-    }
-
-    public String getTicker() {
-        return tickerMap.get(stockName);
-    }
-
-    public String getOrderId() {
-        return orderId;
-    }
-
-    public String getTraderId() { return traderId;
-    }
-
-    public void setAmount(int n) { amount = n; }
-}
-
-class CompanySellOrder extends Order {
-
-    String brokerUUID;
-
-    public CompanySellOrder(String traderId, String brokerUUID, String orderId, String companyName, int amount, float price) {
-        super(traderId, orderId, companyName, amount, price);
-        this.brokerUUID = brokerUUID;
-    }
-
-    public String getbrokerUUID() {
-        return brokerUUID;
-    }
-}

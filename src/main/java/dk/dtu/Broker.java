@@ -9,51 +9,46 @@ public class Broker implements Runnable {
 
     private String brokerId;
     private SequentialSpace requestSpace;
-    private String hostIp;
-    private int hostPort;
-    private String hostUri;
 
-    public Broker(String hostIp, int hostPort) {
+    private String uriConnection;
+
+    public Broker() {
         this.brokerId = UUID.randomUUID().toString();
         this.requestSpace = new SequentialSpace();
-        this.hostIp = hostIp;
-        this.hostPort = hostPort;
+
     }
 
-    private void setHostUri(String companyName) {
-        this.hostUri = "tcp://" + hostIp + ":" + hostPort + "/" + companyName + "?keep";
-    }
 
     public Space getRequestSpace() {
         return requestSpace;
     }
 
     public void run() {
-        while (true) {
+        while (true) { //TODO den skal måske ikke have et while overhovedet da det ikke bliver brugt
             try {
                 // UUID "buy/sell" order
-                Object[] request = requestSpace.get(new ActualField(brokerId), new FormalField(String.class), new FormalField(String.class), new FormalField(Order.class));
-                System.out.println("Broker " + request[0].toString() + " received order" + request[2].toString());
+                Object[] request = requestSpace.get(new FormalField(String.class) /*traderId*/, new FormalField(String.class) /*orderId*/, new FormalField(String.class)/*orderType*/, new FormalField(Order.class)/*Order*/);
                 Order order = (Order) request[3];
+
+                //TODO ændre det her i fremtiden, når vi kan hente companies og prices fra CompaniesAndPrices Space i Exchange
                 String companyTicker = order.getTicker();
-                setHostUri(companyTicker);
+                String uri = ClientUtil.getHostUri("");  //TODO den skal have et rigtig room navn
+                uriConnection = ClientUtil.setConnectType(uri,"keep");
+
                 String orderType = request[2].toString();
-                System.out.println("Order type is " + orderType + ". And company ticker is " +companyTicker);
-
-
-                switch (request[2].toString()) {
+                switch (orderType) {
                     case "buy":
                         //Query all sell orders of the specific company and sort the results from lowest to highest price
                         List<Object[]> query = querySellOrdersCompanySpace(); //TODO måske queryp?
-                        ArrayList<CompanySellOrder> sortedSellOrders = sortSellOrders(query);
-                        if (sortedSellOrders.size() == 0) {
+                        ArrayList<Order> sortedSellOrders = sortSellOrders(query);
+                        if (sortedSellOrders.isEmpty()) {
                             System.out.println("No sell orders found for company: " + companyTicker);
                             break;
                         }
                         float priceMaxBid = order.getPrice();
                         int currentAmountBought = 0;
                         int maxAmountWanted = order.getAmount();
-                        for (CompanySellOrder sellOrder : sortedSellOrders) {
+                        for (Order sellOrder : sortedSellOrders) {
                             int amountRemaning = maxAmountWanted - currentAmountBought;
                             if (sellOrder.getPrice() <= priceMaxBid || !(currentAmountBought >= maxAmountWanted)) { //TODO burde være ==, ikke >=, men vi skriver det alligevel. Kan throw error her
                                 //Her har vi fundet en salgsorder, som udbyder til en pris som vi gerne vil give
@@ -72,9 +67,8 @@ public class Broker implements Runnable {
                         }
                         return;
                     case "sell":
-                        System.out.println("Broker " + request[0].toString() + " received sell order " + request[2].toString());
                         // Get company ticker from order and set hostUri
-                        RemoteSpace companySpace = new RemoteSpace(hostUri);
+                        RemoteSpace companySpace = new RemoteSpace(uriConnection);
                         // send to host
                         companySpace.put((String) request[0], (String) request[1], (String) request[2], (Order) request[3]);
                         System.out.println("Sell order sent to company space");
@@ -95,37 +89,33 @@ public class Broker implements Runnable {
     }
 
     private List<Object[]> querySellOrdersCompanySpace() throws IOException, InterruptedException {
-        System.out.println("Querying company space for sell orders");
-        RemoteSpace companySpace = new RemoteSpace(hostUri);
+        RemoteSpace companySpace = new RemoteSpace(uriConnection);
         List<Object[]> result = companySpace.queryAll(new FormalField(String.class), new FormalField(String.class), new ActualField("sell"), new FormalField(Order.class));
-        System.out.println("Query result size: " + result.size());
-        System.out.println("Query result: " + result.toString());
         return result;
     }
 
-    private ArrayList<CompanySellOrder> sortSellOrders(List<Object[]> sellOrders) {
+    private ArrayList<Order> sortSellOrders(List<Object[]> sellOrders) {
         //Add all sell orders to sortedSellOrders
-        ArrayList<CompanySellOrder> sortedSellOrders = new ArrayList<>();
+        ArrayList<Order> sortedSellOrders = new ArrayList<>();
         for (Object[] sellOrder : sellOrders) {
             Order order = (Order) sellOrder[3];
             String traderId = order.getTraderId();
-            String brokerId = (String) sellOrder[0];
             String orderId = order.getOrderId();
             String companyName = order.getStockName();
             int amount = order.getAmount();
             float price = order.getPrice();
-            sortedSellOrders.add(new CompanySellOrder(traderId, brokerId, orderId, companyName, amount, price));
+            sortedSellOrders.add(new Order(traderId, orderId, companyName, amount, price));
         }
 
         //Sort sell orders by price
-        Collections.sort(sortedSellOrders, Comparator.comparing(CompanySellOrder::getPrice));
+        sortedSellOrders.sort(Comparator.comparing(Order::getPrice));
         return sortedSellOrders;
     }
 
-    private int buyEntireOrder(CompanySellOrder companySellOrder) throws IOException, InterruptedException {
-        RemoteSpace companySpace = new RemoteSpace(hostUri);
+    private int buyEntireOrder(Order sellOrder) throws IOException, InterruptedException {
+        RemoteSpace companySpace = new RemoteSpace(uriConnection);
         //TODO her bruges getp. Måske skal det laves om til en ticket/lock mechanic?
-        Object[] result = companySpace.getp(new FormalField(String.class), new ActualField(companySellOrder.getOrderId()), new FormalField(String.class), new FormalField(Order.class));
+        Object[] result = companySpace.getp(new FormalField(String.class), new ActualField(sellOrder.getOrderId()), new FormalField(String.class), new FormalField(Order.class));
         if (result != null) {
             Order order = (Order) result[3];
             return order.getAmount();
@@ -135,10 +125,10 @@ public class Broker implements Runnable {
         }
     }
 
-    private void buyPartialOrder(CompanySellOrder companySellOrder, int amountWanted) throws IOException, InterruptedException {
+    private void buyPartialOrder(Order sellOrder, int amountWanted) throws IOException, InterruptedException {
         //get order, update amount of order, put it back
-        RemoteSpace companySpace = new RemoteSpace(hostUri);
-        Object[] result = companySpace.getp(new FormalField(String.class), new ActualField(companySellOrder.getOrderId()), new FormalField(String.class), new FormalField(Order.class));
+        RemoteSpace companySpace = new RemoteSpace(uriConnection);
+        Object[] result = companySpace.getp(new FormalField(String.class), new ActualField(sellOrder.getOrderId()), new FormalField(String.class), new FormalField(Order.class));
         if (result != null) {
             Order order = (Order) result[3];
             order.setAmount(order.getAmount() - amountWanted);

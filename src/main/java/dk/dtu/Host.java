@@ -1,23 +1,19 @@
 package dk.dtu;
 
-import org.jspace.FormalField;
-import org.jspace.SequentialSpace;
-import org.jspace.Space;
 import org.jspace.SpaceRepository;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
 
 public class Host {
 
-    static String hostIp = "10.209.74.151";
-    static int hostPort = 32989;
+    public static void main(String[] args) throws InterruptedException {
 
-    public static void main(String[] args) throws UnknownHostException {
+        HostUtil.initialize();
+        ClientUtil.initialize();
 
         SpaceRepository repository = new SpaceRepository();
 
-        Exchange exchange = new Exchange(hostIp, hostPort, repository);
+        Exchange exchange = new Exchange(repository);
         new Thread(exchange).start();
+        new Thread(new Lobby(repository)).start();
 
 
     }
