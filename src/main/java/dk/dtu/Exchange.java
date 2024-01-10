@@ -7,7 +7,7 @@ public class Exchange implements Runnable {
 
     //This space contains the companies, whose stocks are traded at the exchange, and their current respective prices
     //Structure: (companyId, companyName, companyTicker, currentStockPrice) + Ticket
-    private Space companiesAndPricesSpace = new SequentialSpace();
+    private Space companiesAndPriceHistorySpace = new SequentialSpace();
 
     //This space contains the orders that the exchange has to process
     //Structure: (orderId, orderType, Company, amount, price)
@@ -15,8 +15,8 @@ public class Exchange implements Runnable {
 
     public Exchange(SpaceRepository exchangeRepository) throws InterruptedException {
         this.exchangeRepository = exchangeRepository;
-        this.companiesAndPricesSpace.put("ticket");
-        this.exchangeRepository.add("companiesAndPricesSpace", companiesAndPricesSpace);
+        this.companiesAndPriceHistorySpace.put("ticket");
+        this.exchangeRepository.add("companiesAndPricesSpace", companiesAndPriceHistorySpace);
         this.exchangeRepository.add("exchangeRequestSpace", exchangeRequestSpace);
         String uri = ClientUtil.getHostUri("");
         String uriConnection = ClientUtil.setConnectType(uri, "keep"); // TODO skriv til alberdo om vi skal bruge keep eller ingenting

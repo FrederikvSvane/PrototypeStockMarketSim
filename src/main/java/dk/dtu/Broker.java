@@ -9,13 +9,11 @@ public class Broker implements Runnable {
 
     private String brokerId;
     private SequentialSpace requestSpace;
-
     private String uriConnection;
 
     public Broker() {
         this.brokerId = UUID.randomUUID().toString();
         this.requestSpace = new SequentialSpace();
-
     }
 
 
@@ -31,7 +29,7 @@ public class Broker implements Runnable {
                 Order order = (Order) request[3];
 
                 //TODO ændre det her i fremtiden, når vi kan hente companies og prices fra CompaniesAndPrices Space i Exchange
-                String companyTicker = order.getTicker();
+                // String companyTicker = order.getTicker();
                 String uri = ClientUtil.getHostUri("");  //TODO den skal have et rigtig room navn
                 uriConnection = ClientUtil.setConnectType(uri,"keep");
 
@@ -42,7 +40,7 @@ public class Broker implements Runnable {
                         List<Object[]> query = querySellOrdersCompanySpace(); //TODO måske queryp?
                         ArrayList<Order> sortedSellOrders = sortSellOrders(query);
                         if (sortedSellOrders.isEmpty()) {
-                            System.out.println("No sell orders found for company: " + companyTicker);
+                            System.out.println("No sell orders found for company: " /* + companyTicker*/);
                             break;
                         }
                         float priceMaxBid = order.getPrice();
