@@ -7,8 +7,8 @@ public class HostUtil {
         // Private constructor to prevent instantiation
     }
 
-    public static void initialize(String ip) {
-        hostIp = ip;
+    public static void initialize() {
+        hostIp = "10.209.74.151";
         hostPort = 10151;
     }
 

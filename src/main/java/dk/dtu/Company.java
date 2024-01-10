@@ -7,20 +7,17 @@ import org.jspace.RemoteSpace;
 import org.jspace.Space;
 
 public class Company implements Runnable{
-    private String hostIp;
-    private int hostPort;
     private String companyId;
     private String companyName;
     private String companyTicker;
     private int amountOfStocks;
     private int amountOfNonTradedStocks;
 
-    public Company(String hostIp, int hostPort, String companyName, String companyTicker) {
-        this.hostIp = hostIp;
-        this.hostPort = hostPort;
+    public Company(String companyName, String companyTicker) {
         this.companyId = UUID.randomUUID().toString();
         this.companyName = companyName;
         this.companyTicker = companyTicker;
+
     }
 
     @Override
@@ -36,7 +33,7 @@ public class Company implements Runnable{
 
 
     private void sendRequestToCompanyBroker(String orderType, Order order) throws InterruptedException {
-        CompanyBroker companyBroker = new CompanyBroker(hostIp, hostPort);
+        CompanyBroker companyBroker = new CompanyBroker();
         new Thread(companyBroker).start();
         companyBroker.getRequestSpace().put(orderType, this, order);
 /*
@@ -55,8 +52,10 @@ public class Company implements Runnable{
     }
 
     private void sendIpoRequestToExchange(CompanyBroker companyBroker, Order order) throws IOException, InterruptedException {
-        String hostUri = "tcp://" + hostIp + ":" + hostPort + "/exchangeRequestSpace?keep"; //TODO er keep den rigtige forbindelse her? Og hvad med alle andre steder? STOR TODO
-        Space exchangeRequestSpace = new RemoteSpace(hostUri);
+        String uri = ClientUtil.getHostUri("exchangeRequestSpace");  //TODO den skal have et rigtig room navn
+        String uriConnection = ClientUtil.setConnectType(uri,"keep");
+        //TODO er keep den rigtige forbindelse her? Og hvad med alle andre steder? STOR TODO
+        Space exchangeRequestSpace = new RemoteSpace(uriConnection);
         exchangeRequestSpace.put(order.getOrderId());
 
     }

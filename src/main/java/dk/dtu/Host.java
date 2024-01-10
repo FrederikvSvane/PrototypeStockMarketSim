@@ -9,14 +9,15 @@ import java.net.UnknownHostException;
 
 public class Host {
 
-    static String hostIp = "10.209.74.151";
-    static int hostPort = 32989;
 
-    public static void main(String[] args) throws UnknownHostException {
+    public static void main(String[] args) throws InterruptedException {
+
+        HostUtil.initialize();
+        ClientUtil.initialize();
 
         SpaceRepository repository = new SpaceRepository();
 
-        Exchange exchange = new Exchange(hostIp, hostPort, repository);
+        Exchange exchange = new Exchange(repository);
         new Thread(exchange).start();
 
 

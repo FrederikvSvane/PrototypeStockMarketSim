@@ -6,10 +6,8 @@ import org.jspace.SequentialSpace;
 import org.jspace.Space;
 
 public class CompanyBroker extends Broker implements Runnable {
-    String hostIp;
-    int hostPort;
-    public CompanyBroker(String hostIp, int hostPort) {
-        super(hostIp, hostPort);
+    public CompanyBroker() {
+        super();
     }
 
     public void run() {
@@ -25,8 +23,9 @@ public class CompanyBroker extends Broker implements Runnable {
                 float price = order.getPrice();
 
                 if (orderType.equals("IPO")) {
-                    String hostUri = "tcp://" + hostIp + ":" + hostPort + "/exchangeRequestSpace?keep"; //TODO er keep den rigtige forbindelse her? Og hvad med alle andre steder? STOR TODO
-                    Space exchangeRequestSpace = new RemoteSpace(hostUri);
+                    String uri = ClientUtil.getHostUri("exchangeRequestSpace");  //TODO den skal have et rigtig room navn
+                    String uriConnection = ClientUtil.setConnectType(uri,"keep");
+                    Space exchangeRequestSpace = new RemoteSpace(uriConnection);
                     exchangeRequestSpace.put(order.getOrderId(), orderType, company, amount, price); //TODO måske skal order bare sendes videre?
 
                 } else if (orderType.equals("buy")) {

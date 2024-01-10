@@ -8,14 +8,11 @@ import java.util.UUID;
 import org.jspace.*;
 
 public class Trader implements Runnable {
-    String traderId;
-    String hostIp;
-    int hostPort;
+    private String traderId;
 
-    public Trader(String hostIp, int hostPort) {
+
+    public Trader() {
         this.traderId = UUID.randomUUID().toString();
-        this.hostIp = hostIp;
-        this.hostPort = hostPort;
     }
 
     public void run() {
@@ -30,7 +27,7 @@ public class Trader implements Runnable {
     }
 
     public void sendOrderToBroker(String orderType, Order order) throws IOException, InterruptedException {
-        Broker broker = new Broker(hostIp, hostPort);
+        Broker broker = new Broker();
         new Thread(broker).start();
 
         //TODO det skal faktisk bare sendes til brokeren, og så skal den sende det videre til exchange
@@ -65,5 +62,9 @@ public class Trader implements Runnable {
         float price = Float.parseFloat(orderParts[3]);
         Order order = new Order(traderId, stockName, amount, price);
         sendOrderToBroker(orderType, order);
+    }
+
+    public String getTraderId() {
+        return traderId;
     }
 }

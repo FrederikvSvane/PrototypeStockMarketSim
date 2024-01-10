@@ -13,22 +13,24 @@ public class Exchange implements Runnable {
     //Structure: (orderId, orderType, Company, amount, price)
     private Space exchangeRequestSpace = new SequentialSpace();
 
-    public Exchange(String hostIp, int hostPort, SpaceRepository exchangeRepository) throws InterruptedException {
+    public Exchange(SpaceRepository exchangeRepository) throws InterruptedException {
         this.exchangeRepository = exchangeRepository;
         this.companiesAndPricesSpace.put("ticket");
         this.exchangeRepository.add("companiesAndPricesSpace", companiesAndPricesSpace);
         this.exchangeRepository.add("exchangeRequestSpace", exchangeRequestSpace);
-        exchangeRepository.addGate("tcp://" + hostIp + ":" + hostPort + "/?keep");
+        String uri = ClientUtil.getHostUri("");
+        String uriConnection = ClientUtil.setConnectType(uri, "keep"); // TODO skriv til alberdo om vi skal bruge keep eller ingenting
+        exchangeRepository.addGate(uriConnection);
     }
 
     public void run() {
-        while(true){
+        while (true) {
             try {
                 // Structure: orderId, orderType, Company, amount, price
                 Object[] currentRequest = exchangeRequestSpace.getp(new FormalField(String.class), new FormalField(String.class), new FormalField(Company.class), new FormalField(Integer.class), new FormalField(Float.class));
-                if (currentRequest != null){
+                if (currentRequest != null) {
                     String orderType = currentRequest[1].toString();
-                    switch (orderType){
+                    switch (orderType) {
                         case "IPO": //Initial Public Offering - The first time a company sells its stocks at the exchange
                             Company company = (Company) currentRequest[2];
                             String companyName = company.getCompanyName();
@@ -40,9 +42,9 @@ public class Exchange implements Runnable {
                             Space companiesAndPricesSpace = exchangeRepository.get("companiesAndPricesSpace");
                             Object[] currentCompanyStatus = companiesAndPricesSpace.queryp(new ActualField(companyId), new ActualField(companyName), new ActualField(companyTicker), new FormalField(Float.class));
                             boolean companyExists = currentCompanyStatus != null;
-                            if(companyExists){
+                            if (companyExists) {
                                 throw new RuntimeException("IPO failed: Company is already listed at the exchange");
-                            }else {
+                            } else {
                                 createCompanyStockSpace(companyTicker);
                                 Space companyStockSpace = exchangeRepository.get(companyTicker);
 
@@ -56,7 +58,6 @@ public class Exchange implements Runnable {
                             break;
                     }
                 }
-
 
 
             } catch (Exception e) {

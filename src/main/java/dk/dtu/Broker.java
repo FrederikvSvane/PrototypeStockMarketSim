@@ -9,27 +9,22 @@ public class Broker implements Runnable {
 
     private String brokerId;
     private SequentialSpace requestSpace;
-    private String hostIp;
-    private int hostPort;
-    private String hostUri;
 
-    public Broker(String hostIp, int hostPort) {
+    private String uriConnection;
+
+    public Broker() {
         this.brokerId = UUID.randomUUID().toString();
         this.requestSpace = new SequentialSpace();
-        this.hostIp = hostIp;
-        this.hostPort = hostPort;
+
     }
 
-    public void setHostUri(String companyName) { //TODO lav det her til en interface med navn alla "ThreadActions" eller noget
-        this.hostUri = "tcp://" + hostIp + ":" + hostPort + "/" + companyName + "?keep";
-    }
 
     public Space getRequestSpace() {
         return requestSpace;
     }
 
     public void run() {
-        while (true) {
+        while (true) { //TODO den skal måske ikke have et while overhovedet da det ikke bliver brugt
             try {
                 // UUID "buy/sell" order
                 Object[] request = requestSpace.get(new FormalField(String.class) /*traderId*/, new FormalField(String.class) /*orderId*/, new FormalField(String.class)/*orderType*/, new FormalField(Order.class)/*Order*/);
@@ -37,7 +32,8 @@ public class Broker implements Runnable {
 
                 //TODO ændre det her i fremtiden, når vi kan hente companies og prices fra CompaniesAndPrices Space i Exchange
                 String companyTicker = order.getTicker();
-                setHostUri(companyTicker);
+                String uri = ClientUtil.getHostUri("");  //TODO den skal have et rigtig room navn
+                uriConnection = ClientUtil.setConnectType(uri,"keep");
 
                 String orderType = request[2].toString();
                 switch (orderType) {
@@ -45,7 +41,7 @@ public class Broker implements Runnable {
                         //Query all sell orders of the specific company and sort the results from lowest to highest price
                         List<Object[]> query = querySellOrdersCompanySpace(); //TODO måske queryp?
                         ArrayList<Order> sortedSellOrders = sortSellOrders(query);
-                        if (sortedSellOrders.size() == 0) {
+                        if (sortedSellOrders.isEmpty()) {
                             System.out.println("No sell orders found for company: " + companyTicker);
                             break;
                         }
@@ -72,7 +68,7 @@ public class Broker implements Runnable {
                         return;
                     case "sell":
                         // Get company ticker from order and set hostUri
-                        RemoteSpace companySpace = new RemoteSpace(hostUri);
+                        RemoteSpace companySpace = new RemoteSpace(uriConnection);
                         // send to host
                         companySpace.put((String) request[0], (String) request[1], (String) request[2], (Order) request[3]);
                         System.out.println("Sell order sent to company space");
@@ -93,7 +89,7 @@ public class Broker implements Runnable {
     }
 
     private List<Object[]> querySellOrdersCompanySpace() throws IOException, InterruptedException {
-        RemoteSpace companySpace = new RemoteSpace(hostUri);
+        RemoteSpace companySpace = new RemoteSpace(uriConnection);
         List<Object[]> result = companySpace.queryAll(new FormalField(String.class), new FormalField(String.class), new ActualField("sell"), new FormalField(Order.class));
         return result;
     }
@@ -112,12 +108,12 @@ public class Broker implements Runnable {
         }
 
         //Sort sell orders by price
-        Collections.sort(sortedSellOrders, Comparator.comparing(Order::getPrice));
+        sortedSellOrders.sort(Comparator.comparing(Order::getPrice));
         return sortedSellOrders;
     }
 
     private int buyEntireOrder(Order sellOrder) throws IOException, InterruptedException {
-        RemoteSpace companySpace = new RemoteSpace(hostUri);
+        RemoteSpace companySpace = new RemoteSpace(uriConnection);
         //TODO her bruges getp. Måske skal det laves om til en ticket/lock mechanic?
         Object[] result = companySpace.getp(new FormalField(String.class), new ActualField(sellOrder.getOrderId()), new FormalField(String.class), new FormalField(Order.class));
         if (result != null) {
@@ -131,7 +127,7 @@ public class Broker implements Runnable {
 
     private void buyPartialOrder(Order sellOrder, int amountWanted) throws IOException, InterruptedException {
         //get order, update amount of order, put it back
-        RemoteSpace companySpace = new RemoteSpace(hostUri);
+        RemoteSpace companySpace = new RemoteSpace(uriConnection);
         Object[] result = companySpace.getp(new FormalField(String.class), new ActualField(sellOrder.getOrderId()), new FormalField(String.class), new FormalField(Order.class));
         if (result != null) {
             Order order = (Order) result[3];

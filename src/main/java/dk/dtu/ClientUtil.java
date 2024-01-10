@@ -21,7 +21,7 @@ public class ClientUtil {
         return "tcp://" + hostIp + ":" + hostPort + "/" + roomName;
     }
 
-    public String setConnectType(String hostUri, String connectionType) {
+    public static String setConnectType(String hostUri, String connectionType) {
         if (connectionType == "keep" || connectionType == "conn") {
             return hostUri + "?" + connectionType;
         }else {
