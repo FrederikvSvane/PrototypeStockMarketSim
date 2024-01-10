@@ -54,10 +54,10 @@ public class Company implements Runnable{
  */
     }
 
-    private void sendIpoRequestToExchange(CompanyBroker companyBroker, Order order) throws IOException {
+    private void sendIpoRequestToExchange(CompanyBroker companyBroker, Order order) throws IOException, InterruptedException {
         String hostUri = "tcp://" + hostIp + ":" + hostPort + "/exchangeRequestSpace?keep"; //TODO er keep den rigtige forbindelse her? Og hvad med alle andre steder? STOR TODO
         Space exchangeRequestSpace = new RemoteSpace(hostUri);
-        exchangeRequestSpace.put(order.getOrderId())
+        exchangeRequestSpace.put(order.getOrderId());
 
     }
 

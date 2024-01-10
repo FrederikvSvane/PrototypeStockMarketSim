@@ -13,14 +13,14 @@ class Order {
     /**
      * Construct an order with a randomly generated orderId
      * @param traderId
-     * @param stockName
+     * @param companyName
      * @param amount
      * @param price
      */
-    public Order(String traderId, String stockName, int amount, float price) {
+    public Order(String traderId, String companyName, int amount, float price) {
         this.traderId = traderId;
         this.orderId = UUID.randomUUID().toString();
-        this.stockName = stockName;
+        this.stockName = companyName;
         this.amount = amount;
         this.price = price;
     }
@@ -29,14 +29,14 @@ class Order {
      * Construct an order with a given/known orderId
      * @param traderId
      * @param orderId
-     * @param stockName
+     * @param companyName
      * @param amount
      * @param price
      */
-    public Order(String traderId, String orderId, String stockName, int amount, float price) {
+    public Order(String traderId, String orderId, String companyName, int amount, float price) {
         this.traderId = traderId;
         this.orderId = orderId;
-        this.stockName = stockName;
+        this.stockName = companyName;
         this.amount = amount;
         this.price = price;
     }

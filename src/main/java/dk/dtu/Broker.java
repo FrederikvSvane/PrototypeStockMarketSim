@@ -44,7 +44,7 @@ public class Broker implements Runnable {
                     case "buy":
                         //Query all sell orders of the specific company and sort the results from lowest to highest price
                         List<Object[]> query = querySellOrdersCompanySpace(); //TODO måske queryp?
-                        ArrayList<CompanySellOrder> sortedSellOrders = sortSellOrders(query);
+                        ArrayList<Order> sortedSellOrders = sortSellOrders(query);
                         if (sortedSellOrders.size() == 0) {
                             System.out.println("No sell orders found for company: " + companyTicker);
                             break;
@@ -52,7 +52,7 @@ public class Broker implements Runnable {
                         float priceMaxBid = order.getPrice();
                         int currentAmountBought = 0;
                         int maxAmountWanted = order.getAmount();
-                        for (CompanySellOrder sellOrder : sortedSellOrders) {
+                        for (Order sellOrder : sortedSellOrders) {
                             int amountRemaning = maxAmountWanted - currentAmountBought;
                             if (sellOrder.getPrice() <= priceMaxBid || !(currentAmountBought >= maxAmountWanted)) { //TODO burde være ==, ikke >=, men vi skriver det alligevel. Kan throw error her
                                 //Her har vi fundet en salgsorder, som udbyder til en pris som vi gerne vil give
@@ -98,29 +98,28 @@ public class Broker implements Runnable {
         return result;
     }
 
-    private ArrayList<CompanySellOrder> sortSellOrders(List<Object[]> sellOrders) {
+    private ArrayList<Order> sortSellOrders(List<Object[]> sellOrders) {
         //Add all sell orders to sortedSellOrders
-        ArrayList<CompanySellOrder> sortedSellOrders = new ArrayList<>();
+        ArrayList<Order> sortedSellOrders = new ArrayList<>();
         for (Object[] sellOrder : sellOrders) {
             Order order = (Order) sellOrder[3];
             String traderId = order.getTraderId();
-            String brokerId = (String) sellOrder[0];
             String orderId = order.getOrderId();
             String companyName = order.getStockName();
             int amount = order.getAmount();
             float price = order.getPrice();
-            sortedSellOrders.add(new CompanySellOrder(traderId, brokerId, orderId, companyName, amount, price));
+            sortedSellOrders.add(new Order(traderId, orderId, companyName, amount, price));
         }
 
         //Sort sell orders by price
-        Collections.sort(sortedSellOrders, Comparator.comparing(CompanySellOrder::getPrice));
+        Collections.sort(sortedSellOrders, Comparator.comparing(Order::getPrice));
         return sortedSellOrders;
     }
 
-    private int buyEntireOrder(CompanySellOrder companySellOrder) throws IOException, InterruptedException {
+    private int buyEntireOrder(Order sellOrder) throws IOException, InterruptedException {
         RemoteSpace companySpace = new RemoteSpace(hostUri);
         //TODO her bruges getp. Måske skal det laves om til en ticket/lock mechanic?
-        Object[] result = companySpace.getp(new FormalField(String.class), new ActualField(companySellOrder.getOrderId()), new FormalField(String.class), new FormalField(Order.class));
+        Object[] result = companySpace.getp(new FormalField(String.class), new ActualField(sellOrder.getOrderId()), new FormalField(String.class), new FormalField(Order.class));
         if (result != null) {
             Order order = (Order) result[3];
             return order.getAmount();
@@ -130,10 +129,10 @@ public class Broker implements Runnable {
         }
     }
 
-    private void buyPartialOrder(CompanySellOrder companySellOrder, int amountWanted) throws IOException, InterruptedException {
+    private void buyPartialOrder(Order sellOrder, int amountWanted) throws IOException, InterruptedException {
         //get order, update amount of order, put it back
         RemoteSpace companySpace = new RemoteSpace(hostUri);
-        Object[] result = companySpace.getp(new FormalField(String.class), new ActualField(companySellOrder.getOrderId()), new FormalField(String.class), new FormalField(Order.class));
+        Object[] result = companySpace.getp(new FormalField(String.class), new ActualField(sellOrder.getOrderId()), new FormalField(String.class), new FormalField(Order.class));
         if (result != null) {
             Order order = (Order) result[3];
             order.setAmount(order.getAmount() - amountWanted);
