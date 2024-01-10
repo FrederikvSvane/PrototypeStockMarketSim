@@ -1,5 +1,6 @@
 package dk.dtu;
 
+import java.io.IOException;
 import java.util.Scanner;
 
 public class Client {
@@ -7,9 +8,8 @@ public class Client {
      static String lobbyToTraderName = "lobbyToTrader";
      static String traderToLobbyName = "traderToLobby";
 
-    public static void main(String[] args) {
-        Trader trader = new Trader("192.168.79.195", 32991, traderToLobbyName, lobbyToTraderName);
+    public static void main(String[] args) throws IOException {
+        Trader trader = new Trader("localhost", 32991);
         new Thread(trader).start();
-
     }
 }
