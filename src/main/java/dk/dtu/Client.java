@@ -1,15 +1,15 @@
 package dk.dtu;
 
-import java.util.Scanner;
-
 public class Client {
     private int amountOfTraders = 1;
+    static String lobbyToTraderName = "lobbyToTrader"; //TODO find anden måde at gøre dette end at passe som argument til constructor
+    static String traderToLobbyName = "traderToLobby";
 
 
     public static void main(String[] args) {
         HostUtil.initialize();
         ClientUtil.initialize();
-        SellBot sellBot = new SellBot();
-        new Thread(sellBot).start();
+        Trader trader = new Trader(traderToLobbyName, lobbyToTraderName);
+        new Thread(trader).start();
     }
 }
