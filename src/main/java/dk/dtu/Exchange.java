@@ -16,7 +16,7 @@ public class Exchange implements Runnable {
     public Exchange(SpaceRepository exchangeRepository) throws InterruptedException {
         this.exchangeRepository = exchangeRepository;
         this.companiesAndPriceHistorySpace.put("ticket");
-        this.exchangeRepository.add("companiesAndPricesHistorySpace", companiesAndPriceHistorySpace);
+        this.exchangeRepository.add("companiesAndPricesSpace", companiesAndPriceHistorySpace);
         this.exchangeRepository.add("exchangeRequestSpace", exchangeRequestSpace);
         String uri = ClientUtil.getHostUri("");
         String uriConnection = ClientUtil.setConnectType(uri, "keep"); // TODO skriv til alberdo om vi skal bruge keep eller ingenting
@@ -39,13 +39,12 @@ public class Exchange implements Runnable {
                             int amount = (int) currentRequest[3];
                             float price = (float) currentRequest[4];
 
-                            Space companiesAndPricesSpace = exchangeRepository.get("companiesAndPricesHistorySpace");
-                            Object[] currentCompanyStatus = companiesAndPricesSpace.queryp(new ActualField(companyId), new FormalField(Company.class), new FormalField(Float.class));
+                            Space companiesAndPricesSpace = exchangeRepository.get("companiesAndPricesSpace");
+                            Object[] currentCompanyStatus = companiesAndPricesSpace.queryp(new ActualField(companyId), new ActualField(companyName), new ActualField(companyTicker), new FormalField(Float.class));
                             boolean companyExists = currentCompanyStatus != null;
                             if (companyExists) {
                                 throw new RuntimeException("IPO failed: Company is already listed at the exchange");
                             } else {
-                                // Laver et nyt space med ticker navnet, som indeholder alle de aktier, som er til salg for den pågældende virksomhed
                                 createCompanyStockSpace(companyTicker);
                                 Space companyStockSpace = exchangeRepository.get(companyTicker);
 
