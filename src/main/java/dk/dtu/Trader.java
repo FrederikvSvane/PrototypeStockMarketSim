@@ -7,13 +7,13 @@ import java.util.UUID;
 import org.jspace.*;
 
 public class Trader {
-    String traderId;
-    String hostIp;
-    SequentialSpace masterCompanyRegister;
-    SequentialSpace companyPriceGraphs;
+    protected String traderId;
+    protected String hostIp;
+    protected SequentialSpace masterCompanyRegister;
+    protected SequentialSpace companyPriceGraphs;
 
 
-    int hostPort;
+    protected int hostPort;
 
     public Trader() { //TODO lav en overklasse, som ikke har nogen argumenter, som kan nedarves til HumanTrader og BotTrader. Det er kun HumanTrader, som kan chatte
         this.traderId = UUID.randomUUID().toString();
@@ -51,6 +51,13 @@ public class Trader {
         Space requestSpace = broker.getRequestSpace();
         requestSpace.put(traderId, order.getOrderId(), "sell", order);
         //TODO get response of order completion result from broker here?
+    }
+
+    public void makeDataFetchers() throws InterruptedException {
+        NameDataFetcher nameDataFetcher = new NameDataFetcher(masterCompanyRegister);
+        PriceGraphDataFetcher priceGraphDataFetcher = new PriceGraphDataFetcher(companyPriceGraphs);
+        new Thread(nameDataFetcher).start();
+        new Thread(priceGraphDataFetcher).start();
     }
 
     public void consoleInputToSendOrder() throws IOException, InterruptedException {
