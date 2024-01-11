@@ -1,5 +1,7 @@
 package dk.dtu;
 
+
+
 public class HostUtil {
     private static String hostIp;
     private static int hostPort;
@@ -18,5 +20,6 @@ public class HostUtil {
     public static int getHostPort() {
         return hostPort;
     }
+
 
 }
