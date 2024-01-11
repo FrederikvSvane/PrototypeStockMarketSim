@@ -7,6 +7,9 @@ import java.util.*;
 
 import org.jspace.*;
 
+import static dk.dtu.Host.hostIp;
+import static dk.dtu.Host.hostPort;
+
 
 public class Trader extends DistributedClient implements Runnable{
     String traderId;
@@ -15,7 +18,7 @@ public class Trader extends DistributedClient implements Runnable{
     RemoteSpace toLobby;
     RemoteSpace fromLobby;
     SequentialSpace connectedChats;
-    SequentialSpace myMessages;
+    RemoteSpace myMessages;
 
     public Trader(String hostIp, int hostPort) throws IOException {
         this.traderId = UUID.randomUUID().toString();
@@ -24,10 +27,15 @@ public class Trader extends DistributedClient implements Runnable{
         toLobby = new RemoteSpace("tcp://" + hostIp + ":" + hostPort + "/toLobby?keep");
         fromLobby = new RemoteSpace("tcp://" + hostIp + ":" + hostPort + "/fromLobby?keep");
         connectedChats = new SequentialSpace();
-        myMessages = new SequentialSpace();
+        myMessages = new RemoteSpace("tcp://" + hostIp + ":" + (hostPort + 1) + "/" + traderId + "?keep");
     }
 
     public void run() {
+        try {
+            openTraderMessages();
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
         while (true) {
             String mode = chooseMode();
             switch(mode){
@@ -167,30 +175,41 @@ public class Trader extends DistributedClient implements Runnable{
         //Querys all rooms the Trader is connected to, then lists them.
         List<Object[]> allChats = connectedChats.queryAll(new FormalField(String.class));
         int counter = 1;
-        for(Object[] chat : allChats){
-            //Puts in a request inorder to get back knowledge about capacity.
-            toLobby.put(traderId, "getCapacity", chat[0], "", 0);
-            Object[] response = fromLobby.get(new ActualField(traderId), new FormalField(String.class), new FormalField(Integer.class), new FormalField(Integer.class));
-            System.out.println(counter + ". " + chat[0] + " | " + response[2] + "/" + response[3]);
-            counter++;
+        if (allChats.isEmpty()){
+            System.out.println("You have no joined rooms...");
+        } else {
+            for(Object[] chat : allChats){
+                //Puts in a request inorder to get back knowledge about capacity.
+                toLobby.put(traderId, "getCapacity", chat[0], "", 0);
+                Object[] response = fromLobby.get(new ActualField(traderId), new FormalField(String.class), new FormalField(Integer.class), new FormalField(Integer.class));
+                System.out.println(counter + ". " + chat[0] + " | " + response[2] + "/" + response[3]);
+                counter++;
+            }
+            Scanner terminalIn = new Scanner(System.in);
+            System.out.println("Choose a group to text");
+            String response = terminalIn.nextLine();
+            writeToChatroom(response);
         }
 
-        Scanner terminalIn = new Scanner(System.in);
-        System.out.println("Choose a group to text");
-        String response = terminalIn.nextLine();
-        writeToChatroom(response);
+
 
     }
 
     public void writeToChatroom(String roomName) throws IOException, InterruptedException {
+        RemoteSpace chatRoom = new RemoteSpace("tcp://" + hostIp + ":" + (hostPort + 1) + "/" + roomName + "?keep");
         //Need to get space to talk to.
-        RemoteSpace chatRoom = new RemoteSpace("tcp://" + hostIp + ":" + hostPort + "/" + roomName + "?keep");
         Scanner terminalIn = new Scanner(System.in);
-        chatRoom.put(traderId, "connected");
+        //toLobby.put(traderId, "subscribe", roomName, "", 0);
         boolean isConnected = true;
+        new Thread(new ChatGetter(roomName, traderId)).start();
         while(isConnected){
-            //Write messages
+            String currentMessage = terminalIn.nextLine();
+            chatRoom.put(traderId, currentMessage);
         }
+    }
+
+    public void openTraderMessages() throws InterruptedException {
+        toLobby.put(traderId, "createUserSpace", "", "", 0);
     }
 }
 

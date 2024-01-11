@@ -60,9 +60,11 @@ public class Lobby implements Runnable {
                             SequentialSpace newRoom = new SequentialSpace();
                             newRoom.put("AuthToken", password, 0, capacity);
                             chatRooms.add(roomName, newRoom);
+                            new Thread(new ChatGetter(roomName, traderId, true)).start();
                         }
                         break;
                     }
+
                     case "join":{
                         Space roomExists = chatRooms.get(roomName);
                         System.out.println(roomExists);
@@ -77,6 +79,9 @@ public class Lobby implements Runnable {
                             if(correctPassword.equals(password)){
                                 if(currentlyConnected < fullCapacity){
                                     roomExists.put("AuthToken", password, currentlyConnected + 1, fullCapacity);
+                                    roomExists.put("ConnectedToken", traderId, "connected");
+                                    /*Object[] response = roomExists.query(new ActualField("ConnectedToken"), new FormalField(String.class), new FormalField(String.class));
+                                    System.out.println(response[1] + " " + response[2]);*/
                                     fromLobby.put(traderId, "Fulfilled");
 
                                 } else {
@@ -86,6 +91,7 @@ public class Lobby implements Runnable {
                                 }
 
                             } else {
+                                System.out.println("Wrong Password");
                                 roomExists.put("AuthToken", password, currentlyConnected, fullCapacity);
                                 fromLobby.put(traderId, "Wrong Password");
 
@@ -97,6 +103,7 @@ public class Lobby implements Runnable {
 
                         }
                         break;
+
                     }
                     case "getCapacity":{
                         Space roomExists = chatRooms.get(roomName);
@@ -108,6 +115,21 @@ public class Lobby implements Runnable {
 
                             fromLobby.put(traderId, "Fulfilled", currentlyConnected, fullCapacity);
                         }
+                        break;
+                    }
+                    case "subscribe":{
+                        break;
+                    }
+                    case "createUserSpace":{
+                        Space traderChat = chatRooms.get(traderId);
+
+                        if (traderChat == null){
+                            chatRooms.add(traderId, new SequentialSpace());
+                            traderChat = chatRooms.get(traderId);
+                        }
+
+                        traderChat.put("Lobby", "Test message");
+                        System.out.println("Room added for user: " + traderId + "on uri: " );
                     }
                 }
             } catch (InterruptedException e) {
