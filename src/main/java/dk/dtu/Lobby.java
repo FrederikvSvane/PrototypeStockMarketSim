@@ -14,9 +14,9 @@ public class Lobby implements Runnable {
     Space chatRoomLobby;
 
     SpaceRepository chatRooms;
-    ArrayList<String> roomRegister = new ArrayList<String>();
-
-
+    //TODO check user isn't already connected to chat.
+    //TODO make traders able to directly message each other.
+    //TODO fetch chat history when sending messages to a chat.
     public Lobby(String hostIp, int hostPort, SpaceRepository chatRepo)
     {
         this.hostIp = hostIp;
@@ -25,18 +25,13 @@ public class Lobby implements Runnable {
         this.toLobby = new SequentialSpace();
         this.fromLobby = new SequentialSpace();
         this.chatRoomLobby = new SequentialSpace();
+
         hostRepo.add("toLobby",toLobby);
         hostRepo.add("fromLobby",fromLobby);
 
         chatRooms = new SpaceRepository();
         chatRooms.addGate("tcp://" + hostIp + ":" + (hostPort + 1) + "?keep");
-
-
-        //ChatRoomLobby is used to communicate between the chatroom and the lobby
-        //hostRepo.add("chatRoomLobby", chatRoomLobby);
     }
-
-    //Need a function that gets from a chatroom, and distributes to all connected clients.
     public void run()
     {
         while(true){
@@ -48,11 +43,11 @@ public class Lobby implements Runnable {
                 String password = (String) request[3];
                 int capacity = (int) request[4];
 
-                System.out.println("Server got request for: " + command + " name: " + roomName + ". From: " + traderId);
+                //System.out.println("Server got request for: " + command + " name: " + roomName + ". From: " + traderId);
                 switch(command){
-                    case "create":{
+                    case "create":{ //When create command is present.
                         Space roomExists = hostRepo.get(roomName);
-                        if(roomExists != null){
+                        if(roomExists != null){ //if room already exists.
                             fromLobby.put(traderId, "Failed");
                         } else {
                             fromLobby.put(traderId, "Fulfilled");
@@ -60,16 +55,17 @@ public class Lobby implements Runnable {
                             SequentialSpace newRoom = new SequentialSpace();
                             newRoom.put("AuthToken", password, 0, capacity);
                             chatRooms.add(roomName, newRoom);
+                            //Initializes a new thread that listens to all conversations in roomName.
                             new Thread(new ChatGetter(roomName, traderId, true)).start();
                         }
                         break;
                     }
 
-                    case "join":{
+                    case "join":{ //if join command is executed.
                         Space roomExists = chatRooms.get(roomName);
                         System.out.println(roomExists);
-                        //Check if room exists.
-                        if(roomExists != null){
+
+                        if(roomExists != null){ //Check if room exists.
                             //Get authToken,
                             Object[] authToken = roomExists.get(new ActualField("AuthToken"), new FormalField(String.class), new FormalField(Integer.class), new FormalField(Integer.class));
                             String correctPassword = (String) authToken[1];
@@ -77,20 +73,18 @@ public class Lobby implements Runnable {
                             int fullCapacity = (int) authToken[3];
 
                             if(correctPassword.equals(password)){
-                                if(currentlyConnected < fullCapacity){
+                                if(currentlyConnected < fullCapacity){ //When a trader joins a room.
                                     roomExists.put("AuthToken", password, currentlyConnected + 1, fullCapacity);
                                     roomExists.put("ConnectedToken", traderId, "connected");
-                                    /*Object[] response = roomExists.query(new ActualField("ConnectedToken"), new FormalField(String.class), new FormalField(String.class));
-                                    System.out.println(response[1] + " " + response[2]);*/
                                     fromLobby.put(traderId, "Fulfilled");
 
-                                } else {
+                                } else { //If the room is too full.
                                     roomExists.put("AuthToken", password, currentlyConnected, fullCapacity);
                                     fromLobby.put(traderId, "Room is full");
 
                                 }
 
-                            } else {
+                            } else { //If the trader types the wrong password.
                                 System.out.println("Wrong Password");
                                 roomExists.put("AuthToken", password, currentlyConnected, fullCapacity);
                                 fromLobby.put(traderId, "Wrong Password");
@@ -117,10 +111,10 @@ public class Lobby implements Runnable {
                         }
                         break;
                     }
-                    case "subscribe":{
+                    case "subscribe":{ //Not sure this will be used.
                         break;
                     }
-                    case "createUserSpace":{
+                    case "createUserSpace":{ //Creates the space upon Trader initialization.
                         Space traderChat = chatRooms.get(traderId);
 
                         if (traderChat == null){
@@ -128,7 +122,7 @@ public class Lobby implements Runnable {
                             traderChat = chatRooms.get(traderId);
                         }
 
-                        traderChat.put("Lobby", "Test message");
+                        //traderChat.put("Lobby", "Test message");
                         System.out.println("Room added for user: " + traderId + "on uri: " );
                     }
                 }
