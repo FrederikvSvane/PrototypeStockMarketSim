@@ -9,7 +9,17 @@ public class Client {
     public static void main(String[] args) {
         HostUtil.initialize();
         ClientUtil.initialize();
+
         HumanTrader humanTrader = new HumanTrader(traderToLobbyName, lobbyToTraderName);
         new Thread(humanTrader).start();
+        while (true) {
+            try {
+                Thread.sleep(1000);
+                System.out.println(GlobalCock.getTimePassed());
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+
     }
 }
