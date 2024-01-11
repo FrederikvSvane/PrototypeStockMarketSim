@@ -69,7 +69,7 @@ public class Company implements Runnable{
     }
 
     private Order makeOrder(int amount, float price) {
-        return new Order(companyId, companyName, amount, price);
+        return new Order(companyId, companyName,companyTicker, amount, price);
     }
     public String getCompanyName() { return companyName; }
     public String getCompanyTicker() { return companyTicker; }

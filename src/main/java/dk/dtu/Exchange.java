@@ -49,11 +49,12 @@ public class Exchange implements Runnable {
                                 createCompanyStockSpace(companyTicker);
                                 Space companyStockSpace = exchangeRepository.get(companyTicker);
 
-                                Order order = new Order(companyId, companyName, amount, price);
+                                Order order = new Order(companyId, companyName,companyTicker, amount, price);
                                 String orderId = order.getOrderId();
                                 companyStockSpace.put(companyId, orderId, "sell", order);
 
                                 // Here the currentStockPrice is set as the IPO price. This is an exception. Normally the currentStockPrice is set by latest sold price
+                                //TODO den skal laves om til en Queue, så vi kan se historikken
                                 companiesAndPricesSpace.put(companyId, companyName, companyTicker, price);
                             }
                             break;

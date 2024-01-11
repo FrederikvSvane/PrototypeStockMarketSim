@@ -12,7 +12,7 @@ public class SellBot extends Trader{
             while (true) {
                 try {
                     String orderType = "sell";
-                    Order order = new Order(getTraderId(), "Apple", 1, 1);
+                    Order order = new Order(getTraderId(), "Apple","AAPL", 1, 1);
                     int amount = 2000;
                     for (int i = 0; i < amount; i++) {
                         sendOrderToBroker(orderType, order);

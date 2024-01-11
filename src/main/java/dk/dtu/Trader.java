@@ -65,10 +65,24 @@ public class Trader {
         String orderString = terminalIn.nextLine();
         String[] orderParts = orderString.split(" ");
         String orderType = orderParts[0];
-        String stockName = orderParts[1];
+        String companyName = orderParts[1];
+        String companyTicker;
+        Object[] companyData = masterCompanyRegister.queryp(new FormalField(String.class), new ActualField(companyName.toLowerCase()), new FormalField(String.class));
+
+        if (companyData == null) {
+            // Så man kan skriver ticker i stedet for navn
+            companyData = masterCompanyRegister.queryp(new FormalField(String.class), new FormalField(String.class), new ActualField(companyName.toUpperCase()));
+
+            if (companyData == null) {
+                throw new RuntimeException("Company does not exist");
+            }
+        }
+        companyName = (String) companyData[1];
+        companyTicker = (String) companyData[2];
+
         int amount = Integer.parseInt(orderParts[2]);
         float price = Float.parseFloat(orderParts[3]);
-        Order order = new Order(traderId, stockName, amount, price);
+        Order order = new Order(traderId, companyName, companyTicker, amount, price);
         sendOrderToBroker(orderType, order);
     }
 

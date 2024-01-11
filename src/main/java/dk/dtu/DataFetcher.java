@@ -9,7 +9,6 @@ import java.util.List;
 
 abstract class DataFetcher {
 
-    
     protected Space traderDataSpace;
     private Space companyDataSpace;;
     private String hostDataSpaceName;

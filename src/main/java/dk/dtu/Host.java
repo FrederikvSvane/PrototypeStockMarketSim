@@ -17,7 +17,7 @@ public class Host {
 
         Exchange exchange = new Exchange(repository);
         new Thread(exchange).start();
-        GlobalCock.initialize(repository,startTimeUnix);
+        GlobalClock.initialize(repository,startTimeUnix);
         new Thread(new Lobby(repository)).start();
 
 

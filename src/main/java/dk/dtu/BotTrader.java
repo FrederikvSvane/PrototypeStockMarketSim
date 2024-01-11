@@ -14,7 +14,7 @@ public class BotTrader extends Trader implements Runnable {
             try {
                 if (botType.equals("buy")) {
                     String orderType = "buy";
-                    Order order = new Order(getTraderId(), "Apple", 2000, 550);
+                    Order order = new Order(getTraderId(), "Apple","AAPL", 2000, 550);
                     int amount = 1;
                     for (int i = 0; i < amount; i++) {
                         sendOrderToBroker(orderType, order);
@@ -22,7 +22,7 @@ public class BotTrader extends Trader implements Runnable {
                     }
                 } else if (botType.equals("sell")) {
                     String orderType = "sell";
-                    Order order = new Order(getTraderId(), "Apple", 1000, 550);
+                    Order order = new Order(getTraderId(), "Apple","AAPL", 1000, 550);
                     int amount = 1;
                     for (int i = 0; i < amount; i++) {
                         sendOrderToBroker(orderType, order);

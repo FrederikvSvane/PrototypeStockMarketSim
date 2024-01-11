@@ -2,8 +2,6 @@ package dk.dtu;
 
 import org.jspace.*;
 
-import java.io.IOException;
-
 
 /**
  * The reason d'terre of the Global Clock class is to provide temporal information relating to what time it is now
@@ -11,7 +9,7 @@ import java.io.IOException;
  *
  * @apiNote All time units are denoted in UNIX time and in milliseconds!
  */
-public class GlobalCock
+public class GlobalClock
 {
 
     private static String timeStartSpaceName = "timeStartUnix";
@@ -47,8 +45,6 @@ public class GlobalCock
             String uri = ClientUtil.getHostUri(timeStartSpaceName);
 
             Space timeStartSpace = new RemoteSpace(ClientUtil.setConnectType(uri,"keep"));
-
-;
 
             //TODO: Maybe create a subclass whose sole purpose is to run a thread that does this exact thing? In case there is a delay in our query?
             Object[] timeStartQuery = timeStartSpace.query(new FormalField(Long.class));
