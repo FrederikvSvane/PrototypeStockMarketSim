@@ -31,7 +31,7 @@ public class Exchange implements Runnable {
                 if (currentRequest != null) {
                     String orderType = currentRequest[1].toString();
                     switch (orderType) {
-                        case "IPO": //Initial Public Offering - The first time a company sells its stocks at the exchange
+                        case "IPO": //Initial Public Offering - The first time a company sells its stocks at the exchange - this is when it is registered
                             Company company = (Company) currentRequest[2];
                             String companyName = company.getCompanyName();
                             String companyId = company.getCompanyId();
@@ -73,5 +73,7 @@ public class Exchange implements Runnable {
         space.put("ticket");
         exchangeRepository.add(companyTicker, space);
     }
+
+
 
 }

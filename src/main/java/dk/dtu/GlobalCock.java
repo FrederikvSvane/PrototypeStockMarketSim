@@ -11,7 +11,7 @@ import java.io.IOException;
  *
  * @apiNote All time units are denoted in UNIX time and in milliseconds!
  */
-public class GlobalCock
+public class GlobalCock //uWu what is this GlobalCOCK?!
 {
 
     private static String timeStartSpaceName = "timeStartUnix";
