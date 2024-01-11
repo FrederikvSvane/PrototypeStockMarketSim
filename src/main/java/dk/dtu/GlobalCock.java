@@ -20,7 +20,6 @@ public class GlobalCock
 
     public static void initialize(SpaceRepository hostRepo, long startTimeUnix)
     {
-        startTimeUnix = startTimeUnix;
 
         Space timeStartSpace = new RandomSpace();
 
@@ -30,13 +29,13 @@ public class GlobalCock
             throw new RuntimeException(e);
         }
 
-        hostRepo.add(timeStartSpaceName, new SequentialSpace());
+        hostRepo.add(timeStartSpaceName, timeStartSpace);
     }
 
 
     public static long getTimeNow()
     {
-        return (long) System.currentTimeMillis() / 1000L;
+        return (long) System.currentTimeMillis();
     }
 
     //Returns the time that has passed since the host ran its application in format UNIX in millis units
@@ -45,16 +44,23 @@ public class GlobalCock
 
         try {
             long timeNow = getTimeNow();
+            String uri = ClientUtil.getHostUri(timeStartSpaceName);
+
+            Space timeStartSpace = new RemoteSpace(ClientUtil.setConnectType(uri,"keep"));
+
+;
 
             //TODO: Maybe create a subclass whose sole purpose is to run a thread that does this exact thing? In case there is a delay in our query?
-            Object[] timeStartQuery = (new RemoteSpace(ClientUtil.getHostUri(timeStartSpaceName))).query(new FormalField(long.class));
+            Object[] timeStartQuery = timeStartSpace.query(new FormalField(Long.class));
+
+
             long timeStartUnix = (long) timeStartQuery[0];
             return timeNow - timeStartUnix;
 
             }
         catch (InterruptedException e) {
             throw new RuntimeException(e);
-        } catch (IOException e) {
+        } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }

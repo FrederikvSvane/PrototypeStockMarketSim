@@ -18,9 +18,10 @@ public class HumanTrader extends Trader implements Runnable{
         super();
         this.traderToLobbyName = traderToLobbyName;
         this.lobbyToTraderName = lobbyToTraderName;
+        String hostUri = ClientUtil.getHostUri(traderToLobbyName);
         try {
-            this.traderToLobby = new RemoteSpace(ClientUtil.getHostUri(traderToLobbyName));
-            this.lobbyToTrader = new RemoteSpace(ClientUtil.getHostUri(lobbyToTraderName));
+            this.traderToLobby = new RemoteSpace(ClientUtil.setConnectType(hostUri,"keep"));
+            this.lobbyToTrader = new RemoteSpace(ClientUtil.setConnectType(hostUri,"keep"));
         } catch (IOException e) {
             e.printStackTrace();
         }

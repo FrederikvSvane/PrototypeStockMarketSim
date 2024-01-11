@@ -10,8 +10,8 @@ public class HostUtil {
     }
 
     public static void initialize() {
-        hostIp = "10.209.74.151";
-        hostPort = 10151;
+        hostIp = "10.209.94.154";
+        hostPort = 10155;
     }
 
     public static String getHostIp() {
