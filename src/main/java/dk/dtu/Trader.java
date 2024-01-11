@@ -1,61 +1,33 @@
 package dk.dtu;
 
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.Scanner;
 import java.util.UUID;
 
 import org.jspace.*;
 
-public class Trader extends DistributedClient implements Runnable {
+public class Trader {
     String traderId;
     String hostIp;
-    String traderToLobbyName;
-    String lobbyToTraderName;
-    RemoteSpace traderToLobby;
-    RemoteSpace lobbyToTrader;
+    SequentialSpace masterCompanyRegister;
+    SequentialSpace companyPriceGraphs;
+
+
     int hostPort;
 
-    public Trader(String traderToLobbyName, String lobbyToTraderName) {
+    public Trader() { //TODO lav en overklasse, som ikke har nogen argumenter, som kan nedarves til HumanTrader og BotTrader. Det er kun HumanTrader, som kan chatte
         this.traderId = UUID.randomUUID().toString();
         this.hostIp = HostUtil.getHostIp();
         this.hostPort = HostUtil.getHostPort();
-        this.traderToLobbyName = traderToLobbyName;
-        this.lobbyToTraderName = lobbyToTraderName;
-        try {
-            this.traderToLobby = new RemoteSpace(createUri(hostIp, hostPort, this.traderToLobbyName));
-            this.lobbyToTrader = new RemoteSpace(createUri(hostIp, hostPort, this.lobbyToTraderName));
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+
+        // List of all companies traded at exchange. Updated by datafetcher
+        this.masterCompanyRegister = new SequentialSpace(/*companyId, companyName, companyTicker*/);
+
+        // A space for the coordinates of the price graph of each company. Updated by datafetcher
+        this.companyPriceGraphs = new SequentialSpace(/*companyName, companyTicker, QueueList<time, price>*/);
     }
 
-    public void run() {
-        while (true) {
-            String mode = chooseMode();
-
-            switch (mode) {
-                case "trade": {
-                    try {
-                        consoleInputToBuyOrder();
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                        throw new RuntimeException("Error in trader");
-                    }
-                }
-                case "chat": {
-                    try {
-                        chatMenu();
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                        throw new RuntimeException("Error in trader");
-                    }
-                }
-            }
-        }
-    }
-
-    private void sendOrderToBroker(String orderType, Order order) throws IOException, InterruptedException {
+    public void sendOrderToBroker(String orderType, Order order) throws IOException, InterruptedException {
         Broker broker = new Broker();
         new Thread(broker).start();
 
@@ -81,7 +53,7 @@ public class Trader extends DistributedClient implements Runnable {
         //TODO get response of order completion result from broker here?
     }
 
-    public void consoleInputToBuyOrder() throws IOException, InterruptedException {
+    public void consoleInputToSendOrder() throws IOException, InterruptedException {
         Scanner terminalIn = new Scanner(System.in);
         String orderString = terminalIn.nextLine();
         String[] orderParts = orderString.split(" ");
@@ -92,82 +64,6 @@ public class Trader extends DistributedClient implements Runnable {
         Order order = new Order(traderId, stockName, amount, price);
         sendOrderToBroker(orderType, order);
     }
-
-    public String chooseMode() {
-        Scanner terminalIn = new Scanner(System.in);
-        System.out.println("Choose mode: \n1. Create trade \n2. Open chat");
-        String mode = terminalIn.nextLine();
-        if (mode.equals("1")) {
-            return "trade";
-        } else if (mode.equals("2")) {
-            return "chat";
-        } else {
-            System.out.println("Invalid input");
-            return chooseMode();
-        }
-    }
-
-    public void sendCreateChatProtocol() throws Exception {
-        Scanner terminalIn = new Scanner(System.in);
-        System.out.println("Enter room name: ");
-        String roomName = terminalIn.nextLine();
-        System.out.println("Enter password: ");
-        String password = terminalIn.nextLine();
-        System.out.println("Enter maxCapacity): ");
-        int capacity = Integer.parseInt(terminalIn.nextLine());
-
-        if (capacity <= 0) {
-            System.out.println("Capacity was equal to or below 0, so it is set to 1.");
-            capacity = 1;
-        }
-
-        traderToLobby.put(traderId, "create chat");
-        traderToLobby.put(traderId, roomName, password, capacity);
-        Object[] roomCreationAnswer = lobbyToTrader.get(new ActualField(traderId), new FormalField(String.class), new FormalField(String.class));
-        System.out.println("We got the response:" + roomCreationAnswer[0].toString() + roomCreationAnswer[1].toString() + roomCreationAnswer[2].toString());
-    }
-
-    public String sendJoinChatProtocol() throws Exception {
-        Scanner terminalIn = new Scanner(System.in);
-        System.out.println("Enter room name: ");
-        String roomName = terminalIn.nextLine();
-        System.out.println("Enter password: ");
-        String password = terminalIn.nextLine();
-
-        traderToLobby.put(traderId, roomName, password);
-        Object[] response = lobbyToTrader.get(new ActualField(traderId), new FormalField(String.class));
-        String responseMessage = (String) response[1];
-        System.out.println("We got the response: " + responseMessage);
-        return responseMessage;
-    }
-
-
-    public Object[] chatMenu() throws Exception {
-        Scanner terminalIn = new Scanner(System.in);
-        System.out.println("Choose mode: \n1. Create chat \n2. Get an overview\n3. Join a chat");
-        String mode = terminalIn.nextLine();
-        if (mode.equals("1")) {
-            sendCreateChatProtocol();
-        } else if (mode.equals("2")) {
-            traderToLobby.put(traderId, "show rooms");
-            Object[] roomOverview = lobbyToTrader.get(new ActualField(traderId), new FormalField(String[].class), new FormalField(int.class));
-            System.out.println("Following rooms are open:" + roomOverview[0].toString() + roomOverview[1].toString());
-            return roomOverview;
-        } else if (mode.equals("3")) {
-            traderToLobby.put(traderId, "join");
-            String responseMessage = sendJoinChatProtocol();
-            if (responseMessage.equals("Create room it doesn't exist")) {
-                System.out.println("Whatever");
-                sendCreateChatProtocol();
-            }
-
-        } else {
-            System.out.println("Invalid input, please press the number of the option you want to choose");
-            return chatMenu();
-        }
-        return null;
-    }
-
 
     public String getTraderId() {
         return traderId;

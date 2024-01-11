@@ -9,7 +9,7 @@ public class Client {
     public static void main(String[] args) {
         HostUtil.initialize();
         ClientUtil.initialize();
-        Trader trader = new Trader(traderToLobbyName, lobbyToTraderName);
-        new Thread(trader).start();
+        HumanTrader humanTrader = new HumanTrader(traderToLobbyName, lobbyToTraderName);
+        new Thread(humanTrader).start();
     }
 }
