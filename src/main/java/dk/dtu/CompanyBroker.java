@@ -1,8 +1,8 @@
 package dk.dtu;
 
+import dk.dtu.company.Company;
 import org.jspace.FormalField;
 import org.jspace.RemoteSpace;
-import org.jspace.SequentialSpace;
 import org.jspace.Space;
 
 public class CompanyBroker extends Broker implements Runnable {

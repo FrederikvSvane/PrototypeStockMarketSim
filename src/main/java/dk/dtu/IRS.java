@@ -108,7 +108,11 @@ public class IRS implements Runnable {
             //Establish companies
             for (String ticker : this.tickers)
             {
-                establishCompany(this.tickerCompanyName.get(ticker),ticker,this.tickerIPOYears.get(ticker));
+                try {
+                    establishCompany(this.tickerCompanyName.get(ticker),ticker,this.tickerIPOYears.get(ticker));
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
             }
 
 

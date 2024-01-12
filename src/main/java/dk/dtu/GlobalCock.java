@@ -3,6 +3,9 @@ package dk.dtu;
 import org.jspace.*;
 
 import java.io.IOException;
+import java.time.Duration;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 
 /**
@@ -11,58 +14,142 @@ import java.io.IOException;
  *
  * @apiNote All time units are denoted in UNIX time and in milliseconds!
  */
-public class GlobalCock //uWu what is this GlobalCOCK?!
+
+//TODO: Create a way to convert UNIX time to a date and vise versa
+public class GlobalCock //uWu what is this
 {
 
-    private static String timeStartSpaceName = "timeStartUnix";
+    private static String globalClockSpaceName = "globalClockSpace";
+    private static int speedFactor;
 
 
-
-    public static void initialize(SpaceRepository hostRepo, long startTimeUnix)
+    public static void main(String[] args)
     {
+    }
 
-        Space timeStartSpace = new RandomSpace();
+    /**
+     *
+     * @param hostRepo The repo of the host
+     * @param simulatedStartDateTime The in game start date and time
+     * @param speedFactor How much we speed up/down the in game time that has passed relative to the IRL time that has passed
+     *                    I.g if speedFactor = 2, then a duration of 12 hours IRL is 1 day in game.
+     */
+    public static void initialize(SpaceRepository hostRepo, LocalDateTime simulatedStartDateTime, int speedFactor)
+    {
+        Space globalClockSpace = new RandomSpace();
+        LocalDateTime irlStartDateTime = LocalDateTime.now();
 
         try {
-            timeStartSpace.put(startTimeUnix);
+            globalClockSpace.put("IRLStartDateTime",irlStartDateTime);
+            globalClockSpace.put("simulatedStartDateTime",simulatedStartDateTime);
+            globalClockSpace.put("speedFactor",speedFactor);
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
 
-        hostRepo.add(timeStartSpaceName, timeStartSpace);
+        hostRepo.add(globalClockSpaceName, globalClockSpace);
     }
 
 
-    public static long getTimeNow()
+    public static LocalDateTime getIRLDateTimeNow()
     {
-        return (long) System.currentTimeMillis();
+        return LocalDateTime.now();
     }
 
-    //Returns the time that has passed since the host ran its application in format UNIX in millis units
-    public static long getTimePassed()
+    /**
+     *
+     *      The method is used for calculating how much time has passed in real life, which we in turn use to calculate the in game time that has passed.
+     *
+     * @param globalClockSpace The space wherein we store our settings related to the global clock
+     * @return The real life start dateTime of the computer that acts as the host.
+     */
+    public static LocalDateTime getIRLStartDateTime(Space globalClockSpace)
     {
-
         try {
-            long timeNow = getTimeNow();
-            String uri = ClientUtil.getHostUri(timeStartSpaceName);
-
-            Space timeStartSpace = new RemoteSpace(ClientUtil.setConnectType(uri,"keep"));
-
-;
-
-            //TODO: Maybe create a subclass whose sole purpose is to run a thread that does this exact thing? In case there is a delay in our query?
-            Object[] timeStartQuery = timeStartSpace.query(new FormalField(Long.class));
-
-
-            long timeStartUnix = (long) timeStartQuery[0];
-            return timeNow - timeStartUnix;
-
-            }
-        catch (InterruptedException e) {
+            Object[] startSpaceQuery = globalClockSpace.query(new ActualField("IRLStartDateTime"), new FormalField(LocalDateTime.class));
+            return (LocalDateTime) startSpaceQuery[1];
+        } catch (Exception e) {
+            e.printStackTrace();
             throw new RuntimeException(e);
+        }
+    }
+
+    public static LocalDateTime getIRLStartDateTime()
+    {
+        try {
+            RemoteSpace globalClockSpace = getGlobalClockSpace();
+            Object[] startSpaceQuery = globalClockSpace.query(new ActualField("IRLStartDateTime"), new FormalField(LocalDateTime.class));
+            return (LocalDateTime) startSpaceQuery[1];
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
+
+    public static RemoteSpace getGlobalClockSpace()
+    {
+        try {
+            return new RemoteSpace(ClientUtil.setConnectType(ClientUtil.getHostUri(globalClockSpaceName),"keep"));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static LocalDateTime getSimulatedStartDateTime(Space globalClockSpace)
+    {
+        try {
+            Object[] startSpaceQuery = globalClockSpace.query(new ActualField("simulatedStartDateTime"), new FormalField(LocalDateTime.class));
+            return (LocalDateTime) startSpaceQuery[1];
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    /*
+    We've overloaded this and the other get start date, in case we need them somewhere where we havne't already initialized the globalClockSpace.
+    Otherwise, it would just be an unnecessary overload of the host to initialize the globalClockSpace multiple times within this object.
+     */
+    public static LocalDateTime getSimulatedStartDateTime()
+    {
+        try {
+            RemoteSpace globalClockSpace = getGlobalClockSpace();
+            Object[] startSpaceQuery = globalClockSpace.query(new ActualField("simulatedStartDateTime"), new FormalField(LocalDateTime.class));
+            return (LocalDateTime) startSpaceQuery[1];
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static int getSpeedFactor(Space globalClockSpace)
+    {
+        try {
+            Object[] startSpaceQuery = globalClockSpace.query(new ActualField("speedFactor"), new FormalField(Integer.class));
+            return (int) startSpaceQuery[1];
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static LocalDateTime getSimulatedDateTimeNow()
+    {
+
+        //We get the IRL date first as to ensure, we get as close to the date time this method was called as possible
+        LocalDateTime irlDateTimeNow = getIRLDateTimeNow();
+        RemoteSpace globalClockSpace = getGlobalClockSpace();
+
+        int speedFactor = getSpeedFactor(globalClockSpace);
+        LocalDateTime irlStartDateTime = getIRLStartDateTime(globalClockSpace);
+        LocalDateTime simulatedStartDateTime = getSimulatedStartDateTime(globalClockSpace);
+
+        //We get the IRL difference in seconds
+        Duration deltaT = Duration.between(irlStartDateTime,irlDateTimeNow);
+        long simulatedDeltaTSeconds = deltaT.getSeconds()*speedFactor;
+        LocalDateTime simulatedDateTimeNow = simulatedStartDateTime.plusSeconds(simulatedDeltaTSeconds);
+
+        return simulatedDateTimeNow;
+    }
+
+
 }
+
+//TODO: Investigate or implement a date object, so we can compare dates
 

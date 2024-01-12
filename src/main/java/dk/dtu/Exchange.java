@@ -1,5 +1,6 @@
 package dk.dtu;
 
+import dk.dtu.company.Company;
 import org.jspace.*;
 
 public class Exchange implements Runnable {
@@ -15,12 +16,11 @@ public class Exchange implements Runnable {
 
     public Exchange(SpaceRepository exchangeRepository) throws InterruptedException {
         this.exchangeRepository = exchangeRepository;
+
+
         this.companiesAndPriceHistorySpace.put("ticket");
         this.exchangeRepository.add("companiesAndPricesHistorySpace", companiesAndPriceHistorySpace);
         this.exchangeRepository.add("exchangeRequestSpace", exchangeRequestSpace);
-        String uri = ClientUtil.getHostUri("");
-        String uriConnection = ClientUtil.setConnectType(uri, "keep"); // TODO skriv til alberdo om vi skal bruge keep eller ingenting
-        exchangeRepository.addGate(uriConnection);
     }
 
     public void run() {

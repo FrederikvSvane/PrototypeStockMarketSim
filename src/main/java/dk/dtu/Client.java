@@ -7,7 +7,6 @@ public class Client {
 
 
     public static void main(String[] args) {
-        HostUtil.initialize();
         ClientUtil.initialize();
 
         HumanTrader humanTrader = new HumanTrader(traderToLobbyName, lobbyToTraderName);

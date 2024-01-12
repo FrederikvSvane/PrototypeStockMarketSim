@@ -3,7 +3,7 @@ package dk.dtu;
 import java.util.HashMap;
 import java.util.UUID;
 
-class Order {
+public class Order {
     private String orderId;
     private String traderId;
     private String stockName;
