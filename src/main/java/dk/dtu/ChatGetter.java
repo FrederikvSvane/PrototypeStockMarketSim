@@ -15,10 +15,6 @@ public class ChatGetter implements Runnable{
 
     boolean running;
 
-    public void terminate(){
-        this.running = false;
-    }
-
     public ChatGetter(String roomName, String traderId){
         this.roomName = roomName;
         this.traderId = traderId;
@@ -38,7 +34,7 @@ public class ChatGetter implements Runnable{
             System.out.println("I am listening to room: " + roomName);
             try {
                 RemoteSpace chatRoom = new RemoteSpace("tcp://" + hostIp + ":" + (hostPort + 1) + "/" + roomName + "?keep");
-                while (this.running){
+                while (true){
 
                     Object[] responseMessage = chatRoom.get(new FormalField(String.class), new FormalField(String.class));
                     List<Object[]> users = chatRoom.queryAll(new ActualField("ConnectedToken"), new FormalField(String.class), new FormalField(String.class));
@@ -61,7 +57,7 @@ public class ChatGetter implements Runnable{
             System.out.println("Im listening to " + traderId + "'s room");
             try{
                 RemoteSpace tradersRoom = new RemoteSpace("tcp://" + hostIp + ":" + (hostPort + 1) + "/" + traderId + "?keep");
-                while(this.running){
+                while(true){
                     Object[] messagesRead = tradersRoom.get(new FormalField(String.class), new FormalField(String.class));
                     System.out.println(messagesRead[0] + ": " + messagesRead[1]);
                 }

@@ -19,7 +19,5 @@ public class Host {
         Exchange exchange = new Exchange(hostIp, hostPort, repository);
         new Thread(exchange).start();
         new Thread(new Lobby(hostIp, hostPort, repository)).start();
-
-
     }
 }

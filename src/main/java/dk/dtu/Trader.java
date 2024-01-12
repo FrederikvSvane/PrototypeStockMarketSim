@@ -153,8 +153,8 @@ public class Trader extends DistributedClient implements Runnable{
 
         String result = (String) response[1]; //Answer ei. Fulfilled or Failed
         System.out.println("Server came back with response: " + result);
+        joinRoomOrder(roomName, password);
     } //TODO automatically adds room to connectedRooms for trader.
-
     public void joinRoomOrder() throws InterruptedException {
         Scanner terminalIn = new Scanner(System.in);
 
@@ -163,6 +163,11 @@ public class Trader extends DistributedClient implements Runnable{
         System.out.println("Password: ");
         String password = terminalIn.nextLine();
 
+        joinRoomOrder(roomName, password);
+    }
+
+    //Overloaded function for use in automatically joining a room after creating it.
+    public void joinRoomOrder(String roomName, String password) throws InterruptedException{
         toLobby.put(traderId, "join", roomName, password, 0);
 
         Object[] response = fromLobby.get(new ActualField(traderId), new FormalField(String.class));
@@ -171,6 +176,7 @@ public class Trader extends DistributedClient implements Runnable{
             connectedChats.put(roomName);
         }
     }
+
 
     public void getOverviewOrder() throws InterruptedException, IOException {
         //Querys all rooms the Trader is connected to, then lists them.
