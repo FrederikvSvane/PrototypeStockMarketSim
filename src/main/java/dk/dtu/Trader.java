@@ -186,7 +186,7 @@ public class Trader extends DistributedClient implements Runnable{
         if (allChats.isEmpty()){ //If no rooms have been collected.
             System.out.println("You have no joined rooms...");
         } else {
-            for(Object[] chat : allChats){ //Loop over all chats, and displays in a good looking manner.
+            for(Object[] chat : allChats){ //Loop over all chats, and displays in a good-looking manner.
                 //Puts in a request inorder to get back knowledge about capacity.
                 toLobby.put(traderId, "getCapacity", chat[0], "", 0);
 
@@ -200,33 +200,36 @@ public class Trader extends DistributedClient implements Runnable{
     }
 
     public void writeToChatroom(String roomName) throws IOException, InterruptedException {
+        //RemoteSpace initialized for roomName.
         RemoteSpace chatRoom = new RemoteSpace("tcp://" + hostIp + ":" + (hostPort + 1) + "/" + roomName + "?keep");
-        //Need to get space to talk to.
         Scanner terminalIn = new Scanner(System.in);
-
         boolean isConnected = true;
-        ChatGetter getter = new ChatGetter(roomName, traderId);
-        Thread thread = new Thread(getter);
-        thread.start();
+        ChatGetter getter = new ChatGetter(roomName, traderId); //new getter for trader mailbox.
+        Thread getterThread = new Thread(getter);
+
+        //Start getterThread, that listens to trader.
+        getterThread.start();
+
         while(isConnected){
             String currentMessage = terminalIn.nextLine();
             if(!currentMessage.equals("EXIT")){
                 chatRoom.put(traderId, currentMessage);
             } else{
                 isConnected = false;
-                thread.interrupt();
+                getterThread.interrupt(); //Thread.interrupt - causes the thread to quit, but throws InterruptedException.
             }
         }
     }
 
     //Maybe a back option.
+    //Console input for controlling after entering overview.
     public void consoleInputChatting() throws IOException, InterruptedException {
         Scanner terminalIn = new Scanner(System.in);
         System.out.println("Choose a group to text");
         String response = terminalIn.nextLine();
         writeToChatroom(response);
     }
-
+    //Sends createUserSpace command.
     public void openTraderMessages() throws InterruptedException {
         toLobby.put(traderId, "createUserSpace", "", "", 0);
     }

@@ -51,7 +51,7 @@ public class Lobby implements Runnable {
                             fromLobby.put(traderId, "Failed");
                         } else {
                             fromLobby.put(traderId, "Fulfilled");
-                            //After fulfillment we create a new space for chatting in the chatRooms space.
+                            //After fulfillment, we create a new space for chatting in the chatRooms space.
                             SequentialSpace newRoom = new SequentialSpace();
                             newRoom.put("AuthToken", password, 0, capacity);
                             chatRooms.add(roomName, newRoom);
@@ -76,6 +76,9 @@ public class Lobby implements Runnable {
                                     if(!checkConnectedStatus(traderId, roomExists)){ //Checks whether the user is already connected to the chat.
                                         roomExists.put("AuthToken", password, currentlyConnected + 1, fullCapacity);
                                         roomExists.put("ConnectedToken", traderId, "connected");
+
+                                        List<List<String>> historyList = new ArrayList<>();
+                                        roomExists.put("History", historyList);
                                         fromLobby.put(traderId, "Fulfilled");
                                     } else{
                                         fromLobby.put(traderId, "You're already connected to this room");
@@ -124,6 +127,8 @@ public class Lobby implements Runnable {
                             chatRooms.add(traderId, new SequentialSpace());
                             traderChat = chatRooms.get(traderId);
                         }
+                        List<Object[]> historyList = new ArrayList<>();
+                        traderChat.put("History", historyList);
 
                         //traderChat.put("Lobby", "Test message");
                         System.out.println("Room added for user: " + traderId + "on uri: " );
