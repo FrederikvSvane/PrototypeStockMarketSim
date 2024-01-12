@@ -153,8 +153,10 @@ public class Trader extends DistributedClient implements Runnable{
 
         String result = (String) response[1]; //Answer ei. Fulfilled or Failed
         System.out.println("Server came back with response: " + result);
+
+        //Send join room request so trader automatically joins its newly created room.
         joinRoomOrder(roomName, password);
-    } //TODO automatically adds room to connectedRooms for trader.
+    }
     public void joinRoomOrder() throws InterruptedException {
         Scanner terminalIn = new Scanner(System.in);
 
@@ -177,36 +179,35 @@ public class Trader extends DistributedClient implements Runnable{
         }
     }
 
-
     public void getOverviewOrder() throws InterruptedException, IOException {
         //Querys all rooms the Trader is connected to, then lists them.
         List<Object[]> allChats = connectedChats.queryAll(new FormalField(String.class));
         int counter = 1;
-        if (allChats.isEmpty()){
+        if (allChats.isEmpty()){ //If no rooms have been collected.
             System.out.println("You have no joined rooms...");
         } else {
-            for(Object[] chat : allChats){
+            for(Object[] chat : allChats){ //Loop over all chats, and displays in a good looking manner.
                 //Puts in a request inorder to get back knowledge about capacity.
                 toLobby.put(traderId, "getCapacity", chat[0], "", 0);
+
                 Object[] response = fromLobby.get(new ActualField(traderId), new FormalField(String.class), new FormalField(Integer.class), new FormalField(Integer.class));
+
                 System.out.println(counter + ". " + chat[0] + " | " + response[2] + "/" + response[3]);
                 counter++;
             }
+            //Maybe a back option.
             Scanner terminalIn = new Scanner(System.in);
             System.out.println("Choose a group to text");
             String response = terminalIn.nextLine();
             writeToChatroom(response);
         }
-
-
-
     }
 
     public void writeToChatroom(String roomName) throws IOException, InterruptedException {
         RemoteSpace chatRoom = new RemoteSpace("tcp://" + hostIp + ":" + (hostPort + 1) + "/" + roomName + "?keep");
         //Need to get space to talk to.
         Scanner terminalIn = new Scanner(System.in);
-        //toLobby.put(traderId, "subscribe", roomName, "", 0);
+
         boolean isConnected = true;
         ChatGetter getter = new ChatGetter(roomName, traderId);
         Thread thread = new Thread(getter);

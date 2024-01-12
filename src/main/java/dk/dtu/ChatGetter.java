@@ -36,25 +36,27 @@ public class ChatGetter implements Runnable{
                 RemoteSpace chatRoom = new RemoteSpace("tcp://" + hostIp + ":" + (hostPort + 1) + "/" + roomName + "?keep");
                 while (true){
 
+                    //Gets the newest message in the space.
                     Object[] responseMessage = chatRoom.get(new FormalField(String.class), new FormalField(String.class));
+
+                    //Gets all users connected to the space.
                     List<Object[]> users = chatRoom.queryAll(new ActualField("ConnectedToken"), new FormalField(String.class), new FormalField(String.class));
-                    System.out.println(users.size());
+
                     if(!responseMessage[1].equals("EXIT")){ //To exit the terminal to write.
+                        //Loops over every user collected, to send messages.
                         for(Object[] user : users){
-                            if(!user[1].equals(responseMessage[0])){
+                            if(!user[1].equals(responseMessage[0])){ //Check user isnt the one who send the message.
                                 RemoteSpace tradersRoom = new RemoteSpace("tcp://" + hostIp + ":" + (hostPort + 1) + "/" + user[1] + "?keep");
-                                System.out.println(responseMessage[0] + ": " + responseMessage[1] + " to " + tradersRoom.getUri());
                                 tradersRoom.put(responseMessage[0], responseMessage[1]);
-                                System.out.println(responseMessage[0] + ": " + responseMessage[1] + " to " + user[1]);
                             }
                         }
-                    }//Forloop over alle traders
+                    }
                 }
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
         } else {
-            System.out.println("Im listening to " + traderId + "'s room");
+            //System.out.println("Im listening to " + traderId + "'s room"); For debugging.
             try{
                 RemoteSpace tradersRoom = new RemoteSpace("tcp://" + hostIp + ":" + (hostPort + 1) + "/" + traderId + "?keep");
                 while(true){

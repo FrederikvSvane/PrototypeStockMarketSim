@@ -3,6 +3,7 @@ package dk.dtu;
 import org.jspace.*;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public class Lobby implements Runnable {
 
@@ -63,7 +64,6 @@ public class Lobby implements Runnable {
 
                     case "join":{ //if join command is executed.
                         Space roomExists = chatRooms.get(roomName);
-                        System.out.println(roomExists);
 
                         if(roomExists != null){ //Check if room exists.
                             //Get authToken,
@@ -74,9 +74,13 @@ public class Lobby implements Runnable {
 
                             if(correctPassword.equals(password)){
                                 if(currentlyConnected < fullCapacity){ //When a trader joins a room.
-                                    roomExists.put("AuthToken", password, currentlyConnected + 1, fullCapacity);
-                                    roomExists.put("ConnectedToken", traderId, "connected");
-                                    fromLobby.put(traderId, "Fulfilled");
+                                    if(!checkConnectedStatus(traderId, roomExists)){ //Checks whether the user is already connected to the chat.
+                                        roomExists.put("AuthToken", password, currentlyConnected + 1, fullCapacity);
+                                        roomExists.put("ConnectedToken", traderId, "connected");
+                                        fromLobby.put(traderId, "Fulfilled");
+                                    } else{
+                                        fromLobby.put(traderId, "You're already connected to this room");
+                                    }
 
                                 } else { //If the room is too full.
                                     roomExists.put("AuthToken", password, currentlyConnected, fullCapacity);
@@ -130,5 +134,21 @@ public class Lobby implements Runnable {
                 throw new RuntimeException(e);
             }
         }
+    }
+
+    /**
+     * Checks whether a user is connected to a room.
+     * @param traderId
+     * @param room
+     * @return true if user is connnected else false.
+     */
+    public boolean checkConnectedStatus(String traderId, Space room) throws InterruptedException {
+        List<Object[]> users = room.queryAll(new ActualField("ConnectedToken"), new FormalField(String.class), new FormalField(String.class));
+        for(Object[] user : users){
+            if(user[1].equals(traderId)){
+                return true;
+            }
+        }
+        return false;
     }
 }
