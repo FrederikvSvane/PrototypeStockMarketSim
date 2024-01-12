@@ -12,7 +12,7 @@ import java.time.LocalDateTime;
  * The reason d'terre of the Global Clock class is to provide temporal information relating to what time it is now
  * and when the host program started.
  *
- * @apiNote All time units are denoted in UNIX time and in milliseconds!
+ * @apiNote Due to the way the simulation is structured it is not possible to change simulatedStartDateTime or irlStartDateTime mid-simulation.
  */
 
 //TODO: Create a way to convert UNIX time to a date and vise versa
@@ -20,11 +20,14 @@ public class GlobalCock //uWu what is this
 {
 
     private static String globalClockSpaceName = "globalClockSpace";
-    private static int speedFactor;
+    private static int speedFactor = 0;
+    private static LocalDateTime simulatedStartDateTime;
+    private static LocalDateTime irlStartDateTime;
 
 
     public static void main(String[] args)
     {
+
     }
 
     /**
@@ -129,16 +132,39 @@ public class GlobalCock //uWu what is this
         }
     }
 
+    public static int getSpeedFactor()
+    {
+        try {
+            RemoteSpace globalClockSpace = getGlobalClockSpace();
+            Object[] startSpaceQuery = globalClockSpace.query(new ActualField("speedFactor"), new FormalField(Integer.class));
+            return (int) startSpaceQuery[1];
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     public static LocalDateTime getSimulatedDateTimeNow()
     {
 
         //We get the IRL date first as to ensure, we get as close to the date time this method was called as possible
         LocalDateTime irlDateTimeNow = getIRLDateTimeNow();
-        RemoteSpace globalClockSpace = getGlobalClockSpace();
 
-        int speedFactor = getSpeedFactor(globalClockSpace);
-        LocalDateTime irlStartDateTime = getIRLStartDateTime(globalClockSpace);
-        LocalDateTime simulatedStartDateTime = getSimulatedStartDateTime(globalClockSpace);
+        //We do not want to overload the host, so we will only get these values once and then store them locally for future use.
+        if(speedFactor == 0)
+        {
+            speedFactor = getSpeedFactor();
+        }
+
+        if(irlStartDateTime == null)
+        {
+            irlStartDateTime = getIRLStartDateTime();
+        }
+
+        if(simulatedStartDateTime == null)
+        {
+            simulatedStartDateTime = getSimulatedStartDateTime();
+        }
+
 
         //We get the IRL difference in seconds
         Duration deltaT = Duration.between(irlStartDateTime,irlDateTimeNow);
@@ -147,6 +173,7 @@ public class GlobalCock //uWu what is this
 
         return simulatedDateTimeNow;
     }
+
 
 
 }

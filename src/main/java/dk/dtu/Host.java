@@ -8,12 +8,10 @@ public class Host {
 
     public static void main(String[] args) throws InterruptedException {
 
-
         HostUtil.initialize("keep");
         ClientUtil.initialize();
 
         SpaceRepository hostRepo = HostUtil.getHostRepo();
-
 
         Exchange exchange = new Exchange(hostRepo);
         new Thread(exchange).start();

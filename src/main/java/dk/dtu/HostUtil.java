@@ -4,8 +4,8 @@ package dk.dtu;
 import org.jspace.SpaceRepository;
 
 public class HostUtil {
-    private static String hostIp = "10.209.145.90";;
-    private static int hostPort = 10157;;
+    private static String hostIp = "192.168.79.195";;
+    private static int hostPort = 35690;;
     private static SpaceRepository hostRepo;
     private HostUtil() {
         // Private constructor to prevent instantiation
