@@ -19,7 +19,5 @@ public class Host {
         new Thread(exchange).start();
         GlobalClock.initialize(repository,startTimeUnix);
         new Thread(new Lobby(repository)).start();
-
-
     }
 }

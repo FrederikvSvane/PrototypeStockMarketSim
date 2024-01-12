@@ -3,141 +3,155 @@ package dk.dtu;
 import org.jspace.*;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public class Lobby implements Runnable {
 
     String hostIp;
     int hostPort;
     SpaceRepository hostRepo;
-    SequentialSpace traderToLobby;
-    SequentialSpace lobbyToTrader;
+    SequentialSpace toLobby;
+    SequentialSpace fromLobby;
     Space chatRoomLobby;
-    ArrayList<String> roomRegister = new ArrayList<String>();
 
+    SpaceRepository chatRooms;
+    //TODO make traders able to directly message each other.
+    //TODO fetch chat history when sending messages to a chat.
 
-    public Lobby(SpaceRepository chatRepo)
-    {
+    public Lobby(SpaceRepository chatRepo) {
         this.hostIp = HostUtil.getHostIp(); //TODO det er også spild at sætte ip og port her, da det kun bruges til URI, og det kan hentes fra HostUtil eller ClientUtil
         this.hostPort = HostUtil.getHostPort();
         this.hostRepo = chatRepo;
-        this.traderToLobby = new SequentialSpace();
-        this.lobbyToTrader = new SequentialSpace();
+        this.toLobby = new SequentialSpace();
+        this.fromLobby = new SequentialSpace();
         this.chatRoomLobby = new SequentialSpace();
-        hostRepo.add("traderToLobby",traderToLobby);
-        hostRepo.add("lobbyToTrader",lobbyToTrader);
-        //ChatRoomLobby is used to communicate between the chatroom and the lobby
-        hostRepo.add("chatRoomLobby", chatRoomLobby);
+
+        hostRepo.add("toLobby", toLobby);
+        hostRepo.add("fromLobby", fromLobby);
+
+        chatRooms = new SpaceRepository();
+        chatRooms.addGate("tcp://" + hostIp + ":" + (hostPort + 1) + "?keep");
     }
 
-    public void run()
-    {
-        while(true) {
+    public void run() {
+        while (true) {
             try {
-                Object[] req = traderToLobby.get(new FormalField(String.class), new FormalField(String.class));
-                String requester = (String) req[0];
-                String request = (String) req[1];
+                Object[] request = toLobby.get(new FormalField(String.class), new FormalField(String.class), new FormalField(String.class), new FormalField(String.class), new FormalField(Integer.class));
+                String traderId = (String) request[0];
+                String command = (String) request[1];
+                String roomName = (String) request[2];
+                String password = (String) request[3];
+                int capacity = (int) request[4];
+                //System.out.println("Server got request for: " + command + " name: " + roomName + ". From: " + traderId);
+                switch (command) {
+                    case "create": { //When create command is present.
+                        Space roomExists = hostRepo.get(roomName);
+                        if (roomExists != null) { //if room already exists.
+                            fromLobby.put(traderId, "Failed");
+                        } else {
+                            fromLobby.put(traderId, "Fulfilled");
+                            //After fulfillment we create a new space for chatting in the chatRooms space.
+                            SequentialSpace newRoom = new SequentialSpace();
+                            newRoom.put("AuthToken", password, 0, capacity);
+                            chatRooms.add(roomName, newRoom);
+                            //Initializes a new thread that listens to all conversations in roomName.
+                            new Thread(new ChatGetter(roomName, traderId, true)).start();
+                        }
+                        break;
+                    }
 
-                switch(request) {
-                    case "create chat":
-                        createRoom(requester);
-                        break;
-                    case "show overview":
-                        break;
-                    case "join":
-                        System.out.println("Someone attempted to join");
-                        joinRoom(requester);
-                        break;
-                    case "delete room":
+                    case "join": { //if join command is executed.
+                        Space roomExists = chatRooms.get(roomName);
+
+                        if (roomExists != null) { //Check if room exists.
+                            //Get authToken,
+                            Object[] authToken = roomExists.get(new ActualField("AuthToken"), new FormalField(String.class), new FormalField(Integer.class), new FormalField(Integer.class));
+                            String correctPassword = (String) authToken[1];
+                            int currentlyConnected = (int) authToken[2];
+                            int fullCapacity = (int) authToken[3];
+
+                            if (correctPassword.equals(password)) {
+                                if (currentlyConnected < fullCapacity) { //When a trader joins a room.
+                                    if (!checkConnectedStatus(traderId, roomExists)) { //Checks whether the user is already connected to the chat.
+                                        roomExists.put("AuthToken", password, currentlyConnected + 1, fullCapacity);
+                                        roomExists.put("ConnectedToken", traderId, "connected");
+                                        fromLobby.put(traderId, "Fulfilled");
+                                    } else {
+                                        fromLobby.put(traderId, "You're already connected to this room");
+                                    }
+
+                                } else { //If the room is too full.
+                                    roomExists.put("AuthToken", password, currentlyConnected, fullCapacity);
+                                    fromLobby.put(traderId, "Room is full");
+
+                                }
+
+                            } else { //If the trader types the wrong password.
+                                System.out.println("Wrong Password");
+                                roomExists.put("AuthToken", password, currentlyConnected, fullCapacity);
+                                fromLobby.put(traderId, "Wrong Password");
+
+                            }
+
+                        } else {
+                            //If the room does not exist, we need to return not fulfilled.
+                            fromLobby.put(traderId, "Failed");
+
+                        }
                         break;
 
-                    default:
-                        throw new RuntimeException("Invalid request");
+                    }
+                    case "getCapacity": {
+                        Space roomExists = chatRooms.get(roomName);
+
+                        if (roomExists != null) {
+                            Object[] authToken = roomExists.query(new ActualField("AuthToken"), new FormalField(String.class), new FormalField(Integer.class), new FormalField(Integer.class));
+                            int currentlyConnected = (int) authToken[2];
+                            int fullCapacity = (int) authToken[3];
+
+                            fromLobby.put(traderId, "Fulfilled", currentlyConnected, fullCapacity);
+                        }
+                        break;
+                    }
+                    case "subscribe": { //Not sure this will be used.
+                        break;
+                    }
+                    case "createUserSpace": { //Creates the space upon Trader initialization.
+                        Space traderChat = chatRooms.get(traderId);
+
+                        if (traderChat == null) {
+                            chatRooms.add(traderId, new SequentialSpace());
+                            traderChat = chatRooms.get(traderId);
+                        }
+
+                        //traderChat.put("Lobby", "Test message");
+                        System.out.println("Room added for user: " + traderId + "on uri: ");
+                    }
                 }
-
-            } catch (Exception e) {
-                e.printStackTrace();
-                throw new RuntimeException("Error in lobby");
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
             }
         }
     }
 
-    public void createRoom(String traderUuid)
-    {
-        try {
-            Object[] req = traderToLobby.get(new ActualField(traderUuid), new FormalField(String.class), new FormalField(String.class), new FormalField(Integer.class));
-            String roomName = (String) req[1];
-            String password = (String) req[2];
-            int capacity = (int) req[3];
-            Space roomExists =  hostRepo.get(roomName);
-
-            System.out.println("User: " + traderUuid + " created room " + roomName + " with max capacity: " + capacity);
-
-            //If the room exists
-            if(roomExists != null) {
-                lobbyToTrader.put(traderUuid, "room with name" + roomName + "already exists");
-                return;
-            }
-
-            //ChatRoomTrader is used to send messages between traders
-            Space chatRoomTrader = new SequentialSpace();
-
-            hostRepo.add(roomName,chatRoomTrader);
-            new Thread(new ChatRoom(chatRoomLobby,chatRoomTrader, roomName, password, capacity)).start();
-            roomRegister.add(roomName);
-            lobbyToTrader.put(traderUuid, "room with name" + roomName + "created");
-
-
-
-        } catch (Exception e) {
-            e.printStackTrace();
-            throw new RuntimeException("Error in lobby");
-        }
-
+    public void getOverview(String traderUuid) {
+        return;
     }
 
-    public void joinRoom(String traderUuid)
-    {
-        try {
-            Object[] req = traderToLobby.get(new ActualField(traderUuid), new FormalField(String.class), new FormalField(String.class));
-            String joinRoomTraderUUID = (String) req[0];
-            String roomName = (String) req[1];
-            String password = (String) req[2];
-            System.out.println("Lobby received room name trying to join: " + roomName + " from user with ID: " + joinRoomTraderUUID + " and password " + password);
-
-            Space chatRoom = hostRepo.get(roomName);
-
-
-            //If a room doesn't exist we create it.
-            if(chatRoom == null) {
-                System.out.println("Room: " + roomName + " doesn't exist we're trying to create a new");
-                lobbyToTrader.put(traderUuid,"Create room it doesn't exist");
-                createRoom(traderUuid);
-                return;
+    /**
+     * Checks whether a user is connected to a room.
+     *
+     * @param traderId
+     * @param room
+     * @return true if user is connnected else false.
+     */
+    public boolean checkConnectedStatus(String traderId, Space room) throws InterruptedException {
+        List<Object[]> users = room.queryAll(new ActualField("ConnectedToken"), new FormalField(String.class), new FormalField(String.class));
+        for (Object[] user : users) {
+            if (user[1].equals(traderId)) {
+                return true;
             }
-
-            //Check password
-            chatRoomLobby.put(roomName,"join");
-            chatRoomLobby.put(traderUuid,password);
-
-
-            //Check capacity
-            Object[] joinRequest = chatRoomLobby.get(new ActualField("Chat room response"),new ActualField(roomName), new FormalField(String.class));
-            String responseMessage = (String) joinRequest[2];
-            lobbyToTrader.put(traderUuid,responseMessage);
-
-
-        } catch (Exception e) {
-            e.printStackTrace();
-            throw new RuntimeException("Error in lobby");
         }
-
-    }
-
-    public void getOverview(String traderUuid)
-    {
-
-
+        return false;
     }
 }
-
-

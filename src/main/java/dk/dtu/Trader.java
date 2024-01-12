@@ -1,5 +1,8 @@
 package dk.dtu;
 
+import java.net.URI;
+import java.rmi.Remote;
+import java.util.*;
 import java.io.IOException;
 import java.util.Scanner;
 import java.util.UUID;
@@ -7,13 +10,11 @@ import java.util.UUID;
 import org.jspace.*;
 
 public class Trader {
-    protected String traderId;
-    protected String hostIp;
-    protected SequentialSpace masterCompanyRegister;
-    protected SequentialSpace companyPriceGraphs;
-
-
-    protected int hostPort;
+    private String traderId;
+    private String hostIp;
+    private SequentialSpace masterCompanyRegister;
+    private SequentialSpace companyPriceGraphs;
+    private int hostPort;
 
     public Trader() { //TODO lav en overklasse, som ikke har nogen argumenter, som kan nedarves til HumanTrader og BotTrader. Det er kun HumanTrader, som kan chatte
         this.traderId = UUID.randomUUID().toString();
@@ -60,34 +61,10 @@ public class Trader {
         new Thread(priceGraphDataFetcher).start();
     }
 
-    public void consoleInputToSendOrder() throws IOException, InterruptedException {
-        Scanner terminalIn = new Scanner(System.in);
-        String orderString = terminalIn.nextLine();
-        String[] orderParts = orderString.split(" ");
-        String orderType = orderParts[0];
-        String companyName = orderParts[1];
-        String companyTicker;
-        Object[] companyData = masterCompanyRegister.queryp(new FormalField(String.class), new ActualField(companyName.toLowerCase()), new FormalField(String.class));
-
-        if (companyData == null) {
-            // Så man kan skriver ticker i stedet for navn
-            companyData = masterCompanyRegister.queryp(new FormalField(String.class), new FormalField(String.class), new ActualField(companyName.toUpperCase()));
-
-            if (companyData == null) {
-                throw new RuntimeException("Company does not exist");
-            }
-        }
-        companyName = (String) companyData[1];
-        companyTicker = (String) companyData[2];
-
-        int amount = Integer.parseInt(orderParts[2]);
-        float price = Float.parseFloat(orderParts[3]);
-        Order order = new Order(traderId, companyName, companyTicker, amount, price);
-        sendOrderToBroker(orderType, order);
-    }
-
-    public String getTraderId() {
-        return traderId;
-    }
+    public String getTraderId() { return traderId; }
+    public String getHostIp() { return hostIp; }
+    public int getHostPort() { return hostPort; }
+    public SequentialSpace getMasterCompanyRegister() { return masterCompanyRegister; }
+    public SequentialSpace getCompanyPriceGraphs() { return companyPriceGraphs; }
 }
 

@@ -1,7 +1,5 @@
 package dk.dtu;
 
-import java.util.UUID;
-
 public class SellBot extends Trader{
 
     public SellBot() {
@@ -12,10 +10,10 @@ public class SellBot extends Trader{
             while (true) {
                 try {
                     String orderType = "sell";
-                    Order order = new Order(getTraderId(), "Apple","AAPL", 1, 1);
+                    Order order = new Order(super.getTraderId(), "Apple","AAPL", 1, 1);
                     int amount = 2000;
                     for (int i = 0; i < amount; i++) {
-                        sendOrderToBroker(orderType, order);
+                        super.sendOrderToBroker(orderType, order);
                         Thread.sleep(10);
                     }
                 } catch (Exception e) {

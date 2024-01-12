@@ -1,25 +1,21 @@
 package dk.dtu;
 
+import java.io.IOException;
 public class Client {
-    private int amountOfTraders = 1;
-    static String lobbyToTraderName = "lobbyToTrader"; //TODO find anden måde at gøre dette end at passe som argument til constructor
-    static String traderToLobbyName = "traderToLobby";
 
-
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException {
         HostUtil.initialize();
         ClientUtil.initialize();
 
-        HumanTrader humanTrader = new HumanTrader(traderToLobbyName, lobbyToTraderName);
+        HumanTrader humanTrader = new HumanTrader();
         new Thread(humanTrader).start();
         while (true) {
             try {
                 Thread.sleep(1000);
-                System.out.println(GlobalCock.getTimePassed());
+                System.out.println(GlobalClock.getTimePassed());
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
         }
-
     }
 }
