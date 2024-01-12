@@ -1,8 +1,11 @@
-package dk.dtu;
+package dk.dtu.company;
 
 import java.io.IOException;
 import java.util.UUID;
 import dk.dtu.Broker;
+import dk.dtu.ClientUtil;
+import dk.dtu.CompanyBroker;
+import dk.dtu.Order;
 import jdk.jshell.spi.ExecutionControl;
 import org.jspace.RemoteSpace;
 import org.jspace.Space;
@@ -11,19 +14,20 @@ import org.jspace.SpaceRepository;
 import javax.security.auth.login.LoginException;
 
 
+
 public abstract class Company implements Runnable{
-    private String companyId;
-    private String companyName;
-    private String companyTicker;
-    private int ipoYear;
+    protected final String companyId;
+    protected final String companyName;
+    protected final String companyTicker;
+    protected final int ipoYear;
 
     //Shares outstanding -> Shares in public circulation on the stock exchange.
     private int sharesOutstanding;
 
     //The total amount of shares at the time this company IPO'ed
-    private int totalNrShares;
+    private final int totalNrShares;
 
-    private Space fundamentalsSpace;
+    protected final Space fundamentalsSpace;
 
     public Company(String companyName, String companyTicker,int ipoYear, Space fundamentalsSpace) {
 
@@ -44,7 +48,7 @@ public abstract class Company implements Runnable{
         try {
 
             //First things first; we gotta IPO
-            if(isIPO(ipoYear,ingameDateDummy))
+            if(isTimeToIPO(ipoYear,ingameDateDummy))
             {
                 //Calculate fundamentals and push them to fundamentals space
                 updateFundamentalData(ingameDateDummy);
@@ -98,11 +102,11 @@ public abstract class Company implements Runnable{
     }
 
     private void sendBuyOrder(String companyId, CompanyBroker companyBroker, Order order) {
-        return; //TODO samme logik som i Trader.java
+        //TODO samme logik som i Trader.java
     }
 
     private void sendSellOrder(String companyId, CompanyBroker companyBroker, Order order) {
-        return; //TODO samme logik som i Trader.java
+        //TODO samme logik som i Trader.java
     }
 
     private Order makeOrder(int amount, float price) {
@@ -117,17 +121,30 @@ public abstract class Company implements Runnable{
 
     abstract float calculateIPOPrice();
 
-    //Determines whether or not we will IPO given a ipoYear modifier and an ingame date
-    abstract boolean isIPO(int ipoYear, int ingameDate);
+    //Is it time for IPO?
+    abstract boolean isTimeToIPO(int ipoYear, int ingameDate);
 
 
     public String getCompanyName() { return companyName; }
     public String getCompanyTicker() { return companyTicker; }
     public String getCompanyId() { return companyId; }
 
+    public int getIpoYear(){ return ipoYear;}
+
     public abstract void updateFundamentalData(int ingameDate);
 
     public abstract float getFundamentalData(String financialPost);
 
 
+    public int getSharesOutstanding() {
+        return sharesOutstanding;
+    }
+
+    public int getTotalNrShares() {
+        return totalNrShares;
+    }
+
+
 }
+
+//TODO: Add a CompanyFundamentals class which can standardize the way we update the fundamentals

@@ -1,5 +1,6 @@
 package dk.dtu;
 
+import dk.dtu.company.Company;
 import org.jspace.ActualField;
 import org.jspace.Space;
 
