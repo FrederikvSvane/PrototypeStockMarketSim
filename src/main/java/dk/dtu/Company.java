@@ -3,30 +3,67 @@ package dk.dtu;
 import java.io.IOException;
 import java.util.UUID;
 import dk.dtu.Broker;
+import jdk.jshell.spi.ExecutionControl;
 import org.jspace.RemoteSpace;
 import org.jspace.Space;
+import org.jspace.SpaceRepository;
 
-public class Company implements Runnable{
+import javax.security.auth.login.LoginException;
+
+
+public abstract class Company implements Runnable{
     private String companyId;
     private String companyName;
     private String companyTicker;
-    private int amountOfStocks;
-    private int amountOfNonTradedStocks;
+    private int ipoYear;
 
-    public Company(String companyName, String companyTicker) {
+    //Shares outstanding -> Shares in public circulation on the stock exchange.
+    private int sharesOutstanding;
+
+    //The total amount of shares at the time this company IPO'ed
+    private int totalNrShares;
+
+    private Space fundamentalsSpace;
+
+    public Company(String companyName, String companyTicker,int ipoYear, Space fundamentalsSpace) {
+
         this.companyId = UUID.randomUUID().toString();
         this.companyName = companyName;
         this.companyTicker = companyTicker;
+        this.ipoYear = ipoYear;
+        this.totalNrShares = calculateTotalNrShares();
+        this.fundamentalsSpace = fundamentalsSpace;
 
     }
 
     @Override
     public void run() {
-        //Lav ipo én gang
-        Order order = makeOrder(100, 35);
+
+        int ingameDateDummy = -2000;
+
         try {
-            sendRequestToCompanyBroker("IPO", order);
+
+            //First things first; we gotta IPO
+            if(isIPO(ipoYear,ingameDateDummy))
+            {
+                //Calculate fundamentals and push them to fundamentals space
+                updateFundamentalData(ingameDateDummy);
+
+                //Then we IPO!!!
+                int IPOFloating = this.getIPOSharesFloated();
+                float IPOSharePrice = this.calculateIPOPrice();
+                this.sharesOutstanding = getIPOSharesFloated();
+                Order IPO = makeOrder(IPOFloating, IPOSharePrice);
+                sendRequestToCompanyBroker("IPO", IPO);
+
+            }
+
+            //TODO: Create an object that follows the Petri Net I (Benjamin) designed and continuously ensures that the fundamentals data is updated
+
+            //Then we look at the market, I s'pose m'lord?
+
         } catch (InterruptedException e) {
+            e.printStackTrace(System.out);
             throw new RuntimeException(e);
         }
     }
@@ -71,8 +108,26 @@ public class Company implements Runnable{
     private Order makeOrder(int amount, float price) {
         return new Order(companyId, companyName,companyTicker, amount, price);
     }
+
+    //Total numbers of shares at IPO
+    abstract int calculateTotalNrShares();
+
+    //Number of shares floated (offered publicly) at IPO
+    abstract int getIPOSharesFloated();
+
+    abstract float calculateIPOPrice();
+
+    //Determines whether or not we will IPO given a ipoYear modifier and an ingame date
+    abstract boolean isIPO(int ipoYear, int ingameDate);
+
+
     public String getCompanyName() { return companyName; }
     public String getCompanyTicker() { return companyTicker; }
     public String getCompanyId() { return companyId; }
+
+    public abstract void updateFundamentalData(int ingameDate);
+
+    public abstract float getFundamentalData(String financialPost);
+
 
 }

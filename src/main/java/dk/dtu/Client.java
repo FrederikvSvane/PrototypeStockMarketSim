@@ -1,6 +1,7 @@
 package dk.dtu;
 
 import java.io.IOException;
+
 public class Client {
 
     public static void main(String[] args) throws IOException {
@@ -9,6 +10,7 @@ public class Client {
 
         HumanTrader humanTrader = new HumanTrader();
         new Thread(humanTrader).start();
+
         while (true) {
             try {
                 Thread.sleep(1000);
@@ -16,6 +18,8 @@ public class Client {
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
+
         }
     }
 }
+

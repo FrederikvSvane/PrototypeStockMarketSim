@@ -9,7 +9,7 @@ import org.jspace.*;
  *
  * @apiNote All time units are denoted in UNIX time and in milliseconds!
  */
-public class GlobalClock
+public class GlobalClock //uWu what is this GlobalCOCK?!
 {
 
     private static String timeStartSpaceName = "timeStartUnix";
