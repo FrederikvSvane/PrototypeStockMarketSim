@@ -1,25 +1,37 @@
 package dk.dtu.company;
 
 
+import dk.dtu.GlobalCock;
 import org.apache.commons.math3.distribution.BinomialDistribution;
 import org.apache.commons.math3.distribution.NormalDistribution;
 import org.jspace.ActualField;
 import org.jspace.FormalField;
 import org.jspace.Space;
 
+import java.time.LocalDateTime;
 import java.util.Date;
+import java.util.List;
 
 /**
  * Company whose fundamentals are based off stochastic processes or directly probability distributions
  */
 public class StochasticCompany extends Company {
 
-    public StochasticCompany(String companyName, String companyTicker, int ipoYear, Space fundamentalsSpace) {
-        super(companyName, companyTicker, ipoYear, fundamentalsSpace);
-        NormalDistribution normalDistribution = new NormalDistribution(ipoYear,3);
+    public StochasticCompany(String companyName, String companyTicker, LocalDateTime ipoDateTime, Space fundamentalsSpace) {
+        super(companyName, companyTicker, ipoDateTime, fundamentalsSpace);
 
-        //A normal distribution centered around the real ipoYear with approx. a 95% chance of being IPO'ed between +/- 5 years of the real date
-        ipoYear = (int) normalDistribution.sample();
+
+        //A normal distribution with a 95% C.I between [-6,6]
+        NormalDistribution normalDistribution = new NormalDistribution(0,3);
+        int deltaMonth = (int) normalDistribution.sample();
+        if(deltaMonth<0)
+        {
+            ipoDateTime = ipoDateTime.minusMonths(deltaMonth);
+        }
+        else
+        {
+            ipoDateTime = ipoDateTime.plusMonths(deltaMonth);
+        }
 
     }
 
@@ -42,15 +54,31 @@ public class StochasticCompany extends Company {
     }
 
     @Override
-    boolean isTimeToIPO(int ipoYear, int ingameDate) {
-        return (ipoYear>=ingameDate);
+    boolean isTimeToIPO(LocalDateTime ipoYear, LocalDateTime ingameDateTime)
+    {
+        return (ipoYear.isBefore(ingameDateTime));
     }
 
 
     @Override
-    public void updateFundamentalData(int ingameDate) {
+    public void updateFundamentalData(LocalDateTime ingameDate) {
         try {
-            Object[] previousFundamentals = fundamentalsSpace.getp(new ActualField(this.companyTicker),new ActualField(Date.class), new FormalField(String.class));
+            if(isPubliclyTraded)
+            {
+                NormalDistribution growthDetermination = new NormalDistribution(0.2,0.2);
+
+                List<Object[]> previousFundamentals = fundamentalsSpace.getAll(new ActualField(this.companyTicker),new ActualField(LocalDateTime.class), new FormalField(String.class), new FormalField(String.class), new FormalField(Float.class));
+                float previousRevenue = (float) previousFundamentals.get(0)[0];
+                float revenueGrowth = (float) (previousRevenue*growthDetermination.sample());
+                float newRevenue = revenueGrowth + previousRevenue;
+                fundamentalsSpace.put(this.companyTicker, GlobalCock.getIRLDateTimeNow(),"income statement","revenue",newRevenue);
+            }
+            else
+            {
+                NormalDistribution X = new NormalDistribution(100,10);
+                fundamentalsSpace.put(this.companyTicker, GlobalCock.getIRLDateTimeNow(),"income statement","revenue",(float) X.sample());
+            }
+
 
         } catch (InterruptedException e) {
             e.printStackTrace();
