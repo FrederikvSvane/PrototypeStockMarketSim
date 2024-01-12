@@ -2,22 +2,22 @@ package dk.dtu;
 
 import org.jspace.SpaceRepository;
 
+import java.time.LocalDateTime;
+
 public class Host {
 
     public static void main(String[] args) throws InterruptedException {
 
-        //The starting time of the host
-        long startTimeUnix = System.currentTimeMillis();
-
-        HostUtil.initialize();
+        HostUtil.initialize("keep");
         ClientUtil.initialize();
 
-        SpaceRepository repository = new SpaceRepository();
+        SpaceRepository hostRepo = HostUtil.getHostRepo();
 
-
-        Exchange exchange = new Exchange(repository);
+        Exchange exchange = new Exchange(hostRepo);
         new Thread(exchange).start();
-        GlobalClock.initialize(repository,startTimeUnix);
-        new Thread(new Lobby(repository)).start();
+        GlobalCock.initialize(hostRepo, LocalDateTime.of(1980,1,1,0,0,0),2);
+        new Thread(new Lobby(hostRepo)).start();
+
+
     }
 }
