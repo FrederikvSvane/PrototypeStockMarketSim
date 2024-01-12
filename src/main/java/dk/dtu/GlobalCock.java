@@ -27,7 +27,7 @@ public class GlobalCock //uWu what is this
 
     public static void main(String[] args)
     {
-
+        System.out.println("Glock");
     }
 
     /**

@@ -1,25 +1,22 @@
 package dk.dtu.company;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
 import java.util.UUID;
-import dk.dtu.Broker;
+
 import dk.dtu.ClientUtil;
 import dk.dtu.CompanyBroker;
+import dk.dtu.GlobalCock;
 import dk.dtu.Order;
-import jdk.jshell.spi.ExecutionControl;
 import org.jspace.RemoteSpace;
 import org.jspace.Space;
-import org.jspace.SpaceRepository;
-
-import javax.security.auth.login.LoginException;
-
 
 
 public abstract class Company implements Runnable{
     protected final String companyId;
     protected final String companyName;
     protected final String companyTicker;
-    protected final int ipoYear;
+    protected final LocalDateTime ipoDateTime;
 
     //Shares outstanding -> Shares in public circulation on the stock exchange.
     private int sharesOutstanding;
@@ -27,14 +24,16 @@ public abstract class Company implements Runnable{
     //The total amount of shares at the time this company IPO'ed
     private final int totalNrShares;
 
+    protected boolean isPubliclyTraded = false;
+
     protected final Space fundamentalsSpace;
 
-    public Company(String companyName, String companyTicker,int ipoYear, Space fundamentalsSpace) {
+    public Company(String companyName, String companyTicker, LocalDateTime ipoDateTime, Space fundamentalsSpace) {
 
         this.companyId = UUID.randomUUID().toString();
         this.companyName = companyName;
         this.companyTicker = companyTicker;
-        this.ipoYear = ipoYear;
+        this.ipoDateTime = ipoDateTime;
         this.totalNrShares = calculateTotalNrShares();
         this.fundamentalsSpace = fundamentalsSpace;
 
@@ -43,15 +42,20 @@ public abstract class Company implements Runnable{
     @Override
     public void run() {
 
-        int ingameDateDummy = -2000;
+        while(!isPubliclyTraded)
+        {
+            LocalDateTime inGameDateTime = GlobalCock.getSimulatedDateTimeNow();
 
         try {
 
             //First things first; we gotta IPO
-            if(isTimeToIPO(ipoYear,ingameDateDummy))
+            if(isTimeToIPO(ipoDateTime,inGameDateTime))
             {
                 //Calculate fundamentals and push them to fundamentals space
-                updateFundamentalData(ingameDateDummy);
+                updateFundamentalData(inGameDateTime);
+                this.isPubliclyTraded = true;
+
+                System.out.println("The date is now " + inGameDateTime + " and company " + this.companyTicker  + " has IPO'd.\nIts original IPO date was: " + ipoDateTime);
 
                 //Then we IPO!!!
                 int IPOFloating = this.getIPOSharesFloated();
@@ -61,14 +65,17 @@ public abstract class Company implements Runnable{
                 sendRequestToCompanyBroker("IPO", IPO);
 
             }
+        }
 
             //TODO: Create an object that follows the Petri Net I (Benjamin) designed and continuously ensures that the fundamentals data is updated
 
             //Then we look at the market, I s'pose m'lord?
 
-        } catch (InterruptedException e) {
+        catch (Exception e)
+        {
             e.printStackTrace(System.out);
             throw new RuntimeException(e);
+            }
         }
     }
 
@@ -122,16 +129,16 @@ public abstract class Company implements Runnable{
     abstract float calculateIPOPrice();
 
     //Is it time for IPO?
-    abstract boolean isTimeToIPO(int ipoYear, int ingameDate);
+    abstract boolean isTimeToIPO(LocalDateTime ipoYear, LocalDateTime simulatedDateTime);
 
 
     public String getCompanyName() { return companyName; }
     public String getCompanyTicker() { return companyTicker; }
     public String getCompanyId() { return companyId; }
 
-    public int getIpoYear(){ return ipoYear;}
+    public int getIpoDateTime(){ return ipoDateTime.getYear();}
 
-    public abstract void updateFundamentalData(int ingameDate);
+    public abstract void updateFundamentalData(LocalDateTime ingameDate);
 
     public abstract float getFundamentalData(String financialPost);
 
