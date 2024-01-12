@@ -195,11 +195,7 @@ public class Trader extends DistributedClient implements Runnable{
                 System.out.println(counter + ". " + chat[0] + " | " + response[2] + "/" + response[3]);
                 counter++;
             }
-            //Maybe a back option.
-            Scanner terminalIn = new Scanner(System.in);
-            System.out.println("Choose a group to text");
-            String response = terminalIn.nextLine();
-            writeToChatroom(response);
+            consoleInputChatting();
         }
     }
 
@@ -221,6 +217,14 @@ public class Trader extends DistributedClient implements Runnable{
                 thread.interrupt();
             }
         }
+    }
+
+    //Maybe a back option.
+    public void consoleInputChatting() throws IOException, InterruptedException {
+        Scanner terminalIn = new Scanner(System.in);
+        System.out.println("Choose a group to text");
+        String response = terminalIn.nextLine();
+        writeToChatroom(response);
     }
 
     public void openTraderMessages() throws InterruptedException {

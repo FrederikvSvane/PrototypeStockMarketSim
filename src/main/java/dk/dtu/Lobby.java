@@ -15,7 +15,6 @@ public class Lobby implements Runnable {
     Space chatRoomLobby;
 
     SpaceRepository chatRooms;
-    //TODO check user isn't already connected to chat.
     //TODO make traders able to directly message each other.
     //TODO fetch chat history when sending messages to a chat.
     public Lobby(String hostIp, int hostPort, SpaceRepository chatRepo)
