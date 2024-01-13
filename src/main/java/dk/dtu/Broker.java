@@ -28,9 +28,8 @@ public class Broker implements Runnable {
                 Object[] request = requestSpace.get(new FormalField(String.class) /*traderId*/, new FormalField(String.class) /*orderId*/, new FormalField(String.class)/*orderType*/, new FormalField(Order.class)/*Order*/);
                 Order order = (Order) request[3];
 
-                //TODO ændre det her i fremtiden, når vi kan hente companies og prices fra CompaniesAndPrices Space i Exchange
-                // String companyTicker = order.getTicker();
-                String uri = ClientUtil.getHostUri("");  //TODO den skal have et rigtig room navn
+                String companyTicker = order.getTicker();
+                String uri = ClientUtil.getHostUri(companyTicker);
                 uriConnection = ClientUtil.setConnectType(uri,"keep");
 
                 String orderType = request[2].toString();
@@ -100,9 +99,10 @@ public class Broker implements Runnable {
             String traderId = order.getTraderId();
             String orderId = order.getOrderId();
             String companyName = order.getStockName();
+            String companyTicker = order.getTicker();
             int amount = order.getAmount();
             float price = order.getPrice();
-            sortedSellOrders.add(new Order(traderId, orderId, companyName, amount, price));
+            sortedSellOrders.add(new Order(traderId, orderId, companyName, companyTicker, amount, price));
         }
 
         //Sort sell orders by price

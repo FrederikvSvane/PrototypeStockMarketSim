@@ -3,10 +3,11 @@ package dk.dtu;
 import java.util.HashMap;
 import java.util.UUID;
 
-class Order {
+public class Order {
     private String orderId;
     private String traderId;
     private String stockName;
+    private String companyTicker;
     private int amount;
     private float price;
 
@@ -14,13 +15,15 @@ class Order {
      * Construct an order with a randomly generated orderId
      * @param traderId
      * @param companyName
+     * @param companyTicker
      * @param amount
      * @param price
      */
-    public Order(String traderId, String companyName, int amount, float price) {
+    public Order(String traderId, String companyName, String companyTicker, int amount, float price) {
         this.traderId = traderId;
         this.orderId = UUID.randomUUID().toString();
         this.stockName = companyName;
+        this.companyTicker = companyTicker;
         this.amount = amount;
         this.price = price;
     }
@@ -30,13 +33,15 @@ class Order {
      * @param traderId
      * @param orderId
      * @param companyName
+     * @param companyTicker
      * @param amount
      * @param price
      */
-    public Order(String traderId, String orderId, String companyName, int amount, float price) {
+    public Order(String traderId, String orderId, String companyName, String companyTicker, int amount, float price) {
         this.traderId = traderId;
         this.orderId = orderId;
         this.stockName = companyName;
+        this.companyTicker = companyTicker;
         this.amount = amount;
         this.price = price;
     }
@@ -66,8 +71,9 @@ class Order {
         return orderId;
     }
 
-    public String getTraderId() { return traderId;
-    }
+    public String getTraderId() { return traderId;}
 
     public void setAmount(int n) { amount = n; }
+
+    public String getTicker() { return companyTicker; }
 }

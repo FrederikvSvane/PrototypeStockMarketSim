@@ -1,5 +1,8 @@
 package dk.dtu;
 
+import java.net.URI;
+import java.rmi.Remote;
+import java.util.*;
 import java.io.IOException;
 import java.util.Scanner;
 import java.util.UUID;
@@ -7,13 +10,11 @@ import java.util.UUID;
 import org.jspace.*;
 
 public class Trader {
-    String traderId;
-    String hostIp;
-    SequentialSpace masterCompanyRegister;
-    SequentialSpace companyPriceGraphs;
-
-
-    int hostPort;
+    private String traderId;
+    private String hostIp;
+    private SequentialSpace masterCompanyRegister;
+    private SequentialSpace companyPriceGraphs;
+    private int hostPort;
 
     public Trader() { //TODO lav en overklasse, som ikke har nogen argumenter, som kan nedarves til HumanTrader og BotTrader. Det er kun HumanTrader, som kan chatte
         this.traderId = UUID.randomUUID().toString();
@@ -53,20 +54,17 @@ public class Trader {
         //TODO get response of order completion result from broker here?
     }
 
-    public void consoleInputToSendOrder() throws IOException, InterruptedException {
-        Scanner terminalIn = new Scanner(System.in);
-        String orderString = terminalIn.nextLine();
-        String[] orderParts = orderString.split(" ");
-        String orderType = orderParts[0];
-        String stockName = orderParts[1];
-        int amount = Integer.parseInt(orderParts[2]);
-        float price = Float.parseFloat(orderParts[3]);
-        Order order = new Order(traderId, stockName, amount, price);
-        sendOrderToBroker(orderType, order);
+    public void makeDataFetchers() throws InterruptedException {
+        NameDataFetcher nameDataFetcher = new NameDataFetcher(masterCompanyRegister);
+        PriceGraphDataFetcher priceGraphDataFetcher = new PriceGraphDataFetcher(companyPriceGraphs);
+        new Thread(nameDataFetcher).start();
+        new Thread(priceGraphDataFetcher).start();
     }
 
-    public String getTraderId() {
-        return traderId;
-    }
+    public String getTraderId() { return traderId; }
+    public String getHostIp() { return hostIp; }
+    public int getHostPort() { return hostPort; }
+    public SequentialSpace getMasterCompanyRegister() { return masterCompanyRegister; }
+    public SequentialSpace getCompanyPriceGraphs() { return companyPriceGraphs; }
 }
 

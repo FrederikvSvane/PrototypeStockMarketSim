@@ -1,20 +1,27 @@
 package dk.dtu;
 
 
+import org.jspace.SpaceRepository;
 
 public class HostUtil {
     private static String hostIp;
     private static int hostPort;
-
-    private static String lobbyToTraderName = "lobbyToTrader"; //TODO find anden måde at gøre dette end at passe som argument til constructor
-    private static String traderToLobbyName = "traderToLobby";
+    private static SpaceRepository hostRepo;
     private HostUtil() {
         // Private constructor to prevent instantiation
     }
 
     public static void initialize() {
-        hostIp = "10.209.94.154";
+        hostIp = "localhost";
         hostPort = 10155;
+    }
+
+    public static void initialize(String connectionType)
+    {
+        hostIp = "localhost";
+        hostPort = 10155;
+        hostRepo = new SpaceRepository();
+        hostRepo.addGate("tcp://" + hostIp + ":" + hostPort + "/?" + connectionType);
     }
 
     public static String getHostIp() {
@@ -24,12 +31,14 @@ public class HostUtil {
         return hostPort;
     }
 
-    public static String getLobbyToTraderName() {
-        return lobbyToTraderName;
-    }
+    public static SpaceRepository getHostRepo()
+    {
+        if(hostRepo == null)
+        {
+            throw new RuntimeException("You're not on the host machine and can therefore not access the host repo like this!");
+        }
 
-    public static String getTraderToLobbyName() {
-        return traderToLobbyName;
+        return hostRepo;
     }
 
 
