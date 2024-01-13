@@ -1,5 +1,7 @@
 package dk.dtu;
 
+import dk.dtu.company.Company;
+import dk.dtu.company.StochasticCompany;
 import org.jspace.Space;
 
 import java.io.IOException;
@@ -37,7 +39,8 @@ public class NameDataFetcher extends DataFetcher implements Runnable{
     @Override
     void updateCompanyData(List<Object[]> companyData) throws InterruptedException {
         for(Object[] companyList : companyData) {
-            Company company = (Company) companyList[1];
+            System.out.println("Updating company data");
+            StochasticCompany company = (StochasticCompany) companyList[1];
             String companyId = company.getCompanyId();
             String companyName = company.getCompanyName();
             String companyTicker = company.getCompanyTicker();

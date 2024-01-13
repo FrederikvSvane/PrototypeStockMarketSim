@@ -1,9 +1,10 @@
-package dk.dtu;
+package dk.dtu.company;
 
 import org.jspace.SequentialSpace;
 import org.jspace.Space;
 import org.jspace.SpaceRepository;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -19,7 +20,7 @@ public class IRS implements Runnable {
     SpaceRepository hostRepo;
 
     ArrayList<String> tickers = new ArrayList<>();
-    Map<String, Integer> tickerIPOYears  = new HashMap<>();
+    Map<String, LocalDateTime> tickerIPODateTime  = new HashMap<>();
     Map<String,String> tickerCompanyName = new HashMap<>();
 
 
@@ -42,26 +43,32 @@ public class IRS implements Runnable {
         tickers.add("HWP"); // Assuming HWP for Hewlett-Packard (now HPQ)
         tickers.add("GS");
         tickers.add("GOOG");
+        tickers.add("VOC");
     }
 
     private void initializeCompanyIPOYears() {
+
         // Populate the HashMap with ticker symbols and IPO years
-        tickerIPOYears.put("IBM", 1915);
-        tickerIPOYears.put("GE", 1892);
-        tickerIPOYears.put("DIS", 1957);
-        tickerIPOYears.put("KO", 1919);
-        tickerIPOYears.put("MCD", 1965);
-        tickerIPOYears.put("WMT", 1970);
-        tickerIPOYears.put("PG", 1891);
-        tickerIPOYears.put("JNJ", 1944);
-        tickerIPOYears.put("XOM", 1978);
-        tickerIPOYears.put("INTC", 1971);
-        tickerIPOYears.put("AAPL", 1980);
-        tickerIPOYears.put("MSFT", 1986);
-        tickerIPOYears.put("CSCO", 1990);
-        tickerIPOYears.put("HWP", 1957); // Assuming HWP for Hewlett-Packard (now HPQ)
-        tickerIPOYears.put("GS", 1999);
-        tickerIPOYears.put("GOOG", 2004);
+        // Adding IPO dates as LocalDateTime objects
+        tickerIPODateTime.put("IBM", LocalDateTime.of(1978, 1, 19, 0, 0));
+        tickerIPODateTime.put("GE", LocalDateTime.of(1892, 4, 15, 0, 0));
+        tickerIPODateTime.put("DIS", LocalDateTime.of(1957, 11, 12, 0, 0));
+        tickerIPODateTime.put("KO", LocalDateTime.of(1919, 9, 5, 0, 0));
+        tickerIPODateTime.put("MCD", LocalDateTime.of(1965, 4, 21, 0, 0));
+        tickerIPODateTime.put("WMT", LocalDateTime.of(1970, 10, 1, 0, 0));
+        tickerIPODateTime.put("PG", LocalDateTime.of(1890, 12, 31, 0, 0));
+        tickerIPODateTime.put("JNJ", LocalDateTime.of(1944, 9, 24, 0, 0));
+        tickerIPODateTime.put("XOM", LocalDateTime.of(1978, 1, 13, 0, 0));
+        tickerIPODateTime.put("INTC", LocalDateTime.of(1971, 10, 13, 0, 0));
+        tickerIPODateTime.put("AAPL", LocalDateTime.of(1980, 12, 12, 0, 0));
+        tickerIPODateTime.put("MSFT", LocalDateTime.of(1986, 3, 13, 0, 0));
+        tickerIPODateTime.put("CSCO", LocalDateTime.of(1990, 2, 16, 0, 0));
+        tickerIPODateTime.put("HWP", LocalDateTime.of(1957, 11, 6, 0, 0)); // Assuming HWP for Hewlett-Packard (now HPQ)
+        tickerIPODateTime.put("GS", LocalDateTime.of(1999, 5, 4, 0, 0));
+        tickerIPODateTime.put("GOOG", LocalDateTime.of(2004, 8, 19, 0, 0));
+        tickerIPODateTime.put("VOC", LocalDateTime.of(1602, 8, 19, 0, 0));
+
+
     }
 
     private void initializeCompanyNames() {
@@ -82,42 +89,49 @@ public class IRS implements Runnable {
         tickerCompanyName.put("HWP", "Hewlett-Packard"); // Assuming HWP for Hewlett-Packard (now HPQ)
         tickerCompanyName.put("GS", "Goldman Sachs");
         tickerCompanyName.put("GOOG", "Google");
+        tickerCompanyName.put("VOC", "Verenigde Oostindische Compagnie");
     }
 
 
     public IRS(SpaceRepository hostRepo)
     {
         this.hostRepo = hostRepo;
-
+        System.out.println("Constructed IRS");
     }
 
-    public void establishCompany(String companyName ,String ticker,int ipoYear) throws Exception {
+    public void establishCompany(String companyName , String ticker, LocalDateTime ipoDateTime, String typeOfCompany) throws Exception {
         //TODO: Test this!!!
 
         //TODO: Add an option to select if we want realistic or dummy companies
         Space fundamentalsSpace = new SequentialSpace();
 
         hostRepo.add("fundamentals" + ticker, fundamentalsSpace);
-        //new Thread(new Company(companyName,ticker,ipoYear,fundamentalsSpace)).start();
+        switch (typeOfCompany)
+        {
+            case "stochastic":
+                System.out.println("Starting stochastic company: " + ticker);
+                new Thread(new StochasticCompany(companyName,ticker,ipoDateTime,fundamentalsSpace)).start();
+        }
     }
 
     public void run()
     {
-        while(true)
-        {
+        System.out.println("Started the IRS thread");
+        initializeTickers();
+        initializeCompanyNames();
+        initializeCompanyIPOYears();
             //Establish companies
             for (String ticker : this.tickers)
             {
                 try {
+<<<<<<< HEAD:src/main/java/dk/dtu/IRS.java
                     establishCompany(this.tickerCompanyName.get(ticker),ticker,this.tickerIPOYears.get(ticker));
+=======
+                    establishCompany(this.tickerCompanyName.get(ticker),ticker,this.tickerIPODateTime.get(ticker),"stochastic");
+>>>>>>> FundamentalData:src/main/java/dk/dtu/company/IRS.java
                 } catch (Exception e) {
                     throw new RuntimeException(e);
                 }
             }
-
-
-        }
-
     }
-
 }

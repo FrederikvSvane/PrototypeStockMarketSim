@@ -1,5 +1,7 @@
 package dk.dtu;
 
+import dk.dtu.company.Company;
+import dk.dtu.company.StochasticCompany;
 import org.jspace.ActualField;
 import org.jspace.Space;
 
@@ -47,7 +49,7 @@ public class PriceGraphDataFetcher extends DataFetcher implements Runnable {
     void updateCompanyData(List<Object[]> companyData) throws InterruptedException {
         for (Object[] companyList : companyData) {
             // extract data from company
-            Company company = (Company) companyList[1];
+            Company company = (StochasticCompany) companyList[1];
             String companyName = company.getCompanyName();
             String companyTicker = company.getCompanyTicker();
             Queue<Object[]> priceHistory = (Queue<Object[]>) companyList[3];
