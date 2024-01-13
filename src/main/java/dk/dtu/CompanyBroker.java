@@ -15,10 +15,12 @@ public class CompanyBroker extends Broker implements Runnable {
             try {
                 //TODO find en bedre måde at nedarve requestSpace fra Broker.java
                 //TODO lyt på strukturen af tuplen på en bedre måde, fordi company ikke nødvendigvis kommer med, hvis det er en salg/købs order
-                Object[] request = super.getRequestSpace().get(new FormalField(String.class), new FormalField(Company.class), new FormalField(Order.class));
+                Object[] request = super.getRequestSpace().get(new FormalField(String.class), new FormalField(String.class), new FormalField(String.class), new FormalField(String.class), new FormalField(Order.class));
                 String orderType = request[0].toString();
-                Company company = (Company) request[1];
-                Order order = (Order) request[2];
+                String companyID = (String) request[1];
+                String companyName = (String) request[2];
+                String companyTicker = (String) request[3];
+                Order order = (Order) request[4];
                 int amount = order.getAmount();
                 float price = order.getPrice();
 
@@ -26,7 +28,7 @@ public class CompanyBroker extends Broker implements Runnable {
                     String uri = ClientUtil.getHostUri("exchangeRequestSpace");  //TODO den skal have et rigtig room navn
                     String uriConnection = ClientUtil.setConnectType(uri,"keep");
                     Space exchangeRequestSpace = new RemoteSpace(uriConnection);
-                    exchangeRequestSpace.put(order.getOrderId(), orderType, company, amount, price); //TODO måske skal order bare sendes videre?
+                    exchangeRequestSpace.put(order.getOrderId(), orderType, companyID,companyName, companyTicker, amount, price); //TODO måske skal order bare sendes videre?
 
                 } else if (orderType.equals("buy")) {
                     //TODO send buy request to exchange
