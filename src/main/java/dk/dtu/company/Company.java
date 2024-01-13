@@ -49,23 +49,20 @@ public abstract class Company implements Runnable{
 
         while(!isPubliclyTraded)
         {
-            if (this.companyTicker == "VOC")
-            {
-                System.out.println("Getting the datetime");
-            }
-            LocalDateTime inGameDateTime = GlobalCock.getSimulatedDateTimeNow();
+
+            LocalDateTime simulatedDateTime = GlobalCock.getSimulatedDateTimeNow();
 
         try {
 
-            //System.out.println("The date is now " + inGameDateTime + " and company " + this.companyTicker  + " has not IPO'd yet.\nIts original IPO date was: " + ipoDateTime);
+            //System.out.println("The date is now " + simulatedDateTime + " and company " + this.companyTicker  + " has not IPO'd yet.\nIts original IPO date was: " + ipoDateTime);
             //First things first; we gotta IPO
-            if(isTimeToIPO(ipoDateTime,inGameDateTime))
+            if(isTimeToIPO(ipoDateTime,simulatedDateTime))
             {
                 //Calculate fundamentals and push them to fundamentals space
-                updateFundamentalData(inGameDateTime);
+                updateFundamentalData(simulatedDateTime);
                 this.isPubliclyTraded = true;
 
-                System.out.println("The date is now " + inGameDateTime + " and company " + this.companyTicker  + " has IPO'd.\nIts original IPO date was: " + ipoDateTime);
+                System.out.println("The date is now " + simulatedDateTime + " and company " + this.companyTicker  + " has IPO'd.\nIts original IPO date was: " + ipoDateTime);
 
                 //Then we IPO!!!
                 int IPOFloating = this.getIPOSharesFloated();
@@ -74,6 +71,20 @@ public abstract class Company implements Runnable{
                 Order IPO = makeOrder(IPOFloating, IPOSharePrice);
                 sendRequestToCompanyBroker("IPO", IPO);
             }
+
+
+            while(true)
+            {
+                simulatedDateTime = GlobalCock.getSimulatedDateTimeNow();
+
+                //We need to wait until the right time to update, to ensure, that we have enough financial date to last the game
+                if(isTimeToUpdateFundamentals(simulatedDateTime))
+                {
+                    updateFundamentalData(simulatedDateTime);
+                }
+
+            }
+
         }
         catch (Exception e)
         {
@@ -157,8 +168,8 @@ public abstract class Company implements Runnable{
     }
 
     //(String companyTicker, LocalDateTime irlTimeStamp, LocalDateTime simulatedGameTime , String financialStatement, String financialPost, float financialValue)
-    // Standardized way of getting fundamentals
-    public List<Object[]> getFundamentals(String companyTicker) throws InterruptedException {
+    // Standardized way of getting fundamentals from our fundamentals space
+    public List<Object[]> getFundamentalsFromSpace(String companyTicker) throws InterruptedException {
         return fundamentalsSpace.queryAll(new ActualField(companyTicker), new FormalField(LocalDateTime.class), new FormalField(LocalDateTime.class), new FormalField(String.class), new FormalField(String.class), new FormalField(Float.class));
     }
 
@@ -168,14 +179,19 @@ public abstract class Company implements Runnable{
         fundamentalsSpace.put(companyTicker, irlTimeStamp, simulatedDateTime, financialStatement, financialPost, financialValue);
     }
 
+    public abstract boolean isTimeToUpdateFundamentals(LocalDateTime simulateDateTime);
+
 
 }
 
-//TODO: Add a CompanyFundamentals class which can standardize the way we update the fundamentals
+/**
+ * This class is used to store the fundamentals of a company so we can iterate over them and update them with the API.
+ */
 class CompanyFundamentals
 {
     private ArrayList<String> financialPosts;
     private HashMap<String,String> financialPostToStatementMap;
+    private HashMap<String,Float> financialPostToValueMap;
 
     
 }

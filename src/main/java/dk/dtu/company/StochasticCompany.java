@@ -4,12 +4,9 @@ package dk.dtu.company;
 import dk.dtu.GlobalCock;
 import org.apache.commons.math3.distribution.BinomialDistribution;
 import org.apache.commons.math3.distribution.NormalDistribution;
-import org.jspace.ActualField;
-import org.jspace.FormalField;
 import org.jspace.Space;
 
 import java.time.LocalDateTime;
-import java.util.Date;
 import java.util.List;
 
 /**
@@ -69,16 +66,18 @@ public class StochasticCompany extends Company {
     @Override
     public void updateFundamentalData(LocalDateTime ingameDate) {
         try {
+
+            //If we've already published fundamentals for this date, then we just need to update
             if(isPubliclyTraded)
             {
                 NormalDistribution growthDetermination = new NormalDistribution(0.2,0.2);
-                List<Object[]> previousFundamentals = getFundamentals(this.companyTicker);
+                List<Object[]> previousFundamentals = getFundamentalsFromSpace(this.companyTicker);
                 float previousRevenue = (float) previousFundamentals.get(0)[0];
                 float revenueGrowth = (float) (previousRevenue*growthDetermination.sample());
                 float newRevenue = revenueGrowth + previousRevenue;
                 putFundamentals(companyTicker,GlobalCock.getIRLDateTimeNow(),GlobalCock.getSimulatedDateTimeNow(),"income statement","revenue",newRevenue);
             }
-            else
+            else //otherwise we need to create some initial
             {
                 //System.out.println("Company " + this.companyTicker + " is not publicly traded yet, so it cannot update its fundamentals");
                 NormalDistribution X = new NormalDistribution(100,10);
@@ -92,6 +91,13 @@ public class StochasticCompany extends Company {
             throw new RuntimeException(e);
         }
 
+    }
+
+    //Dummy method that just returns true every first of the month
+    @Override
+    public boolean isTimeToUpdateFundamentals(LocalDateTime ingameDateTime)
+    {
+        return (ingameDateTime.getDayOfMonth() == 1);
     }
 
     @Override
