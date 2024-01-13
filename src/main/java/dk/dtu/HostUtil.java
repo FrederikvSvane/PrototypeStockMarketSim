@@ -4,7 +4,7 @@ package dk.dtu;
 import org.jspace.SpaceRepository;
 
 public class HostUtil {
-    private static String hostIp = "192.168.1.118";;
+    private static String hostIp = "localhost";;
     private static int hostPort = 35690;;
     private static SpaceRepository hostRepo;
     private HostUtil() {

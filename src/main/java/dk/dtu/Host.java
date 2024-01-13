@@ -17,8 +17,7 @@ public class Host {
         Exchange exchange = new Exchange(hostRepo);
         new Thread(exchange).start();
         new Thread(new Lobby(hostRepo)).start();
-        GlobalCock.initialize(hostRepo, LocalDateTime.of(1980,1,1,0,0,0),2);
-        System.out.println("hihi");
+        GlobalCock.initialize(hostRepo, LocalDateTime.of(1700,1,1,0,0,0),2);
         new Thread(new IRS(hostRepo)).start();
 
 

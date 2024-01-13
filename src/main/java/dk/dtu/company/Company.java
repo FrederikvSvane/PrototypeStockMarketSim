@@ -16,7 +16,7 @@ public abstract class Company implements Runnable{
     protected final String companyId;
     protected final String companyName;
     protected final String companyTicker;
-    protected final LocalDateTime ipoDateTime;
+    protected LocalDateTime ipoDateTime;
 
     //Shares outstanding -> Shares in public circulation on the stock exchange.
     private int sharesOutstanding;
@@ -44,10 +44,15 @@ public abstract class Company implements Runnable{
 
         while(!isPubliclyTraded)
         {
+            if (this.companyTicker == "VOC")
+            {
+                System.out.println("Getting the datetime");
+            }
             LocalDateTime inGameDateTime = GlobalCock.getSimulatedDateTimeNow();
 
         try {
 
+            //System.out.println("The date is now " + inGameDateTime + " and company " + this.companyTicker  + " has not IPO'd yet.\nIts original IPO date was: " + ipoDateTime);
             //First things first; we gotta IPO
             if(isTimeToIPO(ipoDateTime,inGameDateTime))
             {
@@ -59,20 +64,20 @@ public abstract class Company implements Runnable{
 
                 //Then we IPO!!!
                 int IPOFloating = this.getIPOSharesFloated();
+                System.out.println("Got shares floated");
                 float IPOSharePrice = this.calculateIPOPrice();
+                System.out.println("Calculated IPO price");
                 this.sharesOutstanding = getIPOSharesFloated();
+                System.out.println("Got shares outstanding");
                 Order IPO = makeOrder(IPOFloating, IPOSharePrice);
+                System.out.println("Made IPO order");
                 sendRequestToCompanyBroker("IPO", IPO);
-
+                System.out.println("Sent request to company broker");
             }
         }
-
-            //TODO: Create an object that follows the Petri Net I (Benjamin) designed and continuously ensures that the fundamentals data is updated
-
-            //Then we look at the market, I s'pose m'lord?
-
         catch (Exception e)
         {
+            System.out.println("Company got error");
             e.printStackTrace(System.out);
             throw new RuntimeException(e);
             }

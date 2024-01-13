@@ -82,6 +82,7 @@ public class GlobalCock //uWu what is this
         try {
             RemoteSpace globalClockSpace = getGlobalClockSpace();
             Object[] startSpaceQuery = globalClockSpace.query(new ActualField("IRLStartDateTime"), new FormalField(LocalDateTime.class));
+            System.out.println(startSpaceQuery[1]);
             return (LocalDateTime) startSpaceQuery[1];
         } catch (Exception e) {
             throw new RuntimeException(e);
