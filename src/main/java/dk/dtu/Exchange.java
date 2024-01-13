@@ -27,15 +27,14 @@ public class Exchange implements Runnable {
         while (true) {
             try {
                 // Structure: orderId, orderType, Company, amount, price
-                Object[] currentRequest = exchangeRequestSpace.getp(new FormalField(String.class), new FormalField(String.class), new FormalField(Company.class), new FormalField(Integer.class), new FormalField(Float.class));
+                Object[] currentRequest = exchangeRequestSpace.getp(new FormalField(String.class), new FormalField(String.class), new FormalField(String.class), new FormalField(String.class), new FormalField(String.class), new FormalField(Integer.class), new FormalField(Float.class));
                 if (currentRequest != null) {
                     String orderType = currentRequest[1].toString();
                     switch (orderType) {
                         case "IPO": //Initial Public Offering - The first time a company sells its stocks at the exchange - this is when it is registered
-                            Company company = (Company) currentRequest[2];
-                            String companyName = company.getCompanyName();
-                            String companyId = company.getCompanyId();
-                            String companyTicker = company.getCompanyTicker();
+                            String companyName = (String) currentRequest[3];
+                            String companyId = (String) currentRequest[2];
+                            String companyTicker = (String) currentRequest[4];
                             int amount = (int) currentRequest[3];
                             float price = (float) currentRequest[4];
 
