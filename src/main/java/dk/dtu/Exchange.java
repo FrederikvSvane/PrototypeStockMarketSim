@@ -11,8 +11,11 @@ public class Exchange implements Runnable {
     private Space companiesAndPriceHistorySpace = new SequentialSpace();
 
     //This space contains the orders that the exchange has to process
-    //Structure: (orderId, orderType, Company, amount, price)
+    //Structure: (orderId, orderType, companyId, companyName, companyTicker, amount, price)
     private Space exchangeRequestSpace = new SequentialSpace();
+
+    //Structure: (companyTicker, orderId, orderType, order)
+    private Space companyOrderSpace;
 
     public Exchange(SpaceRepository exchangeRepository) throws InterruptedException {
         this.exchangeRepository = exchangeRepository;
@@ -39,7 +42,7 @@ public class Exchange implements Runnable {
                             float price = (float) currentRequest[6];
 
                             Space companiesAndPricesSpace = exchangeRepository.get("companiesAndPricesHistorySpace");
-                            Object[] currentCompanyStatus = companiesAndPricesSpace.queryp(new ActualField(companyId), new FormalField(Company.class), new FormalField(Float.class));
+                            Object[] currentCompanyStatus = companiesAndPricesSpace.queryp(new ActualField(companyId), new FormalField(String.class) /*companyName*/, new FormalField(String.class) /*companyTicker*/, new FormalField(Float.class) /*price*/);
                             boolean companyExists = currentCompanyStatus != null;
                             if (companyExists) {
                                 throw new RuntimeException("IPO failed: Company is already listed at the exchange");
@@ -48,9 +51,9 @@ public class Exchange implements Runnable {
                                 createCompanyStockSpace(companyTicker);
                                 Space companyStockSpace = exchangeRepository.get(companyTicker);
 
-                                Order order = new Order(companyId, companyName,companyTicker, amount, price);
+                                Order order = new Order(companyId, companyName, companyTicker, amount, price);
                                 String orderId = order.getOrderId();
-                                companyStockSpace.put(companyId, orderId, "sell", order);
+                                companyStockSpace.put(companyTicker, orderId, "sell", order);
 
                                 // Here the currentStockPrice is set as the IPO price. This is an exception. Normally the currentStockPrice is set by latest sold price
                                 //TODO den skal laves om til en Queue, så vi kan se historikken
@@ -75,6 +78,11 @@ public class Exchange implements Runnable {
         exchangeRepository.add(companyTicker, space);
     }
 
-
-
+    public String getCompanyTickerFromId(String companyId) throws InterruptedException {
+        Object[] company = companiesAndPriceHistorySpace.queryp(new ActualField(companyId), new FormalField(Company.class), new FormalField(Float.class));
+        if (company == null) {
+            throw new RuntimeException("Company does not exist");
+        }
+        return company[2].toString();
+    }
 }

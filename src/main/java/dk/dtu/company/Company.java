@@ -6,7 +6,7 @@ import java.util.UUID;
 
 import dk.dtu.ClientUtil;
 import dk.dtu.CompanyBroker;
-import dk.dtu.GlobalCock;
+import dk.dtu.GlobalClock;
 import dk.dtu.Order;
 import org.jspace.RemoteSpace;
 import org.jspace.Space;
@@ -48,7 +48,7 @@ public abstract class Company implements Runnable{
             {
                 System.out.println("Getting the datetime");
             }
-            LocalDateTime inGameDateTime = GlobalCock.getSimulatedDateTimeNow();
+            LocalDateTime inGameDateTime = GlobalClock.getSimulatedDateTimeNow();
 
         try {
 
@@ -122,7 +122,7 @@ public abstract class Company implements Runnable{
     }
 
     private Order makeOrder(int amount, float price) {
-        return new Order(companyId, companyName,companyTicker, amount, price);
+        return new Order(companyId, companyName, companyTicker, amount, price);
     }
 
     //Total numbers of shares at IPO

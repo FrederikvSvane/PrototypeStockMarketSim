@@ -21,6 +21,22 @@ public class ClientUtil {
         return "tcp://" + hostIp + ":" + hostPort + "/" + roomName;
     }
 
+    public static String getHostUri(String roomName, int port) {
+        // Ensure that initialize has been called
+        if (hostIp == null || hostPort == 0) {
+            throw new IllegalStateException("UriUtility is not initialized");
+        }
+        return "tcp://" + hostIp + ":" + port + "/" + roomName;
+    }
+
+    public static String getHostUri(String roomName, int port, String connectionType) {
+        // Ensure that initialize has been called
+        if (hostIp == null || hostPort == 0) {
+            throw new IllegalStateException("UriUtility is not initialized");
+        }
+        return "tcp://" + hostIp + ":" + port + "/" + roomName + "?" + connectionType;
+    }
+
     public static String setConnectType(String hostUri, String connectionType) {
         if (connectionType == "keep" || connectionType == "conn") {
             return hostUri + "?" + connectionType;
