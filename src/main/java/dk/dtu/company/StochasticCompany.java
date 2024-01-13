@@ -7,6 +7,7 @@ import org.apache.commons.math3.distribution.NormalDistribution;
 import org.jspace.Space;
 
 import java.time.LocalDateTime;
+import java.time.Month;
 import java.util.List;
 
 /**
@@ -72,9 +73,10 @@ public class StochasticCompany extends Company {
             {
                 NormalDistribution growthDetermination = new NormalDistribution(0.2,0.2);
                 List<Object[]> previousFundamentals = getFundamentalsFromSpace(this.companyTicker);
-                float previousRevenue = (float) previousFundamentals.get(0)[0];
+                float previousRevenue = (float) previousFundamentals.get(0)[5];
                 float revenueGrowth = (float) (previousRevenue*growthDetermination.sample());
                 float newRevenue = revenueGrowth + previousRevenue;
+                //System.out.println("We're updating the fundamentals for " + this.companyTicker + " from " + previousRevenue + " to " + newRevenue + " on " + GlobalCock.getSimulatedDateTimeNow());
                 putFundamentals(companyTicker,GlobalCock.getIRLDateTimeNow(),GlobalCock.getSimulatedDateTimeNow(),"income statement","revenue",newRevenue);
             }
             else //otherwise we need to create some initial
@@ -97,6 +99,10 @@ public class StochasticCompany extends Company {
     @Override
     public boolean isTimeToUpdateFundamentals(LocalDateTime ingameDateTime)
     {
+        if(ingameDateTime.getMonth() != Month.JANUARY)
+        {
+            System.out.println(ingameDateTime + " vs " + GlobalCock.getIRLDateTimeNow());
+        }
         return (ingameDateTime.getDayOfMonth() == 1);
     }
 
