@@ -35,8 +35,8 @@ public class Exchange implements Runnable {
                             String companyName = (String) currentRequest[3];
                             String companyId = (String) currentRequest[2];
                             String companyTicker = (String) currentRequest[4];
-                            int amount = (int) currentRequest[3];
-                            float price = (float) currentRequest[4];
+                            int amount = (int) currentRequest[5];
+                            float price = (float) currentRequest[6];
 
                             Space companiesAndPricesSpace = exchangeRepository.get("companiesAndPricesHistorySpace");
                             Object[] currentCompanyStatus = companiesAndPricesSpace.queryp(new ActualField(companyId), new FormalField(Company.class), new FormalField(Float.class));
@@ -54,6 +54,7 @@ public class Exchange implements Runnable {
 
                                 // Here the currentStockPrice is set as the IPO price. This is an exception. Normally the currentStockPrice is set by latest sold price
                                 companiesAndPricesSpace.put(companyId, companyName, companyTicker, price);
+
                             }
                             break;
                     }

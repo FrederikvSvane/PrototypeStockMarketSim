@@ -5,7 +5,7 @@ import org.jspace.SpaceRepository;
 
 public class HostUtil {
     private static String hostIp = "localhost";;
-    private static int hostPort = 35690;;
+    private static int hostPort = 35693;;
     private static SpaceRepository hostRepo;
     private HostUtil() {
         // Private constructor to prevent instantiation
