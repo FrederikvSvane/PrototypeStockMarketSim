@@ -43,6 +43,7 @@ public class IRS implements Runnable {
         tickers.add("HWP"); // Assuming HWP for Hewlett-Packard (now HPQ)
         tickers.add("GS");
         tickers.add("GOOG");
+        tickers.add("VOC");
     }
 
     private void initializeCompanyIPOYears() {
@@ -65,6 +66,7 @@ public class IRS implements Runnable {
         tickerIPODateTime.put("HWP", LocalDateTime.of(1957, 11, 6, 0, 0)); // Assuming HWP for Hewlett-Packard (now HPQ)
         tickerIPODateTime.put("GS", LocalDateTime.of(1999, 5, 4, 0, 0));
         tickerIPODateTime.put("GOOG", LocalDateTime.of(2004, 8, 19, 0, 0));
+        tickerIPODateTime.put("VOC", LocalDateTime.of(1602, 8, 19, 0, 0));
 
 
     }
@@ -87,6 +89,7 @@ public class IRS implements Runnable {
         tickerCompanyName.put("HWP", "Hewlett-Packard"); // Assuming HWP for Hewlett-Packard (now HPQ)
         tickerCompanyName.put("GS", "Goldman Sachs");
         tickerCompanyName.put("GOOG", "Google");
+        tickerCompanyName.put("VOC", "Verenigde Oostindische Compagnie");
     }
 
 
@@ -96,7 +99,7 @@ public class IRS implements Runnable {
         System.out.println("Constructed IRS");
     }
 
-    public void establishCompany(String companyName , String ticker, LocalDateTime ipoDateTime,String typeOfCompany) throws Exception {
+    public void establishCompany(String companyName , String ticker, LocalDateTime ipoDateTime, String typeOfCompany) throws Exception {
         //TODO: Test this!!!
 
         //TODO: Add an option to select if we want realistic or dummy companies
@@ -107,26 +110,24 @@ public class IRS implements Runnable {
         {
             case "stochastic":
                 System.out.println("Starting stochastic company: " + ticker);
-                new Thread(new StochasticCompany(companyName,ticker,ipoDateTime,fundamentalsSpace));
+                new Thread(new StochasticCompany(companyName,ticker,ipoDateTime,fundamentalsSpace)).start();
         }
     }
 
     public void run()
     {
         System.out.println("Started the IRS thread");
+        initializeTickers();
+        initializeCompanyNames();
+        initializeCompanyIPOYears();
             //Establish companies
             for (String ticker : this.tickers)
             {
                 try {
-                    System.out.println("heido ho");
                     establishCompany(this.tickerCompanyName.get(ticker),ticker,this.tickerIPODateTime.get(ticker),"stochastic");
                 } catch (Exception e) {
                     throw new RuntimeException(e);
                 }
             }
-
-
-
     }
-
 }

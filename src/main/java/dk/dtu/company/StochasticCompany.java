@@ -17,6 +17,8 @@ import java.util.List;
  */
 public class StochasticCompany extends Company {
 
+
+
     public StochasticCompany(String companyName, String companyTicker, LocalDateTime ipoDateTime, Space fundamentalsSpace) {
         super(companyName, companyTicker, ipoDateTime, fundamentalsSpace);
 
@@ -26,11 +28,15 @@ public class StochasticCompany extends Company {
         int deltaMonth = (int) normalDistribution.sample();
         if(deltaMonth<0)
         {
+            //System.out.println("Changing ipoDateTime from " + ipoDateTime + " to " + ipoDateTime.minusMonths(deltaMonth));
             ipoDateTime = ipoDateTime.minusMonths(deltaMonth);
+            //System.out.println("Changed ipoDateTime to " + ipoDateTime);
         }
         else
         {
+            //System.out.println("Changing ipoDateTime from " + ipoDateTime + " to " + ipoDateTime.plusMonths(deltaMonth));
             ipoDateTime = ipoDateTime.plusMonths(deltaMonth);
+            //System.out.println("Changed ipoDateTime to " + ipoDateTime);
         }
 
     }
@@ -75,12 +81,15 @@ public class StochasticCompany extends Company {
             }
             else
             {
+                System.out.println("Company " + this.companyTicker + " is not publicly traded yet, so it cannot update its fundamentals");
                 NormalDistribution X = new NormalDistribution(100,10);
                 fundamentalsSpace.put(this.companyTicker, GlobalCock.getIRLDateTimeNow(),"income statement","revenue",(float) X.sample());
+                System.out.println("Put fundamentals");
             }
 
 
         } catch (InterruptedException e) {
+            System.out.println("Error in updateFundamentalData");
             e.printStackTrace();
             throw new RuntimeException(e);
         }
