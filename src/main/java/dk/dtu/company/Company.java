@@ -88,7 +88,7 @@ public abstract class Company implements Runnable{
     private void sendRequestToCompanyBroker(String orderType, Order order) throws InterruptedException {
         CompanyBroker companyBroker = new CompanyBroker();
         new Thread(companyBroker).start();
-        companyBroker.getRequestSpace().put(orderType, this, order);
+        companyBroker.getRequestSpace().put(orderType, companyId,companyName,companyTicker, order);
 /*
         try {
             if (orderType.equals("IPO")) {
