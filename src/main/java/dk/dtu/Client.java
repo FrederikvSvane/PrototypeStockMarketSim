@@ -10,7 +10,7 @@ public class Client {
         HostUtil.initialize();
         ClientUtil.initialize();
 
-        HumanTrader humanTrader = new HumanTrader(traderToLobbyName, lobbyToTraderName);
+        HumanTrader humanTrader = new HumanTrader();
         new Thread(humanTrader).start();
         while (true) {
             try {

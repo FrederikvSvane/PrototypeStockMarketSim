@@ -14,10 +14,10 @@ public class HumanTrader extends Trader implements Runnable{
     RemoteSpace traderToLobby;
     RemoteSpace lobbyToTrader;
 
-    public HumanTrader(String traderToLobbyName, String lobbyToTraderName) {
+    public HumanTrader() {
         super();
-        this.traderToLobbyName = traderToLobbyName;
-        this.lobbyToTraderName = lobbyToTraderName;
+        this.traderToLobbyName = HostUtil.getTraderToLobbyName();
+        this.lobbyToTraderName = HostUtil.getLobbyToTraderName();
         String hostUri = ClientUtil.getHostUri(traderToLobbyName);
         try {
             this.traderToLobby = new RemoteSpace(ClientUtil.setConnectType(hostUri,"keep"));
