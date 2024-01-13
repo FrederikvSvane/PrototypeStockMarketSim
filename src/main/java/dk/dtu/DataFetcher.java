@@ -15,19 +15,21 @@ abstract class DataFetcher {
     private String hostDataSpaceName;
     protected int sleepTime;
 
-    public DataFetcher(Space traderDataSpace, int sleepTime, String hostDataSpaceName) {
+    public DataFetcher(Space traderDataSpace, int sleepTime, String hostDataSpaceName)
+    {
         this.traderDataSpace = traderDataSpace;
         this.hostDataSpaceName = hostDataSpaceName;
     }
-    public void connectToDataSpace() throws IOException {
+    public void connectToDataSpace() throws IOException
+    {
         String uri = ClientUtil.getHostUri(hostDataSpaceName);
         String uriConnection = ClientUtil.setConnectType(uri,"keep");
         companyDataSpace = new RemoteSpace(uriConnection);
     }
 
     public List<Object[]> QueryAllCompanies() throws InterruptedException {
-        // Structure: (companyId, company, QueueList<PriceHistory>) (PriceHistory: <price, date>)
-        return companyDataSpace.queryAll(new FormalField(String.class), new FormalField(Company.class), new FormalField(List.class));
+        // Structure: (companyId, companyName, companyTicker , QueueList<PriceHistory>) (PriceHistory: <price, date>)
+        return companyDataSpace.queryAll(new FormalField(String.class), new FormalField(String.class), new FormalField(String.class), new FormalField(List.class));
     }
 
     abstract void updateCompanyData(List<Object[]> companyData) throws InterruptedException;

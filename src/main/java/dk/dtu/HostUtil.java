@@ -4,15 +4,23 @@ package dk.dtu;
 import org.jspace.SpaceRepository;
 
 public class HostUtil {
-    private static String hostIp = "localhost";;
-    private static int hostPort = 35693;;
+    private static String hostIp;
+    private static int hostPort;
     private static SpaceRepository hostRepo;
     private HostUtil() {
         // Private constructor to prevent instantiation
     }
 
+    public static void initialize()
+    {
+        hostIp = "localhost";;
+        hostPort = 35693;
+    }
+
     public static void initialize(String connectionType)
     {
+        hostIp = "localhost";;
+        hostPort = 35693;
         hostRepo = new SpaceRepository();
         hostRepo.addGate("tcp://" + hostIp + ":" + hostPort + "/?" + connectionType);
     }

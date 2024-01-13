@@ -2,12 +2,17 @@ package dk.dtu.company;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 import java.util.UUID;
 
 import dk.dtu.ClientUtil;
 import dk.dtu.CompanyBroker;
 import dk.dtu.GlobalCock;
 import dk.dtu.Order;
+import org.jspace.ActualField;
+import org.jspace.FormalField;
 import org.jspace.RemoteSpace;
 import org.jspace.Space;
 
@@ -64,15 +69,10 @@ public abstract class Company implements Runnable{
 
                 //Then we IPO!!!
                 int IPOFloating = this.getIPOSharesFloated();
-                System.out.println("Got shares floated");
                 float IPOSharePrice = this.calculateIPOPrice();
-                System.out.println("Calculated IPO price");
                 this.sharesOutstanding = getIPOSharesFloated();
-                System.out.println("Got shares outstanding");
                 Order IPO = makeOrder(IPOFloating, IPOSharePrice);
-                System.out.println("Made IPO order");
                 sendRequestToCompanyBroker("IPO", IPO);
-                System.out.println("Sent request to company broker");
             }
         }
         catch (Exception e)
@@ -156,7 +156,26 @@ public abstract class Company implements Runnable{
         return totalNrShares;
     }
 
+    //(String companyTicker, LocalDateTime irlTimeStamp, LocalDateTime simulatedGameTime , String financialStatement, String financialPost, float financialValue)
+    // Standardized way of getting fundamentals
+    public List<Object[]> getFundamentals(String companyTicker) throws InterruptedException {
+        return fundamentalsSpace.queryAll(new ActualField(companyTicker), new FormalField(LocalDateTime.class), new FormalField(LocalDateTime.class), new FormalField(String.class), new FormalField(String.class), new FormalField(Float.class));
+    }
+
+    //(String companyTicker, LocalDateTime irlTimeStamp, LocalDateTime simulatedGameTime , String financialStatement, String financialPost, float financialValue)
+    // Standardized way of putting fundamentals
+    public void putFundamentals(String companyTicker, LocalDateTime irlTimeStamp, LocalDateTime simulatedDateTime, String financialStatement, String financialPost, float financialValue) throws InterruptedException {
+        fundamentalsSpace.put(companyTicker, irlTimeStamp, simulatedDateTime, financialStatement, financialPost, financialValue);
+    }
+
 
 }
 
 //TODO: Add a CompanyFundamentals class which can standardize the way we update the fundamentals
+class CompanyFundamentals
+{
+    private ArrayList<String> financialPosts;
+    private HashMap<String,String> financialPostToStatementMap;
+
+    
+}

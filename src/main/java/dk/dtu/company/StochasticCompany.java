@@ -72,19 +72,17 @@ public class StochasticCompany extends Company {
             if(isPubliclyTraded)
             {
                 NormalDistribution growthDetermination = new NormalDistribution(0.2,0.2);
-
-                List<Object[]> previousFundamentals = fundamentalsSpace.getAll(new ActualField(this.companyTicker),new ActualField(LocalDateTime.class), new FormalField(String.class), new FormalField(String.class), new FormalField(Float.class));
+                List<Object[]> previousFundamentals = getFundamentals(this.companyTicker);
                 float previousRevenue = (float) previousFundamentals.get(0)[0];
                 float revenueGrowth = (float) (previousRevenue*growthDetermination.sample());
                 float newRevenue = revenueGrowth + previousRevenue;
-                fundamentalsSpace.put(this.companyTicker, GlobalCock.getIRLDateTimeNow(),"income statement","revenue",newRevenue);
+                putFundamentals(companyTicker,GlobalCock.getIRLDateTimeNow(),GlobalCock.getSimulatedDateTimeNow(),"income statement","revenue",newRevenue);
             }
             else
             {
-                System.out.println("Company " + this.companyTicker + " is not publicly traded yet, so it cannot update its fundamentals");
+                //System.out.println("Company " + this.companyTicker + " is not publicly traded yet, so it cannot update its fundamentals");
                 NormalDistribution X = new NormalDistribution(100,10);
-                fundamentalsSpace.put(this.companyTicker, GlobalCock.getIRLDateTimeNow(),"income statement","revenue",(float) X.sample());
-                System.out.println("Put fundamentals");
+                putFundamentals(companyTicker,GlobalCock.getIRLDateTimeNow(),GlobalCock.getSimulatedDateTimeNow(),"income statement","revenue",(float) X.sample());
             }
 
 
