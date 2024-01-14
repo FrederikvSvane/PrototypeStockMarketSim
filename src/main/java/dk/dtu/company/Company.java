@@ -170,6 +170,7 @@ public abstract class Company implements Runnable{
     //(String companyTicker, LocalDateTime irlTimeStamp, LocalDateTime simulatedGameTime , String financialStatement, String financialPost, float financialValue)
     // Standardized way of getting fundamentals from our fundamentals space
     public List<Object[]> getFundamentalsFromSpace(String companyTicker) throws InterruptedException {
+        fundamentalsSpace.get(new ActualField("readTicket"));
         return fundamentalsSpace.queryAll(new ActualField(companyTicker), new FormalField(LocalDateTime.class), new FormalField(LocalDateTime.class), new FormalField(String.class), new FormalField(String.class), new FormalField(Float.class));
     }
 
@@ -177,6 +178,8 @@ public abstract class Company implements Runnable{
     // Standardized way of putting fundamentals
     public void putFundamentals(String companyTicker, LocalDateTime irlTimeStamp, LocalDateTime simulatedDateTime, String financialStatement, String financialPost, float financialValue) throws InterruptedException {
         fundamentalsSpace.put(companyTicker, irlTimeStamp, simulatedDateTime, financialStatement, financialPost, financialValue);
+        fundamentalsSpace.put("readTicket");
+        System.out.println("Company " + companyTicker + "put fundamentals" + financialPost + ":" + financialValue);
     }
 
     public abstract boolean isTimeToUpdateFundamentals(LocalDateTime simulateDateTime);
