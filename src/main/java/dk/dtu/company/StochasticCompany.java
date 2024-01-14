@@ -1,7 +1,7 @@
 package dk.dtu.company;
 
 
-import dk.dtu.GlobalCock;
+import dk.dtu.GlobalClock;
 import org.apache.commons.math3.distribution.BinomialDistribution;
 import org.apache.commons.math3.distribution.NormalDistribution;
 import org.jspace.ActualField;
@@ -77,13 +77,13 @@ public class StochasticCompany extends Company {
                 float previousRevenue = (float) previousFundamentals.get(0)[0];
                 float revenueGrowth = (float) (previousRevenue*growthDetermination.sample());
                 float newRevenue = revenueGrowth + previousRevenue;
-                fundamentalsSpace.put(this.companyTicker, GlobalCock.getIRLDateTimeNow(),"income statement","revenue",newRevenue);
+                fundamentalsSpace.put(this.companyTicker, GlobalClock.getIRLDateTimeNow(),"income statement","revenue",newRevenue);
             }
             else
             {
                 System.out.println("Company " + this.companyTicker + " is not publicly traded yet, so it cannot update its fundamentals");
                 NormalDistribution X = new NormalDistribution(100,10);
-                fundamentalsSpace.put(this.companyTicker, GlobalCock.getIRLDateTimeNow(),"income statement","revenue",(float) X.sample());
+                fundamentalsSpace.put(this.companyTicker, GlobalClock.getIRLDateTimeNow(),"income statement","revenue",(float) X.sample());
                 System.out.println("Put fundamentals");
             }
 
