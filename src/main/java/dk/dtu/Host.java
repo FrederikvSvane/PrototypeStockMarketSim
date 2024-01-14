@@ -17,7 +17,7 @@ public class Host {
         Exchange exchange = new Exchange(hostRepo);
         new Thread(exchange).start();
         new Thread(new Lobby(hostRepo)).start();
-        GlobalCock.initialize(hostRepo, LocalDateTime.of(1850,1,1,0,0,0),2000);
+        dk.dtu.GlobalClock.initialize(hostRepo, LocalDateTime.of(1850,1,1,0,0,0),2000);
         new Thread(new IRS(hostRepo)).start();
 
 

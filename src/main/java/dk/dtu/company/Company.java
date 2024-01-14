@@ -9,7 +9,7 @@ import java.util.UUID;
 
 import dk.dtu.ClientUtil;
 import dk.dtu.CompanyBroker;
-import dk.dtu.GlobalCock;
+import dk.dtu.GlobalClock;
 import dk.dtu.Order;
 import org.jspace.ActualField;
 import org.jspace.FormalField;
@@ -50,7 +50,7 @@ public abstract class Company implements Runnable{
         while(!isPubliclyTraded)
         {
 
-            LocalDateTime simulatedDateTime = GlobalCock.getSimulatedDateTimeNow();
+            LocalDateTime simulatedDateTime = GlobalClock.getSimulatedDateTimeNow();
 
         try {
 
@@ -75,7 +75,7 @@ public abstract class Company implements Runnable{
 
             while(true)
             {
-                simulatedDateTime = GlobalCock.getSimulatedDateTimeNow();
+                simulatedDateTime = GlobalClock.getSimulatedDateTimeNow();
 
                 //We need to wait until the right time to update, to ensure, that we have enough financial date to last the game
                 if(isTimeToUpdateFundamentals(simulatedDateTime))

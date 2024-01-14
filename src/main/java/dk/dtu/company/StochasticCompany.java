@@ -1,7 +1,7 @@
 package dk.dtu.company;
 
 
-import dk.dtu.GlobalCock;
+import dk.dtu.GlobalClock;
 import org.apache.commons.math3.distribution.BinomialDistribution;
 import org.apache.commons.math3.distribution.NormalDistribution;
 import org.jspace.Space;
@@ -77,13 +77,13 @@ public class StochasticCompany extends Company {
                 float revenueGrowth = (float) (previousRevenue*growthDetermination.sample());
                 float newRevenue = revenueGrowth + previousRevenue;
                 //System.out.println("We're updating the fundamentals for " + this.companyTicker + " from " + previousRevenue + " to " + newRevenue + " on " + GlobalCock.getSimulatedDateTimeNow());
-                putFundamentals(companyTicker,GlobalCock.getIRLDateTimeNow(),GlobalCock.getSimulatedDateTimeNow(),"income statement","revenue",newRevenue);
+                putFundamentals(companyTicker, GlobalClock.getIRLDateTimeNow(),GlobalClock.getSimulatedDateTimeNow(),"income statement","revenue",newRevenue);
             }
             else //otherwise we need to create some initial
             {
                 //System.out.println("Company " + this.companyTicker + " is not publicly traded yet, so it cannot update its fundamentals");
                 NormalDistribution X = new NormalDistribution(100,10);
-                putFundamentals(companyTicker,GlobalCock.getIRLDateTimeNow(),GlobalCock.getSimulatedDateTimeNow(),"income statement","revenue",(float) X.sample());
+                putFundamentals(companyTicker, GlobalClock.getIRLDateTimeNow(), GlobalClock.getSimulatedDateTimeNow(),"income statement","revenue",(float) X.sample());
             }
 
 
@@ -101,7 +101,7 @@ public class StochasticCompany extends Company {
     {
         if(ingameDateTime.getMonth() != Month.JANUARY)
         {
-            System.out.println(ingameDateTime + " vs " + GlobalCock.getIRLDateTimeNow());
+            System.out.println(ingameDateTime + " vs " + GlobalClock.getIRLDateTimeNow());
         }
         return (ingameDateTime.getDayOfMonth() == 1);
     }
