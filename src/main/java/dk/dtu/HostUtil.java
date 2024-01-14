@@ -14,13 +14,13 @@ public class HostUtil {
     public static void initialize()
     {
         hostIp = "localhost";;
-        hostPort = 35693;
+        hostPort = 35680;
     }
 
     public static void initialize(String connectionType)
     {
         hostIp = "localhost";;
-        hostPort = 35693;
+        hostPort = 35680;
         hostRepo = new SpaceRepository();
         hostRepo.addGate("tcp://" + hostIp + ":" + hostPort + "/?" + connectionType);
     }

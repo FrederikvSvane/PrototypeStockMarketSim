@@ -82,6 +82,9 @@ public abstract class Company implements Runnable{
                 {
                     updateFundamentalData(simulatedDateTime);
                 }
+                else
+                {
+                }
 
             }
 
@@ -179,7 +182,6 @@ public abstract class Company implements Runnable{
     public void putFundamentals(String companyTicker, LocalDateTime irlTimeStamp, LocalDateTime simulatedDateTime, String financialStatement, String financialPost, float financialValue) throws InterruptedException {
         fundamentalsSpace.put(companyTicker, irlTimeStamp, simulatedDateTime, financialStatement, financialPost, financialValue);
         fundamentalsSpace.put("readTicket");
-        System.out.println("Company " + companyTicker + "put fundamentals" + financialPost + ":" + financialValue);
     }
 
     public abstract boolean isTimeToUpdateFundamentals(LocalDateTime simulateDateTime);

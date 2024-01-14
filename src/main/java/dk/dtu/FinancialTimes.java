@@ -41,12 +41,23 @@ public class FinancialTimes extends DataFetcher implements Runnable{
 
     }
 
-    void updateCompanyData(Object[] fundamentalsData)
-    {
+    void updateCompanyData(Object[] fundamentalsData) throws Exception {
+        String companyTicker = (String) fundamentalsData[0];
+        LocalDateTime simulatedTimeStamp = (LocalDateTime) fundamentalsData[2];
+        String financialStatment = (String) fundamentalsData[3];
+        float financialValue = (float) fundamentalsData[4];
+        traderDataSpace.put(companyTicker,simulatedTimeStamp,financialStatment,financialValue);
+        traderDataSpace.put("mail");
 
     }
 
     @Override
+    /**
+     * Pseudo protocol:
+     *      * Try to get the fundamental data from the fundamental dataspace which is automatically updated with the newest data from the company
+     *      * If it doesn't exist, we will put a "mail" object, but nothing else. Freeing the trader from its get() command.
+     *      * Otherwise, we will put the data in first and then the mail object
+     */
     public void run()
     {
         try {
@@ -57,12 +68,13 @@ public class FinancialTimes extends DataFetcher implements Runnable{
             if(fundamentalsRequest == null)
             {
                 System.out.println("No financial post named " + financialPost + " for company " + companyTicker);
+                traderDataSpace.put("mail");
                 return;
             }
 
             updateCompanyData(fundamentalsRequest);
 
-        } catch (InterruptedException e) {
+        } catch (Exception e) {
             System.out.println("FinancialTimes failed getting " + financialPost + " from company " + companyTicker);
             e.printStackTrace();
             throw new RuntimeException(e);

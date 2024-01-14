@@ -4,6 +4,7 @@ package dk.dtu.company;
 import dk.dtu.GlobalCock;
 import org.apache.commons.math3.distribution.BinomialDistribution;
 import org.apache.commons.math3.distribution.NormalDistribution;
+import org.jspace.ActualField;
 import org.jspace.Space;
 
 import java.time.LocalDateTime;
@@ -82,6 +83,7 @@ public class StochasticCompany extends Company {
             else //otherwise we need to create some initial
             {
                 //System.out.println("Company " + this.companyTicker + " is not publicly traded yet, so it cannot update its fundamentals");
+                fundamentalsSpace.get(new ActualField("readTicket"));
                 NormalDistribution X = new NormalDistribution(100,10);
                 putFundamentals(companyTicker,GlobalCock.getIRLDateTimeNow(),GlobalCock.getSimulatedDateTimeNow(),"income statement","revenue",(float) X.sample());
             }
@@ -101,9 +103,9 @@ public class StochasticCompany extends Company {
     {
         if(ingameDateTime.getMonth() != Month.JANUARY)
         {
-            System.out.println(ingameDateTime + " vs " + GlobalCock.getIRLDateTimeNow());
+            //System.out.println(ingameDateTime + " vs " + GlobalCock.getIRLDateTimeNow());
         }
-        return (ingameDateTime.getDayOfMonth() == 1);
+        return (ingameDateTime.getDayOfMonth() == 1 || ingameDateTime.getMonth() == Month.JANUARY || ingameDateTime.getMonth() == Month.APRIL || ingameDateTime.getMonth() == Month.JULY || ingameDateTime.getMonth() == Month.NOVEMBER);
     }
 
     @Override

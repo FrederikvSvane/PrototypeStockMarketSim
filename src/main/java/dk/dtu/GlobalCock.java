@@ -51,6 +51,8 @@ public class GlobalCock //uWu what is this
         }
 
         hostRepo.add(globalClockSpaceName, globalClockSpace);
+
+
     }
 
 
@@ -149,6 +151,7 @@ public class GlobalCock //uWu what is this
 
         //We get the IRL date first as to ensure, we get as close to the date time this method was called as possible
         LocalDateTime irlDateTimeNow = getIRLDateTimeNow();
+
 
         //We do not want to overload the host, so we will only get these values once and then store them locally for future use.
         if(speedFactor == 0)

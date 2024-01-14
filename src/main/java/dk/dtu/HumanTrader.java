@@ -28,6 +28,7 @@ public class HumanTrader extends Trader implements Runnable {
     @Override
     public void run() {
         try {
+            System.out.println(getFundamentalData("VOC","revenue"));
             openTraderMessages();
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
