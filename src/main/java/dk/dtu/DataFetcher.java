@@ -11,8 +11,8 @@ import java.util.List;
 abstract class DataFetcher {
 
     protected Space traderDataSpace;
-    private Space companyDataSpace;;
-    private String hostDataSpaceName;
+    protected Space companyDataSpace;;
+    protected String hostDataSpaceName;
     protected int sleepTime;
 
     public DataFetcher(Space traderDataSpace, int sleepTime, String hostDataSpaceName)

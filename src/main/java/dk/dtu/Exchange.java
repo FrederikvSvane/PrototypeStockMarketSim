@@ -39,7 +39,7 @@ public class Exchange implements Runnable {
                             float price = (float) currentRequest[6];
 
                             Space companiesAndPricesSpace = exchangeRepository.get("companiesAndPricesHistorySpace");
-                            Object[] currentCompanyStatus = companiesAndPricesSpace.queryp(new ActualField(companyId), new FormalField(Company.class), new FormalField(Float.class));
+                            Object[] currentCompanyStatus = companiesAndPricesSpace.queryp(new ActualField(companyId), new FormalField(String.class), new FormalField(String.class), new FormalField(String.class), new FormalField(Float.class));
                             boolean companyExists = currentCompanyStatus != null;
                             if (companyExists) {
                                 throw new RuntimeException("IPO failed: Company is already listed on the exchange");
