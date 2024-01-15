@@ -16,4 +16,7 @@ public class StockHolding {
     public int getAmount() {
         return amount;
     }
+
+    public void setAmount(int i) { this.amount = i;
+    }
 }

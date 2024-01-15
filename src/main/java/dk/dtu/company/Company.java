@@ -29,7 +29,6 @@ public abstract class Company implements Runnable{
     protected final Space fundamentalsSpace;
 
     public Company(String companyName, String companyTicker, LocalDateTime ipoDateTime, Space fundamentalsSpace) {
-
         this.companyId = UUID.randomUUID().toString();
         this.companyName = companyName;
         this.companyTicker = companyTicker;
@@ -85,7 +84,7 @@ public abstract class Company implements Runnable{
     }
 
 
-    private void sendRequestToCompanyBroker(String orderType, Order order) throws InterruptedException {
+    private void sendRequestToCompanyBroker(String orderType, Order order) throws InterruptedException, IOException {
         CompanyBroker companyBroker = new CompanyBroker();
         new Thread(companyBroker).start();
         companyBroker.getRequestSpace().put(orderType, companyId,companyName,companyTicker, order);

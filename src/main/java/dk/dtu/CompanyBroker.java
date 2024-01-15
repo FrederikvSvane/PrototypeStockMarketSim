@@ -5,8 +5,10 @@ import org.jspace.FormalField;
 import org.jspace.RemoteSpace;
 import org.jspace.Space;
 
+import java.io.IOException;
+
 public class CompanyBroker extends Broker implements Runnable {
-    public CompanyBroker() {
+    public CompanyBroker() throws IOException {
         super();
     }
 
