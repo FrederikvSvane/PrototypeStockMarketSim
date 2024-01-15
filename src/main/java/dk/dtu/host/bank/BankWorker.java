@@ -1,22 +1,23 @@
 package dk.dtu.host.bank;
 
-import dk.dtu.client.ClientUtil;
-import dk.dtu.client.Order;
-import org.jspace.*;
+import org.jspace.ActualField;
+import org.jspace.FormalField;
+import org.jspace.Space;
+import org.jspace.SpaceRepository;
 
 import java.util.List;
 
 public class BankWorker implements Runnable {
     private SpaceRepository bankRepository;
-    private Space traderAccountSpace; // {traderId, balance, reservedBalance, stockHoldings, reserve{stockHoldings}
-    private Space transactionSpace; // {BrokerID, transactionType, Object[] transactionData}
+    private Space traderAccountSpace; // {traderId, BankAccount}
+    private Space bankRequestSpace; // {BrokerID, transactionType, Object[] transactionData}
     private Space transactionResponseSpace; // {BrokerID, response}
     private Space completeOrderSpace; // {spaceName, obj[]}
 
     public BankWorker(SpaceRepository bankRepository) {
         this.bankRepository = bankRepository;
         traderAccountSpace = this.bankRepository.get("bankInformationSpace");
-        transactionSpace = this.bankRepository.get("transactionSpace");
+        bankRequestSpace = this.bankRepository.get("bankRequestSpace");
         transactionResponseSpace = this.bankRepository.get("transactionResponseSpace");
     }
 
@@ -26,50 +27,35 @@ public class BankWorker implements Runnable {
             try {
                 // Opdater folks bankbalance (aktiebeholdning og pengebalance)
                 // Listening for transactions in transactionSpace in bankRepository
-                Object[] transaction = transactionSpace.get(new FormalField(String.class), new FormalField(Object.class));
-                String brokerId = (String) transaction[0];
-                String transactionType = (String) transaction[1];
+                Object[] result = bankRequestSpace.get(new FormalField(String.class), new FormalField(String.class), new FormalField(Object.class));
+                String brokerId = (String) result[0];
+                String transactionType = (String) result[1];
+                Transaction transaction = (Transaction) result[2];
 
                 switch (transactionType) {
-                    case "reserve money": // object[] = {TraderId, price, amount}
-                        // get trader account
-                        // check if trader has enough money (price * amount)
-                        // if trader has enough money, reserve money
-                        // else send error message to trader
-                        Object[] transactionData = (Object[]) transaction[2];
-                        String traderId = (String) transactionData[0];
-                        float price = (float) transactionData[1];
-                        int amount = (int) transactionData[2];
+                    case "reserve money":
+                        String buyerId = transaction.getBuyerId();
+                        float price = transaction.getPrice();
+                        int amount = transaction.getAmount();
 
-                        float moneyNow = getTraderMoneyBalance(traderId);
+                        BankAccount traderAccount = getTraderAccount(buyerId);
+
+                        float currentMoneyBalance = traderAccount.getMoneyBalance();
                         float moneyToReserve = price * amount;
-                        if (moneyNow >= moneyToReserve) {
-                            //Access the account of the trader
-                            Object[] traderAccount = getTraderAccount(traderId);
-                            float balance = (float) traderAccount[1];
-                            balance -= moneyToReserve;
+                        if (currentMoneyBalance >= moneyToReserve) {
+                            traderAccount.reserveMoneyFromBalance(moneyToReserve);
 
-                            float reservedBalance = (float) traderAccount[2];
-                            reservedBalance += moneyToReserve;
-
-                            traderAccountSpace.put(traderId, balance, reservedBalance, traderAccount[3]);
+                            traderAccountSpace.put(buyerId, traderAccount);
                             transactionResponseSpace.put(brokerId, "reserved money");
                         } else {
                             transactionResponseSpace.put(brokerId, "not enough money");
                         }
-
-
 
                         break;
                     case "complete order":
                         // in object[] = {Transaction transactionData}
                         // out {BrokerID, response} // response = "completed order" or "order not found"
                         // Skal følge petri net
-
-
-
-
-
 
                         break;
                     case "enough stocks":
@@ -149,20 +135,22 @@ public class BankWorker implements Runnable {
      * @return
      * @throws InterruptedException
      */
-    public Object[] queryTraderAccount(String traderId) throws InterruptedException {
-        Object[] traderAccount = traderAccountSpace.query(new ActualField(traderId), new FormalField(float.class), new FormalField(float.class), new FormalField(List.class), new FormalField(List.class));
-        return traderAccount;
+    public BankAccount queryTraderAccount(String traderId) throws InterruptedException {
+        Object[] result = traderAccountSpace.query(new ActualField(traderId), new FormalField(BankAccount.class));
+        if (result.length == 0) {
+            throw new RuntimeException("Trader account not found");
+        }
+        return (BankAccount) result[1];
     }
 
-
-    public Object[] getTraderAccount(String traderId) throws InterruptedException {
-        Object[] traderAccount = traderAccountSpace.get(new ActualField(traderId), new FormalField(float.class), new FormalField(float.class), new FormalField(List.class), new FormalField(List.class));
-        return traderAccount;
+    public BankAccount getTraderAccount(String traderId) throws InterruptedException {
+        Object[] traderAccount = traderAccountSpace.get(new ActualField(traderId), new FormalField(BankAccount.class));
+        return (BankAccount) traderAccount[1];
     }
 
-    public int getTraderMoneyBalance(String traderId) throws InterruptedException {
-        Object[] traderAccount = this.queryTraderAccount(traderId);
-        return (int) traderAccount[1];
+    public float queryTraderMoneyBalance(String traderId) throws InterruptedException {
+        BankAccount traderAccount = this.queryTraderAccount(traderId);
+        return traderAccount.getMoneyBalance();
     }
 
     /**
@@ -173,9 +161,9 @@ public class BankWorker implements Runnable {
      * @return amount of stocks the trader has of the specified company
      * @throws InterruptedException
      */
-    public int getTraderStockBalanceOfCompany(String traderId, String companyId) throws InterruptedException {
-        Object[] traderAccount = this.queryTraderAccount(traderId);
-        List<StockHolding> traderStocks = (List<StockHolding>) traderAccount[3];
+    public int queryTraderStockBalanceOfCompany(String traderId, String companyId) throws InterruptedException {
+        BankAccount traderAccount = this.queryTraderAccount(traderId);
+        List<StockHolding> traderStocks = traderAccount.getStockHoldings();
         for (StockHolding stock : traderStocks) {
             if (stock.getCompanyTicker().equals(companyId)) {
                 return stock.getAmount();
@@ -191,33 +179,8 @@ public class BankWorker implements Runnable {
      * @return
      * @throws InterruptedException
      */
-    public List<StockHolding> getTraderStockHoldings(String traderId) throws InterruptedException {
-        Object[] traderAccount = this.queryTraderAccount(traderId);
-        return (List<StockHolding>) traderAccount[3];
+    public List<StockHolding> queryTraderStockHoldings(String traderId) throws InterruptedException {
+        BankAccount traderAccount = this.queryTraderAccount(traderId);
+        return traderAccount.getStockHoldings();
     }
 }
-
-
-//                        Transaction transactionData = (Transaction) transaction[1];
-//                        String orderId = transactionData.getOrderId();
-//                        String companyTicker = transactionData.getCompanyTicker();
-//                        RemoteSpace companyOrderSpace = new RemoteSpace(ClientUtil.getHostUri(companyTicker));
-//                        Object[] result = companyOrderSpace.getp(new FormalField(String.class) /*companyTicker*/, new ActualField(orderId) /*orderId*/, new FormalField(String.class) /*orderType*/, new FormalField(Order.class) /*order*/);
-//                        Order order = (Order) result[3];
-//                        String orderType = (String) result[2];
-//                        if (order == null) {
-//                            throw new RuntimeException("Order not found");
-//                        }
-//                        if (orderType.equals("buy")) {
-//                            String buyerId = transactionData.getBuyerId();
-//                            float amountToReserve = order.getAmount() * order.getPrice();
-//                            //Acess the account of the trader
-//                            Object[] buyerAccount = getTraderAccount(buyerId);
-//                            float buyerBalance = (float) buyerAccount[1];
-//                            buyerBalance -= amountToReserve;
-//
-//                            float reservedBalance = (float) buyerAccount[2];
-//                            reservedBalance += amountToReserve;
-//
-//                            traderAccountSpace.put(buyerId, buyerBalance, reservedBalance, buyerAccount[3]);
-//                        }
