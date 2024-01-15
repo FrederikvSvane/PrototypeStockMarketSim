@@ -1,5 +1,6 @@
-package dk.dtu;
+package dk.dtu.client.datafetcher;
 
+import dk.dtu.client.ClientUtil;
 import dk.dtu.company.Company;
 import org.jspace.ActualField;
 import org.jspace.FormalField;

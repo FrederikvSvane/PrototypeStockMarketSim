@@ -1,5 +1,8 @@
 package dk.dtu.company;
 
+import dk.dtu.host.HostUtil;
+import dk.dtu.client.ClientUtil;
+
 import org.jspace.SequentialSpace;
 import org.jspace.Space;
 import org.jspace.SpaceRepository;
@@ -17,8 +20,7 @@ import java.util.Map;
  */
 public class IRS implements Runnable {
 
-    SpaceRepository hostRepo;
-
+    SpaceRepository IrsRepo;
     ArrayList<String> tickers = new ArrayList<>();
     Map<String, LocalDateTime> tickerIPODateTime  = new HashMap<>();
     Map<String,String> tickerCompanyName = new HashMap<>();
@@ -93,10 +95,10 @@ public class IRS implements Runnable {
     }
 
 
-    public IRS(SpaceRepository hostRepo)
+    public IRS(SpaceRepository IrsRepo)
     {
-        this.hostRepo = hostRepo;
-        System.out.println("Constructed IRS");
+        this.IrsRepo = IrsRepo;
+        IrsRepo.addGate(ClientUtil.getHostUri("", HostUtil.getIrsPort(), "keep"));
     }
 
     public void establishCompany(String companyName , String ticker, LocalDateTime ipoDateTime, String typeOfCompany) throws Exception {
@@ -105,7 +107,7 @@ public class IRS implements Runnable {
         //TODO: Add an option to select if we want realistic or dummy companies
         Space fundamentalsSpace = new SequentialSpace();
 
-        hostRepo.add("fundamentals" + ticker, fundamentalsSpace);
+        IrsRepo.add("fundamentals" + ticker, fundamentalsSpace);
         switch (typeOfCompany)
         {
             case "stochastic":

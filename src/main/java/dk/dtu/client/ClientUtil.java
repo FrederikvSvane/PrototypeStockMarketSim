@@ -1,4 +1,6 @@
-package dk.dtu;
+package dk.dtu.client;
+
+import dk.dtu.host.HostUtil;
 
 public class ClientUtil {
     private static String hostIp;
@@ -10,7 +12,7 @@ public class ClientUtil {
 
     public static void initialize() {
         hostIp = HostUtil.getHostIp();
-        hostPort = HostUtil.getHostPort();
+        hostPort = HostUtil.getExchangePort(); // Totalt hacket måde at finde den på, men det virker.
     }
 
     public static String getHostUri(String roomName) {

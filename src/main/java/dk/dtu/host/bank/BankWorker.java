@@ -1,7 +1,7 @@
-package dk.dtu.bank;
+package dk.dtu.host.bank;
 
-import dk.dtu.ClientUtil;
-import dk.dtu.Order;
+import dk.dtu.client.ClientUtil;
+import dk.dtu.client.Order;
 import org.jspace.*;
 
 import java.util.List;

@@ -1,10 +1,11 @@
-package dk.dtu;
+package dk.dtu.host;
 
+import dk.dtu.client.ClientUtil;
+import dk.dtu.host.HostUtil;
 import org.jspace.*;
 
 import java.io.IOException;
 import java.time.Duration;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 /**
@@ -14,24 +15,19 @@ import java.time.LocalDateTime;
  * @apiNote Due to the way the simulation is structured it is not possible to change simulatedStartDateTime or irlStartDateTime mid-simulation.
  */
 public class GlobalClock {
-    private static String globalClockSpaceName = "globalClockSpace";
-    private static int speedFactor = 0;
+    private static int speedFactor;
     private static LocalDateTime simulatedStartDateTime;
     private static LocalDateTime irlStartDateTime;
-
-
-    public static void main(String[] args) {
-        System.out.println("Glock");
-    }
+    private static SpaceRepository clockRepo;
+    private static RandomSpace globalClockSpace;
 
     /**
-     * @param hostRepo               The repo of the host
      * @param simulatedStartDateTime The in game start date and time
      * @param speedFactor            How much we speed up/down the in game time that has passed relative to the IRL time that has passed
      *                               I.g if speedFactor = 2, then a duration of 12 hours IRL is 1 day in game.
      */
-    public static void initialize(SpaceRepository hostRepo, LocalDateTime simulatedStartDateTime, int speedFactor) {
-        Space globalClockSpace = new RandomSpace();
+    public static void initialize(SpaceRepository clockRepo, LocalDateTime simulatedStartDateTime, int speedFactor) {
+        globalClockSpace = new RandomSpace();
         LocalDateTime irlStartDateTime = LocalDateTime.now();
 
         try {
@@ -42,7 +38,8 @@ public class GlobalClock {
             throw new RuntimeException(e);
         }
 
-        hostRepo.add(globalClockSpaceName, globalClockSpace);
+        clockRepo.add("globalClockSpace", globalClockSpace);
+        clockRepo.addGate(ClientUtil.getHostUri("", HostUtil.getClockPort(),  "keep"));
     }
 
 
@@ -79,7 +76,7 @@ public class GlobalClock {
 
     public static RemoteSpace getGlobalClockSpace() {
         try {
-            return new RemoteSpace(ClientUtil.setConnectType(ClientUtil.getHostUri(globalClockSpaceName), "keep"));
+            return new RemoteSpace(ClientUtil.getHostUri("globalClockSpace", HostUtil.getClockPort(), "keep"));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

@@ -1,4 +1,4 @@
-package dk.dtu.bank;
+package dk.dtu.host.bank;
 
 public class Transaction {
     private String buyerId;

@@ -1,6 +1,9 @@
-package dk.dtu;
+package dk.dtu.client.broker;
 
-import dk.dtu.bank.Transaction;
+import dk.dtu.client.ClientUtil;
+import dk.dtu.host.HostUtil;
+import dk.dtu.client.Order;
+import dk.dtu.host.bank.Transaction;
 import org.jspace.*;
 
 import java.io.IOException;
@@ -12,7 +15,7 @@ public class Broker implements Runnable {
     private String traderId; //who broker is working for
     private SequentialSpace requestSpace;
     private String uriConnection;
-    private int portBank = HostUtil.getHostPort() + 2;
+    private int portBank = HostUtil.getBankPort();
     private RemoteSpace transactionsSpace;
     private RemoteSpace transactionResponseSpace;
 

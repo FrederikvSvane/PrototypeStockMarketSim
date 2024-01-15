@@ -1,4 +1,4 @@
-package dk.dtu;
+package dk.dtu.client;
 
 import java.util.HashMap;
 import java.util.UUID;
