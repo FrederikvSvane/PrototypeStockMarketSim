@@ -46,9 +46,7 @@ public class Lobby implements Runnable {
                         } else {
                             fromLobby.put(traderId, "Fulfilled");
                             //After fulfillment we create a new space for chatting in the chatRepo space.
-                            SequentialSpace newRoom = new SequentialSpace();
-                            newRoom.put("AuthToken", password, 0, capacity);
-                            chatRepo.add(roomName, newRoom);
+                            addRoomAndAuthToken(roomName, capacity, password);
                             //Initializes a new thread that listens to all conversations in roomName.
                             new Thread(new ChatGetter(roomName, traderId, true)).start();
                         }
@@ -148,5 +146,11 @@ public class Lobby implements Runnable {
             return true;
         }
         return false;
+    }
+
+    public void addRoomAndAuthToken(String roomName, int capacity, String password) throws InterruptedException {
+        SequentialSpace newRoom = new SequentialSpace();
+        newRoom.put("AuthToken", password, 0, capacity);
+        chatRepo.add(roomName, newRoom);
     }
 }
