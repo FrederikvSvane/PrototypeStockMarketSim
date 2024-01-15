@@ -1,4 +1,4 @@
-package dk.dtu.bank;
+package dk.dtu.host.bank;
 
 public class StockHolding {
     private String companyTicker;
@@ -15,5 +15,8 @@ public class StockHolding {
 
     public int getAmount() {
         return amount;
+    }
+
+    public void setAmount(int i) { this.amount = i;
     }
 }

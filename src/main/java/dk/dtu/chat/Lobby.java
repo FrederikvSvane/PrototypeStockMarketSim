@@ -1,36 +1,32 @@
-package dk.dtu;
+package dk.dtu.chat;
 
+import dk.dtu.host.HostUtil;
 import org.jspace.*;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class Lobby implements Runnable {
-
-    String hostIp;
-    int hostPort;
-    SpaceRepository hostRepo;
+    SpaceRepository chatRepo;
     SequentialSpace toLobby;
     SequentialSpace fromLobby;
     Space chatRoomLobby;
 
     SpaceRepository chatRoomsRepo;
+
     //TODO make traders able to directly message each other.
-    //TODO fetch chat history when sending messages to a chat.
 
     public Lobby(SpaceRepository chatRepo) {
-        this.hostIp = HostUtil.getHostIp(); //TODO det er også spild at sætte ip og port her, da det kun bruges til URI, og det kan hentes fra HostUtil eller ClientUtil
-        this.hostPort = HostUtil.getHostPort();
-        this.hostRepo = chatRepo;
-        this.toLobby = new QueueSpace();
+        this.chatRepo = chatRepo;
+        this.toLobby = new SequentialSpace();
         this.fromLobby = new SequentialSpace();
         this.chatRoomLobby = new SequentialSpace();
 
-        hostRepo.add("toLobby", toLobby);
-        hostRepo.add("fromLobby", fromLobby);
+        this.chatRepo.add("toLobby", toLobby);
+        this.chatRepo.add("fromLobby", fromLobby);
 
         chatRoomsRepo = new SpaceRepository();
-        chatRoomsRepo.addGate("tcp://" + hostIp + ":" + (hostPort + 1) + "?keep");
+        chatRoomsRepo.addGate("tcp://" + HostUtil.getHostIp() + ":" + HostUtil.getLobbyPort() + "?keep");
     }
 
     public void run() {
@@ -49,10 +45,10 @@ public class Lobby implements Runnable {
                             fromLobby.put(traderId, "Failed");
                         } else {
                             fromLobby.put(traderId, "Fulfilled");
-                            //After fulfillment we create a new space for chatting in the chatRooms space.
-                            QueueSpace newRoom = new QueueSpace();
+                            //After fulfillment we create a new space for chatting in the chatRepo space.
+                            SequentialSpace newRoom = new SequentialSpace();
                             newRoom.put("AuthToken", password, 0, capacity);
-                            chatRoomsRepo.add(roomName, newRoom);
+                            chatRepo.add(roomName, newRoom);
                             //Initializes a new thread that listens to all conversations in roomName.
                             new Thread(new ChatGetter(roomName, traderId, true)).start();
                         }
@@ -104,7 +100,6 @@ public class Lobby implements Runnable {
 
                     }
                     case "getCapacity": {
-
                         if (checkRoomExists(roomName)) { //Means the room exists.
                             Space chatRoom = chatRoomsRepo.get(roomName);
                             Object[] authToken = chatRoom.query(new ActualField("AuthToken"), new FormalField(String.class), new FormalField(Integer.class), new FormalField(Integer.class));

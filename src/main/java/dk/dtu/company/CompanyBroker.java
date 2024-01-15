@@ -1,12 +1,16 @@
-package dk.dtu;
+package dk.dtu.company;
 
-import dk.dtu.company.Company;
+import dk.dtu.client.ClientUtil;
+import dk.dtu.client.Order;
+import dk.dtu.client.broker.Broker;
 import org.jspace.FormalField;
 import org.jspace.RemoteSpace;
 import org.jspace.Space;
 
+import java.io.IOException;
+
 public class CompanyBroker extends Broker implements Runnable {
-    public CompanyBroker() {
+    public CompanyBroker() throws IOException {
         super();
     }
 

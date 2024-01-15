@@ -1,6 +1,5 @@
-package dk.dtu;
+package dk.dtu.client.datafetcher;
 
-import dk.dtu.company.Company;
 import dk.dtu.company.StochasticCompany;
 import org.jspace.Space;
 
@@ -40,10 +39,9 @@ public class NameDataFetcher extends DataFetcher implements Runnable{
     void updateCompanyData(List<Object[]> companyData) throws InterruptedException {
         for(Object[] companyList : companyData) {
             System.out.println("Updating company data");
-            StochasticCompany company = (StochasticCompany) companyList[1];
-            String companyId = company.getCompanyId();
-            String companyName = company.getCompanyName();
-            String companyTicker = company.getCompanyTicker();
+            String companyId = (String) companyList[0];
+            String companyName = (String) companyList[1];
+            String companyTicker = (String) companyList[2];
             if(companyNotInTraderSpace(companyId)) {
                 traderDataSpace.put(companyId, companyName, companyTicker);
             }

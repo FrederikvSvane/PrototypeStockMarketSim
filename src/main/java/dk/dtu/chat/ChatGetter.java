@@ -1,5 +1,6 @@
-package dk.dtu;
+package dk.dtu.chat;
 
+import dk.dtu.host.HostUtil;
 import org.jspace.ActualField;
 import org.jspace.FormalField;
 import org.jspace.RemoteSpace;
@@ -33,7 +34,7 @@ public class ChatGetter implements Runnable{
         if(isRoomGetter){ // This is listening to a room
             System.out.println("I am listening to room: " + roomName);
             try {
-                RemoteSpace chatRoom = new RemoteSpace("tcp://" + HostUtil.getHostIp() + ":" + (HostUtil.getHostPort() + 1) + "/" + roomName + "?keep");
+                RemoteSpace chatRoom = new RemoteSpace("tcp://" + HostUtil.getHostIp() + ":" + (HostUtil.getLobbyPort()) + "/" + roomName + "?keep");
                 while (true){
 
                     //Gets the newest message in the space.
@@ -46,7 +47,7 @@ public class ChatGetter implements Runnable{
                         //Loops over every user collected, to send messages.
                         for(Object[] user : users){
                             if(!user[1].equals(responseMessage[0])){ //Check user isnt the one who send the message.
-                                RemoteSpace tradersRoom = new RemoteSpace("tcp://" + HostUtil.getHostIp() + ":" + (HostUtil.getHostPort() + 1) + "/" + user[1] + "?keep");
+                                RemoteSpace tradersRoom = new RemoteSpace("tcp://" + HostUtil.getHostIp() + ":" + HostUtil.getLobbyPort() + "/" + user[1] + "?keep");
                                 tradersRoom.put(responseMessage[0], responseMessage[1]);
                             }
                         }
@@ -59,7 +60,7 @@ public class ChatGetter implements Runnable{
         } else { // This is a getter running on a client, listening to their mailbox.
             System.out.println("Im listening to " + traderId + "'s room"); //For debugging.
             try{
-                RemoteSpace tradersRoom = new RemoteSpace("tcp://" + HostUtil.getHostIp() + ":" + (HostUtil.getHostPort() + 1) + "/" + traderId + "?keep");
+                RemoteSpace tradersRoom = new RemoteSpace("tcp://" + HostUtil.getHostIp() + ":" + HostUtil.getLobbyPort() + "/" + traderId + "?keep");
                 while(true){
                     Object[] messagesRead = tradersRoom.get(new FormalField(String.class), new FormalField(String.class));
                     System.out.println(messagesRead[0] + ": " + messagesRead[1]);
