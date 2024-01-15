@@ -45,8 +45,7 @@ public class Lobby implements Runnable {
                 //System.out.println("Server got request for: " + command + " name: " + roomName + ". From: " + traderId);
                 switch (command) {
                     case "create": { //When create command is present.
-                        Space roomExists = chatRoomsRepo.get(roomName);
-                        if (roomExists != null) { //if room already exists.
+                        if (checkRoomExists(roomName)) { //if room already exists.
                             fromLobby.put(traderId, "Failed");
                         } else {
                             fromLobby.put(traderId, "Fulfilled");
@@ -61,23 +60,22 @@ public class Lobby implements Runnable {
                     }
 
                     case "join": { //if join command is executed.
-                        Space roomExists = chatRoomsRepo.get(roomName);
-
-                        if (roomExists != null) { //Check if room exists.
+                        if (checkRoomExists(roomName)) { //Check if room exists.
+                            Space chatRoom = chatRoomsRepo.get(roomName);
                             //Get authToken,
-                            Object[] authToken = roomExists.get(new ActualField("AuthToken"), new FormalField(String.class), new FormalField(Integer.class), new FormalField(Integer.class));
+                            Object[] authToken = chatRoom.get(new ActualField("AuthToken"), new FormalField(String.class), new FormalField(Integer.class), new FormalField(Integer.class));
                             String correctPassword = (String) authToken[1];
                             int currentlyConnected = (int) authToken[2];
                             int fullCapacity = (int) authToken[3];
 
                             if (correctPassword.equals(password)) {
                                 if (currentlyConnected < fullCapacity) { //When a trader joins a room.
-                                    if (!checkConnectedStatus(traderId, roomExists)) { //Checks whether the user is already connected to the chat.
-                                        roomExists.put("AuthToken", password, currentlyConnected + 1, fullCapacity);
-                                        roomExists.put("ConnectedToken", traderId, "connected");
+                                    if (!checkConnectedStatus(traderId, chatRoom)) { //Checks whether the user is already connected to the chat.
+                                        chatRoom.put("AuthToken", password, currentlyConnected + 1, fullCapacity);
+                                        chatRoom.put("ConnectedToken", traderId, "connected");
 
                                         List<List<String>> historyList = new ArrayList<>();
-                                        roomExists.put("History", historyList);
+                                        chatRoom.put("History", historyList);
 
                                         fromLobby.put(traderId, "Fulfilled");
                                     } else {
@@ -85,14 +83,14 @@ public class Lobby implements Runnable {
                                     }
 
                                 } else { //If the room is too full.
-                                    roomExists.put("AuthToken", password, currentlyConnected, fullCapacity);
+                                    chatRoom.put("AuthToken", password, currentlyConnected, fullCapacity);
                                     fromLobby.put(traderId, "Room is full");
 
                                 }
 
                             } else { //If the trader types the wrong password.
                                 System.out.println("Wrong Password");
-                                roomExists.put("AuthToken", password, currentlyConnected, fullCapacity);
+                                chatRoom.put("AuthToken", password, currentlyConnected, fullCapacity);
                                 fromLobby.put(traderId, "Wrong Password");
 
                             }
@@ -106,10 +104,10 @@ public class Lobby implements Runnable {
 
                     }
                     case "getCapacity": {
-                        Space roomExists = chatRoomsRepo.get(roomName);
 
-                        if (roomExists != null) {
-                            Object[] authToken = roomExists.query(new ActualField("AuthToken"), new FormalField(String.class), new FormalField(Integer.class), new FormalField(Integer.class));
+                        if (checkRoomExists(roomName)) { //Means the room exists.
+                            Space chatRoom = chatRoomsRepo.get(roomName);
+                            Object[] authToken = chatRoom.query(new ActualField("AuthToken"), new FormalField(String.class), new FormalField(Integer.class), new FormalField(Integer.class));
                             int currentlyConnected = (int) authToken[2];
                             int fullCapacity = (int) authToken[3];
 
@@ -118,18 +116,15 @@ public class Lobby implements Runnable {
                         break;
                     }
                     case "createUserSpace": { //Creates the space upon Trader initialization.
-                        Space traderChat = chatRoomsRepo.get(traderId);
-
-                        if (traderChat == null) {
+                        if (checkRoomExists(roomName)) {
                             chatRoomsRepo.add(traderId, new QueueSpace());
-                            traderChat = chatRoomsRepo.get(traderId);
+                        } else {
+                            throw new Exception("Users room already exists");
                         }
-
                         //traderChat.put("Lobby", "Test message");
-                        System.out.println("Room added for user: " + traderId + "on uri: ");
                     }
                 }
-            } catch (InterruptedException e) {
+            } catch (Exception e) {
                 throw new RuntimeException(e);
             }
         }
@@ -148,6 +143,14 @@ public class Lobby implements Runnable {
             if (user[1].equals(traderId)) {
                 return true;
             }
+        }
+        return false;
+    }
+
+    public boolean checkRoomExists(String roomName) throws InterruptedException {
+        Space room = chatRoomsRepo.get(roomName);
+        if (room != null) {
+            return true;
         }
         return false;
     }
