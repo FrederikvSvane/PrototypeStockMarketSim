@@ -11,6 +11,7 @@ public class Bank implements Runnable {
 
     private SpaceRepository bankRepository = new SpaceRepository();
 
+
     // Structure: (TraderId, balance, reservedBalance, List<StockHolding> {companyTicker, amount})
     private Space traderAccountSpace = new SequentialSpace();
 

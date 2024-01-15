@@ -124,11 +124,9 @@ public class IRS implements Runnable {
             for (String ticker : this.tickers)
             {
                 try {
-<<<<<<< HEAD:src/main/java/dk/dtu/IRS.java
-                    establishCompany(this.tickerCompanyName.get(ticker),ticker,this.tickerIPOYears.get(ticker));
-=======
+
                     establishCompany(this.tickerCompanyName.get(ticker),ticker,this.tickerIPODateTime.get(ticker),"stochastic");
->>>>>>> FundamentalData:src/main/java/dk/dtu/company/IRS.java
+
                 } catch (Exception e) {
                     throw new RuntimeException(e);
                 }
