@@ -7,10 +7,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.UUID;
 
-import dk.dtu.ClientUtil;
-import dk.dtu.CompanyBroker;
-import dk.dtu.GlobalClock;
-import dk.dtu.Order;
+import dk.dtu.*;
 import org.jspace.ActualField;
 import org.jspace.FormalField;
 import org.jspace.RemoteSpace;
@@ -157,7 +154,12 @@ public abstract class Company implements Runnable{
 
     public int getIpoDateTime(){ return ipoDateTime.getYear();}
 
-    public abstract void updateFundamentalData(LocalDateTime ingameDate);
+    public void updateFundamentalData(LocalDateTime ingameDate) throws IOException, InterruptedException {
+            //Send request to API to get fundamentals
+            ApiDataFetcher.sendRequestIncome(companyTicker, fundamentalsSpace);
+
+
+    };
 
     public abstract float getFundamentalData(String financialPost);
 
@@ -197,6 +199,7 @@ class CompanyFundamentals
     private ArrayList<String> financialPosts;
     private HashMap<String,String> financialPostToStatementMap;
     private HashMap<String,Float> financialPostToValueMap;
+
 
     
 }
