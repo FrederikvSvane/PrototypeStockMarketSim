@@ -48,9 +48,10 @@ public class Exchange implements Runnable {
 
                             Space companiesAndPricesSpace = exchangeRepository.get("companiesAndPricesHistorySpace");
                             Object[] currentCompanyStatus = companiesAndPricesSpace.queryp(new ActualField(companyId), new FormalField(String.class) /*companyName*/, new FormalField(String.class) /*companyTicker*/, new FormalField(Float.class) /*price*/);
+
                             boolean companyExists = currentCompanyStatus != null;
                             if (companyExists) {
-                                throw new RuntimeException("IPO failed: Company is already listed at the exchange");
+                                throw new RuntimeException("IPO failed: Company is already listed on the exchange");
                             } else {
                                 // Laver et nyt space med ticker navnet, som indeholder alle de aktier, som er til salg for den pågældende virksomhed
                                 createCompanyStockSpace(companyTicker);

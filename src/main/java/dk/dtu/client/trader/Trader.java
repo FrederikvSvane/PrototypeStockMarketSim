@@ -1,9 +1,14 @@
 package dk.dtu.client.trader;
 
+import java.net.URI;
+import java.rmi.Remote;
+import java.time.LocalDateTime;
+import java.util.*;
 import java.io.IOException;
 import java.util.UUID;
 
 import dk.dtu.client.broker.Broker;
+import dk.dtu.client.datafetcher.FinancialTimes;
 import dk.dtu.client.Order;
 import dk.dtu.client.datafetcher.NameDataFetcher;
 import dk.dtu.client.datafetcher.PriceGraphDataFetcher;
@@ -13,6 +18,7 @@ public class Trader {
     private String traderId;
     private SequentialSpace masterCompanyRegister;
     private SequentialSpace companyPriceGraphs;
+    private SequentialSpace companyFundamentals;
 
     public Trader() { //TODO lav en overklasse, som ikke har nogen argumenter, som kan nedarves til HumanTrader og BotTrader. Det er kun HumanTrader, som kan chatte
         this.traderId = UUID.randomUUID().toString();
@@ -22,6 +28,9 @@ public class Trader {
 
         // A space for the coordinates of the price graph of each company. Updated by datafetcher
         this.companyPriceGraphs = new SequentialSpace(/*companyName, companyTicker, QueueList<time, price>*/);
+
+        //A space for the fundamental data of companies
+        this.companyFundamentals = new SequentialSpace(/*(String companyTicker, LocalDateTime simulatedGameTime , String financialStatement, String financialPost, float financialValue)*/);
     }
 
     public void sendOrderToBroker(String orderType, Order order) throws IOException, InterruptedException {
@@ -48,6 +57,13 @@ public class Trader {
         Space requestSpace = broker.getRequestSpace();
         requestSpace.put(traderId, order.getOrderId(), "sell", order);
         //TODO get response of order completion result from broker here?
+    }
+
+
+    public Object[] getFundamentalData(String companyTicker, String financialPost) throws InterruptedException {
+        new Thread(new FinancialTimes(companyFundamentals,0,companyTicker,financialPost)).start();
+        companyFundamentals.get(new ActualField("mail"));
+        return companyFundamentals.getp(new ActualField(companyTicker),new FormalField(LocalDateTime.class), new FormalField(String.class), new ActualField(financialPost), new FormalField(Float.class));
     }
 
     public void makeDataFetchers() throws InterruptedException {
