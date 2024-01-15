@@ -5,11 +5,10 @@ import dk.dtu.GlobalCock;
 import org.apache.commons.math3.distribution.BinomialDistribution;
 import org.apache.commons.math3.distribution.NormalDistribution;
 import org.jspace.ActualField;
-import org.jspace.FormalField;
 import org.jspace.Space;
 
 import java.time.LocalDateTime;
-import java.util.Date;
+import java.time.Month;
 import java.util.List;
 
 /**
@@ -69,18 +68,22 @@ public class StochasticCompany extends Company {
     @Override
     public void updateFundamentalData(LocalDateTime ingameDate) {
         try {
+
+            //If we've already published fundamentals for this date, then we just need to update
             if(isPubliclyTraded)
             {
                 NormalDistribution growthDetermination = new NormalDistribution(0.2,0.2);
-                List<Object[]> previousFundamentals = getFundamentals(this.companyTicker);
-                float previousRevenue = (float) previousFundamentals.get(0)[0];
+                List<Object[]> previousFundamentals = getFundamentalsFromSpace(this.companyTicker);
+                float previousRevenue = (float) previousFundamentals.get(0)[5];
                 float revenueGrowth = (float) (previousRevenue*growthDetermination.sample());
                 float newRevenue = revenueGrowth + previousRevenue;
+                //System.out.println("We're updating the fundamentals for " + this.companyTicker + " from " + previousRevenue + " to " + newRevenue + " on " + GlobalCock.getSimulatedDateTimeNow());
                 putFundamentals(companyTicker,GlobalCock.getIRLDateTimeNow(),GlobalCock.getSimulatedDateTimeNow(),"income statement","revenue",newRevenue);
             }
-            else
+            else //otherwise we need to create some initial
             {
                 //System.out.println("Company " + this.companyTicker + " is not publicly traded yet, so it cannot update its fundamentals");
+                fundamentalsSpace.get(new ActualField("readTicket"));
                 NormalDistribution X = new NormalDistribution(100,10);
                 putFundamentals(companyTicker,GlobalCock.getIRLDateTimeNow(),GlobalCock.getSimulatedDateTimeNow(),"income statement","revenue",(float) X.sample());
             }
@@ -92,6 +95,17 @@ public class StochasticCompany extends Company {
             throw new RuntimeException(e);
         }
 
+    }
+
+    //Dummy method that just returns true every first of the month
+    @Override
+    public boolean isTimeToUpdateFundamentals(LocalDateTime ingameDateTime)
+    {
+        if(ingameDateTime.getMonth() != Month.JANUARY)
+        {
+            //System.out.println(ingameDateTime + " vs " + GlobalCock.getIRLDateTimeNow());
+        }
+        return (ingameDateTime.getDayOfMonth() == 1 || ingameDateTime.getMonth() == Month.JANUARY || ingameDateTime.getMonth() == Month.APRIL || ingameDateTime.getMonth() == Month.JULY || ingameDateTime.getMonth() == Month.NOVEMBER);
     }
 
     @Override

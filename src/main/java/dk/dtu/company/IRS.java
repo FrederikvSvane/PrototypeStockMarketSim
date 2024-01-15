@@ -92,6 +92,11 @@ public class IRS implements Runnable {
         tickerCompanyName.put("VOC", "Verenigde Oostindische Compagnie");
     }
 
+    public static String getFundamentalsSpaceName(String ticker)
+    {
+        return "fundamentals" + ticker;
+    }
+
 
     public IRS(SpaceRepository hostRepo)
     {
@@ -104,8 +109,8 @@ public class IRS implements Runnable {
 
         //TODO: Add an option to select if we want realistic or dummy companies
         Space fundamentalsSpace = new SequentialSpace();
-
-        hostRepo.add("fundamentals" + ticker, fundamentalsSpace);
+        fundamentalsSpace.put("readTicket");
+        hostRepo.add(getFundamentalsSpaceName(ticker), fundamentalsSpace);
         switch (typeOfCompany)
         {
             case "stochastic":
