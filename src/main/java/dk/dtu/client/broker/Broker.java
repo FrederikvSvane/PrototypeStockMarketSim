@@ -1,5 +1,7 @@
-package dk.dtu;
+package dk.dtu.client.broker;
 
+import dk.dtu.client.ClientUtil;
+import dk.dtu.client.Order;
 import org.jspace.*;
 
 import java.io.IOException;

@@ -1,4 +1,7 @@
-package dk.dtu;
+package dk.dtu.client;
+
+import dk.dtu.host.HostUtil;
+import dk.dtu.client.trader.HumanTrader;
 
 import java.io.IOException;
 

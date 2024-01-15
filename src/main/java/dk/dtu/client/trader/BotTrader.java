@@ -1,4 +1,6 @@
-package dk.dtu;
+package dk.dtu.client.trader;
+
+import dk.dtu.client.Order;
 
 public class BotTrader extends Trader implements Runnable {
     private String botType;

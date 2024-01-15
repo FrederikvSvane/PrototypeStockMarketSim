@@ -1,6 +1,8 @@
-package dk.dtu;
+package dk.dtu.company;
 
-import dk.dtu.company.Company;
+import dk.dtu.client.ClientUtil;
+import dk.dtu.client.Order;
+import dk.dtu.client.broker.Broker;
 import org.jspace.FormalField;
 import org.jspace.RemoteSpace;
 import org.jspace.Space;

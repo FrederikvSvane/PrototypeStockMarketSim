@@ -1,6 +1,9 @@
-package dk.dtu;
+package dk.dtu.host.exchange;
 
+import dk.dtu.client.ClientUtil;
+import dk.dtu.client.Order;
 import dk.dtu.company.Company;
+import dk.dtu.host.HostUtil;
 import org.jspace.*;
 
 public class Exchange implements Runnable {
@@ -24,6 +27,8 @@ public class Exchange implements Runnable {
         this.companiesAndPriceHistorySpace.put("ticket");
         this.exchangeRepository.add("companiesAndPricesHistorySpace", companiesAndPriceHistorySpace);
         this.exchangeRepository.add("exchangeRequestSpace", exchangeRequestSpace);
+        this.exchangeRepository.addGate(ClientUtil.getHostUri("", HostUtil.getExchangePort(),"keep"));
+
     }
 
     public void run() {

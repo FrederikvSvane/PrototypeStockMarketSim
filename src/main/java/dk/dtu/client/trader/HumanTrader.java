@@ -1,14 +1,14 @@
-package dk.dtu;
+package dk.dtu.client.trader;
 
+import dk.dtu.chat.ChatGetter;
+import dk.dtu.client.Order;
+import dk.dtu.host.HostUtil;
 import org.jspace.*;
 
 import java.io.IOException;
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
-
-import dk.dtu.*;
 
 public class HumanTrader extends Trader implements Runnable {
 
@@ -19,10 +19,10 @@ public class HumanTrader extends Trader implements Runnable {
 
     public HumanTrader() throws IOException {
         super();
-        toLobby = new RemoteSpace("tcp://" + super.getHostIp() + ":" + super.getHostPort() + "/toLobby?keep");
-        fromLobby = new RemoteSpace("tcp://" + super.getHostIp() + ":" + super.getHostPort() + "/fromLobby?keep");
+        toLobby = new RemoteSpace("tcp://" + HostUtil.getHostIp() + ":" + HostUtil.getLobbyPort() + "/toLobby?keep");
+        fromLobby = new RemoteSpace("tcp://" + HostUtil.getHostIp() + ":" + HostUtil.getLobbyPort() + "/fromLobby?keep");
         connectedChats = new SequentialSpace();
-        myMessages = new RemoteSpace("tcp://" + super.getHostIp() + ":" + (super.getHostPort() + 1) + "/" + super.getTraderId() + "?keep");
+        myMessages = new RemoteSpace("tcp://" + HostUtil.getHostIp() + ":" + HostUtil.getLobbyPort() + "/" + super.getTraderId() + "?keep");
     }
 
     @Override
@@ -182,7 +182,7 @@ public class HumanTrader extends Trader implements Runnable {
     }
     public void writeToChatroom(String roomName) throws IOException, InterruptedException {
         //RemoteSpace initialized for roomName.
-        RemoteSpace chatRoom = new RemoteSpace("tcp://" + super.getHostIp() + ":" + (super.getHostPort() + 1) + "/" + roomName + "?keep");
+        RemoteSpace chatRoom = new RemoteSpace("tcp://" + HostUtil.getHostIp() + ":" + HostUtil.getLobbyPort() + "/" + roomName + "?keep");
         Scanner terminalIn = new Scanner(System.in);
         boolean isConnected = true;
         ChatGetter getter = new ChatGetter(roomName, super.getTraderId()); //new getter for trader mailbox.

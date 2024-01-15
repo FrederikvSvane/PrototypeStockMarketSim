@@ -1,15 +1,15 @@
-package dk.dtu.bank;
+package dk.dtu.host.bank;
 
-import dk.dtu.ClientUtil;
-import dk.dtu.HostUtil;
-import dk.dtu.Order;
+import dk.dtu.client.ClientUtil;
+import dk.dtu.host.HostUtil;
+import dk.dtu.client.Order;
 import org.jspace.*;
 
 import java.util.List;
 
 public class Bank implements Runnable {
 
-    private SpaceRepository bankRepository = new SpaceRepository();
+    private SpaceRepository bankRepository;
 
 
     // Structure: (TraderId, balance, reservedBalance, List<StockHolding> {companyTicker, amount})
@@ -18,10 +18,11 @@ public class Bank implements Runnable {
     // Structure: (String transactionType, Transaction {buyerId, sellerId, companyTicker, orderId})
     private Space transactionSpace = new SequentialSpace();
 
-    public Bank() {
+    public Bank(SpaceRepository bankRepository) {
+        this.bankRepository = bankRepository;
         this.bankRepository.add("bankInformationSpace", this.traderAccountSpace);
         this.bankRepository.add("transactionSpace", this.transactionSpace);
-        int port = HostUtil.getHostPort() + 2;
+        int port = HostUtil.getBankPort();
         String URI = ClientUtil.getHostUri("", port, "keep");
         this.bankRepository.addGate(URI);
     }

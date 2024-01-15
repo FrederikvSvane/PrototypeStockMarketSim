@@ -1,6 +1,9 @@
-package dk.dtu;
+package dk.dtu.client.trader;
 
-public class SellBot extends Trader{
+import dk.dtu.client.Order;
+import dk.dtu.client.trader.Trader;
+
+public class SellBot extends Trader {
 
     public SellBot() {
         super();

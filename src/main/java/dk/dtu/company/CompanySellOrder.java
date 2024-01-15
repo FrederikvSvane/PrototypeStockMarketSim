@@ -1,4 +1,6 @@
-package dk.dtu;
+package dk.dtu.company;
+
+import dk.dtu.client.Order;
 
 class CompanySellOrder extends Order {
 

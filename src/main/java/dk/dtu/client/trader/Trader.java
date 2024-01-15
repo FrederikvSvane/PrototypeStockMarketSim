@@ -1,25 +1,21 @@
-package dk.dtu;
+package dk.dtu.client.trader;
 
-import java.net.URI;
-import java.rmi.Remote;
-import java.util.*;
 import java.io.IOException;
-import java.util.Scanner;
 import java.util.UUID;
 
+import dk.dtu.client.broker.Broker;
+import dk.dtu.client.Order;
+import dk.dtu.client.datafetcher.NameDataFetcher;
+import dk.dtu.client.datafetcher.PriceGraphDataFetcher;
 import org.jspace.*;
 
 public class Trader {
     private String traderId;
-    private String hostIp;
     private SequentialSpace masterCompanyRegister;
     private SequentialSpace companyPriceGraphs;
-    private int hostPort;
 
     public Trader() { //TODO lav en overklasse, som ikke har nogen argumenter, som kan nedarves til HumanTrader og BotTrader. Det er kun HumanTrader, som kan chatte
         this.traderId = UUID.randomUUID().toString();
-        this.hostIp = HostUtil.getHostIp();
-        this.hostPort = HostUtil.getHostPort();
 
         // List of all companies traded at exchange. Updated by datafetcher
         this.masterCompanyRegister = new SequentialSpace(/*companyId, companyName, companyTicker*/);
@@ -62,8 +58,6 @@ public class Trader {
     }
 
     public String getTraderId() { return traderId; }
-    public String getHostIp() { return hostIp; }
-    public int getHostPort() { return hostPort; }
     public SequentialSpace getMasterCompanyRegister() { return masterCompanyRegister; }
     public SequentialSpace getCompanyPriceGraphs() { return companyPriceGraphs; }
 }
