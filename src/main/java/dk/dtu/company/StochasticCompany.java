@@ -38,7 +38,6 @@ public class StochasticCompany extends Company {
     @Override
     public void updateFundamentalData(LocalDateTime ingameDate) {
         try {
-
             //If we've already published fundamentals for this date, then we just need to update
             if (isPubliclyTraded) {
                 NormalDistribution growthDetermination = new NormalDistribution(0.2, 0.2);

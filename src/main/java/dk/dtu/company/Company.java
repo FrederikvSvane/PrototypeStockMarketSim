@@ -9,6 +9,7 @@ import java.util.UUID;
 
 import dk.dtu.client.ClientUtil;
 import dk.dtu.company.api.ApiDataFetcher;
+import dk.dtu.company.api.FinancialData;
 import dk.dtu.host.GlobalClock;
 import dk.dtu.client.Order;
 import org.apache.commons.math3.distribution.BinomialDistribution;
@@ -17,10 +18,7 @@ import org.apache.commons.math3.distribution.NormalDistribution;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-import org.jspace.ActualField;
-import org.jspace.FormalField;
-import org.jspace.RemoteSpace;
-import org.jspace.Space;
+import org.jspace.*;
 
 
 public class Company implements Runnable{
@@ -58,7 +56,6 @@ public class Company implements Runnable{
             {
                 System.out.println("Getting the datetime");
             }
-            LocalDateTime inGameDateTime = GlobalClock.getSimulatedDateTimeNow();
 
             LocalDateTime simulatedDateTime = GlobalClock.getSimulatedDateTimeNow();
 
@@ -190,10 +187,6 @@ public class Company implements Runnable{
         }
     }
 
-    public void updateFundamentalDataAPI(LocalDateTime ingameDate) throws IOException, InterruptedException {
-        //Send request to API to get fundamentals
-        ApiDataFetcher.sendRequestIncome(companyTicker, fundamentalsSpace);
-    }
 
     public float getFundamentalData(String financialPost){
         return 0; // TODO what is this supposed to do?

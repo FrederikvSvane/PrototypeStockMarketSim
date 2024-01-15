@@ -33,6 +33,7 @@ public class Bank implements Runnable {
         this.bankRepository.add("bankInformationSpace", this.traderAccountSpace);
         this.bankRepository.add("transactionSpace", this.transactionSpace);
         this.bankRepository.add("transactionResponseSpace", this.transactionResponseSpace);
+        this.bankWorkers = new java.util.ArrayList<>();
         int port = HostUtil.getBankPort();
         String URI = ClientUtil.getHostUri("", port, "keep");
         this.bankRepository.addGate(URI);

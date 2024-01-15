@@ -57,7 +57,7 @@ public class ApiDataFetcher {
                 FinancialData data = new FinancialData(revenue, costOfRevenue, grossProfit);
 
                 //Indsætter data for et bestemt år i tuplespace. Dette gøres for hvert år.
-                tupleSpace.put(yearInt, data);
+                tupleSpace.put(ticker,"Income Statement", yearInt, data);
                 System.out.println("date:"+year+"Revenue: " + revenue + " Cost of Revenue: " + costOfRevenue + " Gross Profit: " + grossProfit);
             }
 
@@ -70,7 +70,7 @@ public class ApiDataFetcher {
         }
     }
 
-    public static void sendRequestBalanceSheet(String ticker, Space tupleSpace) throws IOException {
+    public static void sendRequestBalanceSheet(String ticker, Space tupleSpace) throws IOException, InterruptedException {
         stockTicker = ticker;
         //Sætter endpoint URL og laver en GET request for at få noget data.
         String apiUrl2 = "https://financialmodelingprep.com/api/v3/balance-sheet-statement/" + stockTicker + "?period=annual&limit=50&apikey=" + apiKey;
@@ -102,11 +102,12 @@ public class ApiDataFetcher {
                 long netReceiveable = jsonObject.getLong("netReceivables"); //cash position + everything that is owed to the company
                 long totalAssets = jsonObject.getLong("totalAssets");
                 long totalDebt = jsonObject.getLong("totalDebt");
+
                 //Laver et FinancialData objekt med de data vi har gemt.
-                // FinancialData data = new FinancialData(cash, netReceiveable, totalAssets, totalDebt);
+                FinancialData data = new FinancialData(cash, netReceiveable, totalAssets, totalDebt);
 
                 //Indsætter data for et bestemt år i tuplespace. Dette gøres for hvert år.
-                // tupleSpace.put(yearInt, data);
+                tupleSpace.put(ticker,"Balance Sheet", yearInt, data);
                 // System.out.println("date:"+year+"Revenue: " + revenue + " Cost of Revenue: " + costOfRevenue + " Gross Profit: " + grossProfit);
             }
 

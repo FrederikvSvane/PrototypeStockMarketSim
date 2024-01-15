@@ -1,5 +1,6 @@
 package dk.dtu.company;
 
+import dk.dtu.company.api.ApiDataFetcher;
 import dk.dtu.host.HostUtil;
 import dk.dtu.client.ClientUtil;
 
@@ -73,6 +74,7 @@ public class IRS implements Runnable {
 
     }
 
+
     private void initializeCompanyNames() {
         // Populate the HashMap with ticker symbols and company names
         tickerCompanyName.put("IBM", "International Business Machines");
@@ -118,6 +120,19 @@ public class IRS implements Runnable {
             case "stochastic":
                 System.out.println("Starting stochastic company: " + ticker);
                 new Thread(new StochasticCompany(companyName,ticker,ipoDateTime,fundamentalsSpace)).start();
+            case "realistic":
+                Space latentSpace = new SequentialSpace();
+                IrsRepo.add("latent" + ticker, latentSpace);
+                latentSpace.put("readTicket");
+                ApiDataFetcher.sendRequestIncome(ticker,latentSpace);
+                ApiDataFetcher.sendRequestBalanceSheet(ticker,latentSpace);
+                System.out.println("Starting realistic company: " + ticker);
+                new Thread(new RealisticCompany(companyName,ticker,ipoDateTime,fundamentalsSpace,latentSpace)).start();
+
+
+                //TODO: GetAPI data for that ticker
+                //TODO: Extract yearsOfFundamentalsUpdates'
+                //TODO: Instantiate API company
         }
     }
 
@@ -131,7 +146,8 @@ public class IRS implements Runnable {
             for (String ticker : this.tickers)
             {
                 try {
-                    establishCompany(this.tickerCompanyName.get(ticker),ticker,this.tickerIPODateTime.get(ticker),"stochastic");
+                    //establishCompany(this.tickerCompanyName.get(ticker),ticker,this.tickerIPODateTime.get(ticker),"stochastic");
+                    establishCompany(this.tickerCompanyName.get(ticker),ticker,this.tickerIPODateTime.get(ticker),"realistic");
                 } catch (Exception e) {
                     throw new RuntimeException(e);
                 }

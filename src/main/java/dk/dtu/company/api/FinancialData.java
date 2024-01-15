@@ -10,23 +10,17 @@ public class FinancialData {
     private long totalDebt;
 
     // Constructor
-    public FinancialData(long revenue, long costOfRevenue, long grossProfit) {
-        this.revenue = revenue;
-        this.costOfRevenue = costOfRevenue;
-        this.grossProfit = grossProfit;
-        this.cash = 0;
-        this.netReceiveable = 0;
-        this.totalAssets = 0;
-        this.totalDebt = 0;
-    }
-    public FinancialData(long revenue, long costOfRevenue, long grossProfit , long cash, long netReceiveable, long totalAssets, long totalDebt) {
-        this.revenue = revenue;
-        this.costOfRevenue = costOfRevenue;
-        this.grossProfit = grossProfit;
+
+    public FinancialData(long cash, long netReceiveable, long totalAssets, long totalDebt) {
         this.cash = cash;
         this.netReceiveable = netReceiveable;
         this.totalAssets = totalAssets;
         this.totalDebt = totalDebt;
+    }
+    public FinancialData(long revenue, long costOfRevenue, long grossProfit) {
+        this.revenue = revenue;
+        this.costOfRevenue = costOfRevenue;
+        this.grossProfit = grossProfit;
     }
 
 
@@ -42,10 +36,16 @@ public class FinancialData {
     public long getGrossProfit() {
         return grossProfit;
     }
+    public long getCash() {return cash;}
+    public long getNetReceiveable() {return netReceiveable;}
+    public long getTotalAssets() {return totalAssets;}
+    public long getTotalDebt() {return totalDebt;}
+
 
     // toString method for easy printing
     @Override
     public String toString() {
         return "Revenue: " + revenue + ", Cost of Revenue: " + costOfRevenue + ", Gross Profit: " + grossProfit;
     }
+
 }
