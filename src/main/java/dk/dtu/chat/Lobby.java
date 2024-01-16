@@ -61,36 +61,23 @@ public class Lobby implements Runnable {
                             int currentlyConnected = (int) authToken[2];
                             int fullCapacity = (int) authToken[3];
 
-                            if (correctPassword.equals(password)) {
-                                if (currentlyConnected < fullCapacity) { //When a trader joins a room.
-                                    if (!checkConnectedStatus(traderId, chatRoom)) { //Checks whether the user is already connected to the chat.
-                                        chatRoom.put("AuthToken", password, currentlyConnected + 1, fullCapacity);
-                                        chatRoom.put("ConnectedToken", traderId, "connected");
+                            if (checkRequirements(correctPassword, password, currentlyConnected, fullCapacity, traderId, chatRoom)) { //Checking requirements.
+                                chatRoom.put("AuthToken", password, currentlyConnected + 1, fullCapacity);
+                                chatRoom.put("ConnectedToken", traderId, "connected");
 
-                                        List<List<String>> historyList = new ArrayList<>();
-                                        chatRoom.put("History", historyList);
+                                List<List<String>> historyList = new ArrayList<>();
+                                chatRoom.put("History", historyList);
 
-                                        fromLobby.put(traderId, "Fulfilled");
-                                    } else {
-                                        fromLobby.put(traderId, "You're already connected to this room");
-                                    }
-
-                                } else { //If the room is too full.
-                                    chatRoom.put("AuthToken", password, currentlyConnected, fullCapacity);
-                                    fromLobby.put(traderId, "Room is full");
-
-                                }
-
+                                fromLobby.put(traderId, "Fulfilled");
                             } else { //If the trader types the wrong password.
-                                System.out.println("Wrong Password");
                                 chatRoom.put("AuthToken", password, currentlyConnected, fullCapacity);
-                                fromLobby.put(traderId, "Wrong Password");
+                                fromLobby.put(traderId, "You were unable to join room...");
 
                             }
 
                         } else {
                             //If the room does not exist, we need to return not fulfilled.
-                            fromLobby.put(traderId, "Failed in join");
+                            fromLobby.put(traderId, "Room doesnt exist...");
 
                         }
                         break;
@@ -152,5 +139,9 @@ public class Lobby implements Runnable {
         newRoom.put("AuthToken", password, 0, capacity);
         chatRoomsRepo.add(roomName, newRoom);
         new Thread(new ChatGetter(roomName, traderId, true)).start();
+    }
+
+    public boolean checkRequirements(String correctPassword, String password, int currentlyConnected, int fullCapacity, String traderId, Space chatRoom) throws InterruptedException {
+        return correctPassword.equals(password) && currentlyConnected < fullCapacity && !checkConnectedStatus(traderId, chatRoom);
     }
 }
