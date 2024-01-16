@@ -5,9 +5,9 @@ public class Transaction {
     private String sellerId;
     private String companyTicker;
     private String orderId;
-    private int amount;
+    private int amountOfStocks;
+    private float amountOfMoney;
 
-    private float price;
 
     /**
      * Construct a transaction meant for "buy" and "sell" transactions
@@ -22,7 +22,7 @@ public class Transaction {
         this.sellerId = sellerId;
         this.companyTicker = companyTicker;
         this.orderId = orderId;
-        this.amount = amount;
+        this.amountOfStocks = amount;
     }
 
     /**
@@ -33,14 +33,20 @@ public class Transaction {
      */
     public Transaction(String buyerId, int amount, float price) {
         this.buyerId = buyerId;
-        this.amount = amount;
-        this.price = price;
+        this.amountOfStocks = amount;
+        this.amountOfMoney = price;
     }
+
+    public Transaction(String buyerId, float price) {
+        this.buyerId = buyerId;
+        this.amountOfMoney = price;
+    }
+
 
     public String getBuyerId() { return buyerId; }
     public String getSellerId() { return sellerId; }
     public String getCompanyTicker() { return companyTicker; }
     public String getOrderId() { return orderId; }
-    public int getAmount() { return amount; }
-    public float getPrice() { return price; }
+    public int getAmountOfStocks() { return amountOfStocks; }
+    public float getAmountOfMoney() { return amountOfMoney; }
 }
