@@ -79,7 +79,6 @@ public class Company implements Runnable{
                 sendRequestToCompanyBroker("IPO", IPO);
             }
 
-
             while(true)
             {
                 simulatedDateTime = GlobalClock.getSimulatedDateTimeNow();
@@ -89,10 +88,6 @@ public class Company implements Runnable{
                 {
                     updateFundamentalData(simulatedDateTime);
                 }
-                else
-                {
-                }
-
             }
 
         }

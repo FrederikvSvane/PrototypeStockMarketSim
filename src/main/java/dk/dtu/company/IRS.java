@@ -120,6 +120,7 @@ public class IRS implements Runnable {
             case "stochastic":
                 System.out.println("Starting stochastic company: " + ticker);
                 new Thread(new StochasticCompany(companyName,ticker,ipoDateTime,fundamentalsSpace)).start();
+                break;
             case "realistic":
                 Space latentSpace = new SequentialSpace();
                 IrsRepo.add("latent" + ticker, latentSpace);
@@ -130,9 +131,6 @@ public class IRS implements Runnable {
                 new Thread(new RealisticCompany(companyName,ticker,ipoDateTime,fundamentalsSpace,latentSpace)).start();
 
 
-                //TODO: GetAPI data for that ticker
-                //TODO: Extract yearsOfFundamentalsUpdates'
-                //TODO: Instantiate API company
         }
     }
 
@@ -147,7 +145,7 @@ public class IRS implements Runnable {
             {
                 try {
                     //establishCompany(this.tickerCompanyName.get(ticker),ticker,this.tickerIPODateTime.get(ticker),"stochastic");
-                    establishCompany(this.tickerCompanyName.get(ticker),ticker,this.tickerIPODateTime.get(ticker),"realistic");
+                    establishCompany(this.tickerCompanyName.get(ticker),ticker,this.tickerIPODateTime.get(ticker),"stochastic");
                 } catch (Exception e) {
                     throw new RuntimeException(e);
                 }
