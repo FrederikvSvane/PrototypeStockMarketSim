@@ -27,10 +27,10 @@ public class Host {
         new Thread(new Bank(bankRepo)).start();
 
         SpaceRepository clockRepo = new SpaceRepository();
-        LocalDateTime startDateTime = LocalDateTime.of(1700,1,1,0,0,0);
-        GlobalClock.initialize(clockRepo, startDateTime,2);
+        LocalDateTime startDateTime = LocalDateTime.of(2019,1,1,0,2,0);
+        GlobalClock.initialize(clockRepo, startDateTime,1);
 
         SpaceRepository IrsRepo = new SpaceRepository();
-        new Thread(new IRS(IrsRepo)).start();
+        new Thread(new IRS(IrsRepo, "stochastic" /*or "realistic"*/)).start();
     }
 }

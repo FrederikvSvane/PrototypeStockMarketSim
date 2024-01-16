@@ -7,12 +7,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Lobby implements Runnable {
-    SpaceRepository chatRepo;
-    SequentialSpace toLobby;
-    SequentialSpace fromLobby;
-    Space chatRoomLobby;
-
-    SpaceRepository chatRoomsRepo;
+    private SpaceRepository chatRepo;
+    private SequentialSpace toLobby;
+    private SequentialSpace fromLobby;
+    private Space chatRoomLobby;
+    private SpaceRepository chatRoomsRepo;
 
     //TODO make traders able to directly message each other.
 
@@ -24,9 +23,10 @@ public class Lobby implements Runnable {
 
         this.chatRepo.add("toLobby", toLobby);
         this.chatRepo.add("fromLobby", fromLobby);
+        this.chatRepo.addGate("tcp://" + HostUtil.getHostIp() + ":" + HostUtil.getLobbyPort() + "?keep");
 
         chatRoomsRepo = new SpaceRepository();
-        chatRoomsRepo.addGate("tcp://" + HostUtil.getHostIp() + ":" + HostUtil.getLobbyPort() + "?keep");
+        chatRoomsRepo.addGate("tcp://" + HostUtil.getHostIp() + ":" + HostUtil.getChatRepoPort() + "?keep");
     }
 
     public void run() {
@@ -90,7 +90,7 @@ public class Lobby implements Runnable {
 
                         } else {
                             //If the room does not exist, we need to return not fulfilled.
-                            fromLobby.put(traderId, "Failed");
+                            fromLobby.put(traderId, "Failed in join");
 
                         }
                         break;
@@ -108,7 +108,7 @@ public class Lobby implements Runnable {
                         break;
                     }
                     case "createUserSpace": { //Creates the space upon Trader initialization.
-                        if (checkRoomExists(roomName)) {
+                        if (!checkRoomExists(roomName)) {
                             chatRoomsRepo.add(traderId, new QueueSpace());
                         } else {
                             throw new Exception("Users room already exists");
@@ -150,7 +150,7 @@ public class Lobby implements Runnable {
     public void addRoomAndAuthToken(String traderId, String roomName, int capacity, String password) throws InterruptedException {
         SequentialSpace newRoom = new SequentialSpace();
         newRoom.put("AuthToken", password, 0, capacity);
-        chatRepo.add(roomName, newRoom);
+        chatRoomsRepo.add(roomName, newRoom);
         new Thread(new ChatGetter(roomName, traderId, true)).start();
     }
 }

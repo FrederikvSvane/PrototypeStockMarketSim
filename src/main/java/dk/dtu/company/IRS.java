@@ -25,6 +25,7 @@ public class IRS implements Runnable {
     ArrayList<String> tickers = new ArrayList<>();
     Map<String, LocalDateTime> tickerIPODateTime  = new HashMap<>();
     Map<String,String> tickerCompanyName = new HashMap<>();
+    private String companyType;
 
 
 
@@ -53,23 +54,23 @@ public class IRS implements Runnable {
 
         // Populate the HashMap with ticker symbols and IPO years
         // Adding IPO dates as LocalDateTime objects
-        tickerIPODateTime.put("IBM", LocalDateTime.of(1978, 1, 19, 0, 0));
-        tickerIPODateTime.put("GE", LocalDateTime.of(1892, 4, 15, 0, 0));
-        tickerIPODateTime.put("DIS", LocalDateTime.of(1957, 11, 12, 0, 0));
-        tickerIPODateTime.put("KO", LocalDateTime.of(1919, 9, 5, 0, 0));
-        tickerIPODateTime.put("MCD", LocalDateTime.of(1965, 4, 21, 0, 0));
-        tickerIPODateTime.put("WMT", LocalDateTime.of(1970, 10, 1, 0, 0));
-        tickerIPODateTime.put("PG", LocalDateTime.of(1890, 12, 31, 0, 0));
-        tickerIPODateTime.put("JNJ", LocalDateTime.of(1944, 9, 24, 0, 0));
-        tickerIPODateTime.put("XOM", LocalDateTime.of(1978, 1, 13, 0, 0));
-        tickerIPODateTime.put("INTC", LocalDateTime.of(1971, 10, 13, 0, 0));
-        tickerIPODateTime.put("AAPL", LocalDateTime.of(1980, 12, 12, 0, 0));
-        tickerIPODateTime.put("MSFT", LocalDateTime.of(1986, 3, 13, 0, 0));
-        tickerIPODateTime.put("CSCO", LocalDateTime.of(1990, 2, 16, 0, 0));
-        tickerIPODateTime.put("HWP", LocalDateTime.of(1957, 11, 6, 0, 0)); // Assuming HWP for Hewlett-Packard (now HPQ)
-        tickerIPODateTime.put("GS", LocalDateTime.of(1999, 5, 4, 0, 0));
-        tickerIPODateTime.put("GOOG", LocalDateTime.of(2004, 8, 19, 0, 0));
-        tickerIPODateTime.put("VOC", LocalDateTime.of(1602, 8, 19, 0, 0));
+        tickerIPODateTime.put("IBM", LocalDateTime.of(2019, 1, 1, 0, 1));
+        tickerIPODateTime.put("GE", LocalDateTime.of(2019, 1, 1, 0, 1));
+        tickerIPODateTime.put("DIS", LocalDateTime.of(2019, 1, 1, 0, 1));
+        tickerIPODateTime.put("KO", LocalDateTime.of(2019, 1, 1, 0, 1));
+        tickerIPODateTime.put("MCD", LocalDateTime.of(2019, 1, 1, 0, 1));
+        tickerIPODateTime.put("WMT", LocalDateTime.of(2019, 1, 1, 0, 1));
+        tickerIPODateTime.put("PG", LocalDateTime.of(2019, 1, 1, 0, 1));
+        tickerIPODateTime.put("JNJ", LocalDateTime.of(2019, 1, 1, 0, 1));
+        tickerIPODateTime.put("XOM", LocalDateTime.of(2019, 1, 1, 0, 1));
+        tickerIPODateTime.put("INTC", LocalDateTime.of(2019, 11, 1, 0, 1));
+        tickerIPODateTime.put("AAPL", LocalDateTime.of(2019, 1, 1, 0, 1));
+        tickerIPODateTime.put("MSFT", LocalDateTime.of(2019, 1, 1, 0, 1));
+        tickerIPODateTime.put("CSCO", LocalDateTime.of(2019, 1, 1, 0, 1));
+        tickerIPODateTime.put("HWP", LocalDateTime.of(2019, 1, 1, 0, 1)); // Assuming HWP for Hewlett-Packard (now HPQ)
+        tickerIPODateTime.put("GS", LocalDateTime.of(2019, 1, 1, 0, 1));
+        tickerIPODateTime.put("GOOG", LocalDateTime.of(2019, 1, 1, 0, 1));
+        tickerIPODateTime.put("VOC", LocalDateTime.of(2019, 1, 1, 0, 1));
 
 
     }
@@ -102,10 +103,11 @@ public class IRS implements Runnable {
     }
 
 
-    public IRS(SpaceRepository IrsRepo)
+    public IRS(SpaceRepository IrsRepo, String companyType)
     {
         this.IrsRepo = IrsRepo;
         IrsRepo.addGate(ClientUtil.getHostUri("", HostUtil.getIrsPort(), "keep"));
+        this.companyType = companyType;
     }
 
     public void establishCompany(String companyName , String ticker, LocalDateTime ipoDateTime, String typeOfCompany) throws Exception {
@@ -120,6 +122,7 @@ public class IRS implements Runnable {
             case "stochastic":
                 System.out.println("Starting stochastic company: " + ticker);
                 new Thread(new StochasticCompany(companyName,ticker,ipoDateTime,fundamentalsSpace)).start();
+                break;
             case "realistic":
                 Space latentSpace = new SequentialSpace();
                 IrsRepo.add("latent" + ticker, latentSpace);
@@ -147,7 +150,7 @@ public class IRS implements Runnable {
             {
                 try {
                     //establishCompany(this.tickerCompanyName.get(ticker),ticker,this.tickerIPODateTime.get(ticker),"stochastic");
-                    establishCompany(this.tickerCompanyName.get(ticker),ticker,this.tickerIPODateTime.get(ticker),"realistic");
+                    establishCompany(this.tickerCompanyName.get(ticker), ticker, this.tickerIPODateTime.get(ticker), this.companyType);
                 } catch (Exception e) {
                     throw new RuntimeException(e);
                 }

@@ -47,7 +47,7 @@ public class ChatGetter implements Runnable{
                         //Loops over every user collected, to send messages.
                         for(Object[] user : users){
                             if(!user[1].equals(responseMessage[0])){ //Check user isnt the one who send the message.
-                                RemoteSpace tradersRoom = new RemoteSpace("tcp://" + HostUtil.getHostIp() + ":" + HostUtil.getLobbyPort() + "/" + user[1] + "?keep");
+                                RemoteSpace tradersRoom = new RemoteSpace("tcp://" + HostUtil.getHostIp() + ":" + HostUtil.getChatRepoPort() + "/" + user[1] + "?keep");
                                 tradersRoom.put(responseMessage[0], responseMessage[1]);
                             }
                         }
@@ -60,7 +60,7 @@ public class ChatGetter implements Runnable{
         } else { // This is a getter running on a client, listening to their mailbox.
             System.out.println("Im listening to " + traderId + "'s room"); //For debugging.
             try{
-                RemoteSpace tradersRoom = new RemoteSpace("tcp://" + HostUtil.getHostIp() + ":" + HostUtil.getLobbyPort() + "/" + traderId + "?keep");
+                RemoteSpace tradersRoom = new RemoteSpace("tcp://" + HostUtil.getHostIp() + ":" + HostUtil.getChatRepoPort() + "/" + traderId + "?keep");
                 while(true){
                     Object[] messagesRead = tradersRoom.get(new FormalField(String.class), new FormalField(String.class));
                     System.out.println(messagesRead[0] + ": " + messagesRead[1]);
