@@ -5,7 +5,7 @@ import dk.dtu.client.Order;
 public class BotTrader extends Trader implements Runnable {
     private String botType;
 
-    public BotTrader(String botType) {
+    public BotTrader(String botType) throws InterruptedException {
         super();
         this.botType = botType;
     }

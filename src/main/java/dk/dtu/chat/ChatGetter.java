@@ -34,7 +34,7 @@ public class ChatGetter implements Runnable{
         if(isRoomGetter){ // This is listening to a room
             System.out.println("I am listening to room: " + roomName);
             try {
-                RemoteSpace chatRoom = new RemoteSpace("tcp://" + HostUtil.getHostIp() + ":" + (HostUtil.getLobbyPort()) + "/" + roomName + "?keep");
+                RemoteSpace chatRoom = new RemoteSpace("tcp://" + HostUtil.getHostIp() + ":" + HostUtil.getChatRepoPort() + "/" + roomName + "?keep");
                 while (true){
 
                     //Gets the newest message in the space.

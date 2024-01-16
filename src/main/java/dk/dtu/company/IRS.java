@@ -81,17 +81,17 @@ public class IRS implements Runnable {
         tickerCompanyName.put("IBM", "International Business Machines");
         tickerCompanyName.put("GE", "General Electric");
         tickerCompanyName.put("DIS", "Walt Disney");
-        tickerCompanyName.put("KO", "Coca-Cola");
-        tickerCompanyName.put("MCD", "McDonald's");
+        tickerCompanyName.put("KO", "Coca Cola");
+        tickerCompanyName.put("MCD", "McDonalds");
         tickerCompanyName.put("WMT", "Walmart");
         tickerCompanyName.put("PG", "Procter & Gamble");
         tickerCompanyName.put("JNJ", "Johnson & Johnson");
         tickerCompanyName.put("XOM", "Exxon Mobil");
         tickerCompanyName.put("INTC", "Intel Corporation");
-        tickerCompanyName.put("AAPL", "Apple Inc.");
-        tickerCompanyName.put("MSFT", "Microsoft Corporation");
-        tickerCompanyName.put("CSCO", "Cisco Systems");
-        tickerCompanyName.put("HWP", "Hewlett-Packard"); // Assuming HWP for Hewlett-Packard (now HPQ)
+        tickerCompanyName.put("AAPL", "Apple");
+        tickerCompanyName.put("MSFT", "Microsoft");
+        tickerCompanyName.put("CSCO", "Cisco");
+        tickerCompanyName.put("HWP", "Hewlett Packard"); // Assuming HWP for Hewlett-Packard (now HPQ)
         tickerCompanyName.put("GS", "Goldman Sachs");
         tickerCompanyName.put("GOOG", "Google");
         tickerCompanyName.put("VOC", "Verenigde Oostindische Compagnie");

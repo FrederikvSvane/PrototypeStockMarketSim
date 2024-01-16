@@ -29,8 +29,8 @@ abstract class DataFetcher {
     }
 
     public List<Object[]> QueryAllCompanies() throws InterruptedException {
-        // Structure: (companyId, companyName, companyTicker , QueueList<PriceHistory>) (PriceHistory: <price, date>)
-        return companyDataSpace.queryAll(new FormalField(String.class), new FormalField(String.class), new FormalField(String.class), new FormalField(List.class));
+        // Structure: (companyId, companyName, companyTicker , float price (TODO senere lav til QueueList<PriceHistory>)) {PriceHistory: <price, date>}
+        return companyDataSpace.queryAll(new FormalField(String.class), new FormalField(String.class), new FormalField(String.class), new FormalField(Float.class));
     }
 
     abstract void updateCompanyData(List<Object[]> companyData) throws InterruptedException;
@@ -43,11 +43,8 @@ abstract class DataFetcher {
      * @throws InterruptedException
      */
     public boolean companyNotInTraderSpace(String companyId) throws InterruptedException {
-        traderDataSpace.queryp(new ActualField(companyId), new FormalField(String.class), new FormalField(String.class));
-        if (traderDataSpace == null) {
-            return true;
-        }
-        return false;
+        Object[] result = traderDataSpace.queryp(new ActualField(companyId), new FormalField(String.class), new FormalField(String.class));
+        return result == null;
     }
 
 }

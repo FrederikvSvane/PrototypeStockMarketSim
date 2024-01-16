@@ -17,7 +17,7 @@ public class HumanTrader extends Trader implements Runnable {
     SequentialSpace connectedChats;
     RemoteSpace myMessages;
 
-    public HumanTrader() throws IOException {
+    public HumanTrader() throws IOException, InterruptedException {
         super();
         toLobby = new RemoteSpace("tcp://" + HostUtil.getHostIp() + ":" + HostUtil.getLobbyPort() + "/toLobby?keep");
         fromLobby = new RemoteSpace("tcp://" + HostUtil.getHostIp() + ":" + HostUtil.getLobbyPort()+ "/fromLobby?keep");
@@ -40,8 +40,9 @@ public class HumanTrader extends Trader implements Runnable {
                     try {
                         consoleInputToSendOrder();
                     } catch (Exception e) {
-                        throw new RuntimeException("Error in HumanTrader");
+                        throw new RuntimeException(e);
                     }
+                    break;
                 }
                 case "chat": {
                     try {
@@ -49,18 +50,20 @@ public class HumanTrader extends Trader implements Runnable {
                     } catch (Exception e) {
                         throw new RuntimeException(e);
                     }
+                    break;
                 }
             }
         }
     }
     public void consoleInputToSendOrder() throws IOException, InterruptedException {
+        System.out.println("Enter order with format: {buy/sell} {companyName} {amount} {price} \nExample: buy apple 10 100");
         Scanner terminalIn = new Scanner(System.in);
         String orderString = terminalIn.nextLine();
         String[] orderParts = orderString.split(" ");
         String orderType = orderParts[0];
         String companyName = orderParts[1];
         String companyTicker;
-        Object[] companyData = super.getMasterCompanyRegister().queryp(new FormalField(String.class), new ActualField(companyName.toLowerCase()), new FormalField(String.class));
+        Object[] companyData = super.getMasterCompanyRegister().queryp(new FormalField(String.class), new ActualField(companyName), new FormalField(String.class));
 
         if (companyData == null) {
             // Så man kan skriver ticker i stedet for navn

@@ -19,7 +19,7 @@ public class CompanyBroker extends Broker implements Runnable {
             try {
                 //TODO find en bedre måde at nedarve requestSpace fra Broker.java
                 //TODO lyt på strukturen af tuplen på en bedre måde, fordi company ikke nødvendigvis kommer med, hvis det er en salg/købs order
-                Object[] request = super.getRequestSpace().get(new FormalField(String.class), new FormalField(String.class), new FormalField(String.class), new FormalField(String.class), new FormalField(Order.class));
+                Object[] request = super.getRequestSpace().get(new FormalField(String.class) /* orderType */, new FormalField(String.class) /* companyId */, new FormalField(String.class) /* companyName */, new FormalField(String.class) /* companyTicker */, new FormalField(Order.class));
                 String orderType = request[0].toString();
                 String companyID = (String) request[1];
                 String companyName = (String) request[2];

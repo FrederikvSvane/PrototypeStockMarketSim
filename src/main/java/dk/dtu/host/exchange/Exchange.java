@@ -25,7 +25,7 @@ public class Exchange implements Runnable {
 
 
         this.companiesAndPriceHistorySpace.put("ticket");
-        this.exchangeRepository.add("companiesAndPricesHistorySpace", companiesAndPriceHistorySpace);
+        this.exchangeRepository.add("companiesAndPriceHistorySpace", companiesAndPriceHistorySpace);
         this.exchangeRepository.add("exchangeRequestSpace", exchangeRequestSpace);
         this.exchangeRepository.addGate(ClientUtil.getHostUri("", HostUtil.getExchangePort(),"keep"));
 
@@ -41,12 +41,13 @@ public class Exchange implements Runnable {
                     switch (orderType) {
                         case "IPO": //Initial Public Offering - The first time a company sells its stocks at the exchange - this is when it is registered
                             String companyName = (String) currentRequest[3];
+                            companyName = companyName.toLowerCase();
                             String companyId = (String) currentRequest[2];
                             String companyTicker = (String) currentRequest[4];
                             int amount = (int) currentRequest[5];
                             float price = (float) currentRequest[6];
 
-                            Space companiesAndPricesSpace = exchangeRepository.get("companiesAndPricesHistorySpace");
+                            Space companiesAndPricesSpace = exchangeRepository.get("companiesAndPriceHistorySpace");
                             Object[] currentCompanyStatus = companiesAndPricesSpace.queryp(new ActualField(companyId), new FormalField(String.class) /*companyName*/, new FormalField(String.class) /*companyTicker*/, new FormalField(Float.class) /*price*/);
 
                             boolean companyExists = currentCompanyStatus != null;
