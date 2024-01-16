@@ -11,7 +11,7 @@ import java.util.Queue;
 public class PriceGraphDataFetcher extends DataFetcher implements Runnable {
 
     public PriceGraphDataFetcher(Space traderDataSpace) {
-        super(traderDataSpace, 1000, "companiesAndPricesHistorySpace");
+        super(traderDataSpace, 10000, "companiesAndPriceHistorySpace");
     }
 
     public void run() {
@@ -35,7 +35,6 @@ public class PriceGraphDataFetcher extends DataFetcher implements Runnable {
                 updateCompanyData(companyData);
                 // Indsæt ticket i traderDataSpace
                 traderDataSpace.put("ticket");
-
 
                 Thread.sleep(sleepTime);
             } catch (InterruptedException e) {

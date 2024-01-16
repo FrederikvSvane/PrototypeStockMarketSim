@@ -5,7 +5,7 @@ import dk.dtu.client.trader.Trader;
 
 public class SellBot extends Trader {
 
-    public SellBot() {
+    public SellBot() throws InterruptedException {
         super();
     }
 

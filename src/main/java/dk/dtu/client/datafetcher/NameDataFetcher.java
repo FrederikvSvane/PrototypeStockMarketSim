@@ -9,7 +9,7 @@ import java.util.List;
 public class NameDataFetcher extends DataFetcher implements Runnable{
 
     public NameDataFetcher(Space traderDataSpace) {
-        super(traderDataSpace, 1000, "companiesAndPricesHistorySpace");
+        super(traderDataSpace, 10000, "companiesAndPriceHistorySpace");
     }
 
     public void run()  {
@@ -38,12 +38,14 @@ public class NameDataFetcher extends DataFetcher implements Runnable{
     @Override
     void updateCompanyData(List<Object[]> companyData) throws InterruptedException {
         for(Object[] companyList : companyData) {
-            System.out.println("Updating company data");
             String companyId = (String) companyList[0];
             String companyName = (String) companyList[1];
             String companyTicker = (String) companyList[2];
             if(companyNotInTraderSpace(companyId)) {
                 traderDataSpace.put(companyId, companyName, companyTicker);
+
+
+                //TODO læg i masterCompanyRegister
             }
 
         }
