@@ -20,9 +20,9 @@ public class HumanTrader extends Trader implements Runnable {
     public HumanTrader() throws IOException {
         super();
         toLobby = new RemoteSpace("tcp://" + HostUtil.getHostIp() + ":" + HostUtil.getLobbyPort() + "/toLobby?keep");
-        fromLobby = new RemoteSpace("tcp://" + HostUtil.getHostIp() + ":" + HostUtil.getLobbyPort() + "/fromLobby?keep");
+        fromLobby = new RemoteSpace("tcp://" + HostUtil.getHostIp() + ":" + HostUtil.getLobbyPort()+ "/fromLobby?keep");
         connectedChats = new SequentialSpace();
-        myMessages = new RemoteSpace("tcp://" + HostUtil.getHostIp() + ":" + HostUtil.getLobbyPort() + "/" + super.getTraderId() + "?keep");
+        myMessages = new RemoteSpace("tcp://" + HostUtil.getHostIp() + ":" + HostUtil.getChatRepoPort() + "/" + super.getTraderId() + "?keep");
     }
 
     @Override
@@ -182,7 +182,7 @@ public class HumanTrader extends Trader implements Runnable {
     }
     public void writeToChatroom(String roomName) throws IOException, InterruptedException {
         //RemoteSpace initialized for roomName.
-        RemoteSpace chatRoom = new RemoteSpace("tcp://" + HostUtil.getHostIp() + ":" + HostUtil.getLobbyPort() + "/" + roomName + "?keep");
+        RemoteSpace chatRoom = new RemoteSpace("tcp://" + HostUtil.getHostIp() + ":" + HostUtil.getChatRepoPort() + "/" + roomName + "?keep");
         Scanner terminalIn = new Scanner(System.in);
         boolean isConnected = true;
         ChatGetter getter = new ChatGetter(roomName, super.getTraderId()); //new getter for trader mailbox.
