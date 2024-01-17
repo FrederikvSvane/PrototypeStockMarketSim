@@ -100,7 +100,7 @@ public class GlobalClock {
     }
 
     /*
-    We've overloaded this and the other get start date, in case we need them somewhere where we havne't already initialized the globalClockSpace.
+    We've overloaded this and the other get start date, in case we need them somewhere where we haven't already initialized the globalClockSpace.
     Otherwise, it would just be an unnecessary overload of the host to initialize the globalClockSpace multiple times within this object.
      */
     public static LocalDateTime getSimulatedStartDateTime()
