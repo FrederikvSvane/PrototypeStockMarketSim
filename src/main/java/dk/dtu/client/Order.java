@@ -46,6 +46,13 @@ public class Order {
         this.price = price;
     }
 
+    /**
+     * Construct an order without any data
+     */
+    public Order() {
+
+    }
+
     @Override
     public String toString() {
         return "Order{" +

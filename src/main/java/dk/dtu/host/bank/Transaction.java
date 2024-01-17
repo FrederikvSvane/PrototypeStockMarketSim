@@ -42,6 +42,16 @@ public class Transaction {
         this.amountOfMoney = price;
     }
 
+    public Transaction(String traderId, String ticker, int amount) {
+        this.buyerId = traderId;
+        this.companyTicker = ticker;
+        this.amountOfStocks = amount;
+    }
+
+    public Transaction(String traderId) {
+        this.buyerId = traderId;
+    }
+
 
     public String getBuyerId() { return buyerId; }
     public String getSellerId() { return sellerId; }

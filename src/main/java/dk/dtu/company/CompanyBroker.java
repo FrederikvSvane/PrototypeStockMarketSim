@@ -42,7 +42,7 @@ public class CompanyBroker extends Broker implements Runnable {
 
 
             } catch (Exception e) {
-                throw new RuntimeException("Error in company broker");
+                throw new RuntimeException("Error in company broker"+e);
             }
         }
     }

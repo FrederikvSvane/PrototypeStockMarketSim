@@ -37,6 +37,7 @@ public class BankWorker implements Runnable {
                 String traderId;
                 String buyerId;
                 String companyTicker;
+                BankAccount traderAccount;
 
                 switch (transactionType) {
                     case "reserve money":
@@ -44,7 +45,7 @@ public class BankWorker implements Runnable {
                         float price = transaction.getAmountOfMoney();
                         amount = transaction.getAmountOfStocks();
 
-                        BankAccount traderAccount = getTraderAccount(buyerId);
+                        traderAccount = getTraderAccount(buyerId);
 
                         float currentMoneyBalance = traderAccount.getMoneyBalance();
                         float moneyToReserve = price * amount;
@@ -102,7 +103,7 @@ public class BankWorker implements Runnable {
                         finalizeTransaction();
                         transactionResponseSpace.put(brokerId, "order: " + orderId + " fulfilled");
                         break;
-                    case "enough stocks":
+                    case "reserve stocks":
                         // in {tradeId, companyTicker, amount}
                         // out {BrokerID, response} // response = "enough stocks" or "not enough stocks"
                         traderId = transaction.getBuyerId();
@@ -123,14 +124,17 @@ public class BankWorker implements Runnable {
                         putTraderAccount(bankAccount);
                         transactionResponseSpace.put(brokerId, "unreserved money");
                         break;
-                    case "join bank":
+                    case "establish account":
                         if (transaction.getBuyerId() != null) {
                             traderId = transaction.getBuyerId();
-                            BankAccount traderAccount1 = new BankAccount(traderId);
-                            putTraderAccount(traderAccount1);
-                            transactionResponseSpace.put(brokerId, "joined bank");
-                        } else {
-                            transactionResponseSpace.put(brokerId, "failed to join bank");
+                            Object[] traderAcc = traderAccountSpace.queryp(new ActualField(traderId), new FormalField(BankAccount.class));
+                            if (traderAcc != null) {
+                                transactionResponseSpace.put(brokerId, "trader already has account");
+                                break;
+                            }
+                            traderAccount = new BankAccount(traderId);
+                            putTraderAccount(traderAccount);
+                            transactionResponseSpace.put(brokerId, "account established");
                         }
                         break;
                 }

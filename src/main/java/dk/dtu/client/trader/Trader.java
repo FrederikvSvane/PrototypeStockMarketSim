@@ -20,7 +20,7 @@ public class Trader {
     private SequentialSpace companyPriceGraphs;
     private SequentialSpace companyFundamentals;
 
-    public Trader() throws InterruptedException { //TODO lav en overklasse, som ikke har nogen argumenter, som kan nedarves til HumanTrader og BotTrader. Det er kun HumanTrader, som kan chatte
+    public Trader() throws InterruptedException, IOException { //TODO lav en overklasse, som ikke har nogen argumenter, som kan nedarves til HumanTrader og BotTrader. Det er kun HumanTrader, som kan chatte
         this.traderId = UUID.randomUUID().toString();
 
         // List of all companies traded at exchange. Updated by datafetcher
@@ -32,6 +32,7 @@ public class Trader {
         //A space for the fundamental data of companies
         this.companyFundamentals = new SequentialSpace(/*(String companyTicker, LocalDateTime simulatedGameTime , String financialStatement, String financialPost, float financialValue)*/);
         makeDataFetchers();
+        sendOrderToBroker("establish account", new Order());
     }
 
     public void sendOrderToBroker(String orderType, Order order) throws IOException, InterruptedException {

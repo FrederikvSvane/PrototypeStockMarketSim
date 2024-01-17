@@ -44,16 +44,17 @@ public class Broker implements Runnable {
                 traderId = request[0].toString();
 
                 String orderType = request[2].toString();
+                Transaction transaction;
+                String responseString;
+
                 switch (orderType) {
                     case "buy":
                         // Ask bank to reserve money for order
                         // {traderId, price, amount}
-                        Object[] bankRequest = new Object[]{traderId, order.getPrice(), order.getAmount()};
-                        transactionsSpace.put(brokerId, "reserve money", bankRequest);
-                        float moneyReserved = order.getPrice() * order.getAmount();
                         // response BrokerId, "reserved money"/"not enough money"
-                        Object[] bankResponse = transactionResponseSpace.get(new ActualField(brokerId), new FormalField(String.class));
-                        String responseString = (String) bankResponse[1];
+                        transaction = new Transaction(traderId, order.getAmount(), order.getPrice());
+                        float moneyReserved = order.getPrice() * order.getAmount();
+                        responseString = sendAndReceiveRequest("reserve money", transaction);
                         float moneyUsed = 0;
 
                         if (responseString.equals("reserved money")) {
@@ -97,13 +98,10 @@ public class Broker implements Runnable {
                         float moneyToReturn = moneyReserved - moneyUsed;
                          // Ask bank to unreserve money for order
                         // {traderId, price}
-                        Object[] bankRequestReturn = new Object[]{traderId, moneyToReturn};
-                        transactionsSpace.put(brokerId, "unreserve money", bankRequestReturn);
-                        // response BrokerId, "unreserved money"
-                        Object[] bankResponseReturn = transactionResponseSpace.get(new ActualField(brokerId), new FormalField(String.class));
-                        String responseStringReturn = (String) bankResponseReturn[1];
+                        transaction = new Transaction(traderId, moneyToReturn);
+                        responseString = sendAndReceiveRequest("unreserve money", transaction);
 
-                        if (responseStringReturn.equals("unreserved money")) {
+                        if (responseString.equals("unreserved money")) {
                             System.out.println("Money returned to trader account");
                         } else {
                             System.out.println("Money not returned to trader account");
@@ -114,22 +112,25 @@ public class Broker implements Runnable {
                         // Ask bank to reserve money for order
                         // {traderId, companyTicker, amount}
 
-                        Object[] bankRequestSell = new Object[]{traderId, order.getTicker(), order.getAmount()};
-                        transactionsSpace.put(brokerId, "reserve stocks", bankRequestSell);
+                        transaction = new Transaction(traderId, order.getTicker(), order.getAmount());
+                        responseString = sendAndReceiveRequest("reserve stocks", transaction);
 
-                        // response BrokerId, "reserved money"/"not enough money"
-                        Object[] bankResponseSell = transactionResponseSpace.get(new ActualField(brokerId), new FormalField(String.class));
-                        String responseStringSell = (String) bankResponseSell[1];
-
-                        if (responseStringSell.equals("stocks reserved")) {
+                        if (responseString.equals("stocks reserved")) {
                             // Send order to company space
                             RemoteSpace companySpace = new RemoteSpace(uriConnection);
                             // TraderId, OrderId, OrderType, Order, reservedAmount
                             companySpace.put((String) request[0], (String) request[1], (String) request[2], (Order) request[3], 0);
                             System.out.println("Sell order sent to company space");
                         } else {
-                            System.out.println(responseStringSell);
+                            System.out.println(responseString);
                         }
+                        return;
+                    case "establish account":
+                        // Ask bank to establish account
+                        // {traderId}
+                        transaction = new Transaction(traderId);
+                        responseString = sendAndReceiveRequest("establish account", transaction);
+                        System.out.println(responseString);
                         return;
                     default:
                         System.out.println("Broker " + request[0].toString() + " received unknown order" + request[2].toString());
@@ -144,6 +145,12 @@ public class Broker implements Runnable {
             }
         }
 
+    }
+
+    public String sendAndReceiveRequest(String command, Transaction transaction) throws InterruptedException {
+        transactionsSpace.put(brokerId, command, transaction);
+        Object[] bankResponse = transactionResponseSpace.get(new ActualField(brokerId), new FormalField(String.class));
+        return (String) bankResponse[1];
     }
 
     private List<Object[]> querySellOrdersCompanySpace() throws IOException, InterruptedException {
@@ -162,7 +169,7 @@ public class Broker implements Runnable {
             String companyName = order.getStockName();
             String companyTicker = order.getTicker();
             int reservedAmount = (int) sellOrder[4];
-            int amount = order.getAmount() - reservedAmount;
+            int amount = order.getAmount();
             float price = order.getPrice();
             sortedSellOrders.add(new Order(traderId, orderId, companyName, companyTicker, amount, price));
         }
@@ -177,7 +184,7 @@ public class Broker implements Runnable {
         RemoteSpace companySpace = new RemoteSpace(uriConnection);
         Object[] ticket = companySpace.get(new ActualField("ticket"));
         // TraderId, OrderId, OrderType, Order, reservedAmount
-        Object[] result = companySpace.getp(new FormalField(String.class), new ActualField(sellOrder.getOrderId()), new FormalField(String.class), new FormalField(Order.class), new FormalField(int.class));
+        Object[] result = companySpace.getp(new FormalField(String.class), new ActualField(sellOrder.getOrderId()), new FormalField(String.class), new FormalField(Order.class), new FormalField(Integer.class));
         if (result != null) {
             Order order = (Order) result[3];
             int amount = order.getAmount();
@@ -188,10 +195,7 @@ public class Broker implements Runnable {
             companySpace.put("ticket");
             //Give order to bank
             Transaction transaction = new Transaction(traderId, order.getTraderId(), order.getTicker(), order.getOrderId(), possibleAmount);
-            transactionsSpace.put(brokerId, "complete order", transaction);
-            // get response from bank
-            Object[] bankResponse = transactionResponseSpace.get(new ActualField(brokerId), new FormalField(String.class));
-            String responseString = (String) bankResponse[1];
+            String responseString = sendAndReceiveRequest("finalize transaction", transaction);
             if (responseString.equals("completed order")) {
                 return possibleAmount;
             } else {
@@ -211,7 +215,7 @@ public class Broker implements Runnable {
         RemoteSpace companySpace = new RemoteSpace(uriConnection);
         Object[] ticket = companySpace.get(new ActualField("ticket"));
         // TraderId, OrderId, OrderType, Order, reservedAmount
-        Object[] result = companySpace.getp(new FormalField(String.class), new ActualField(sellOrder.getOrderId()), new FormalField(String.class), new FormalField(Order.class), new FormalField(int.class));
+        Object[] result = companySpace.getp(new FormalField(String.class), new ActualField(sellOrder.getOrderId()), new FormalField(String.class), new FormalField(Order.class), new FormalField(Integer.class));
         if (result != null) {
             Order order = (Order) result[3];
             int amount = order.getAmount();
