@@ -126,6 +126,9 @@ public class Broker implements Runnable {
                         String responseStringSell = (String) bankResponseSell[1];
 
                         if (responseStringSell.equals("enough stocks")) {
+<<<<<<< HEAD
+>>>>>>> parent of 895e6f6 (BankWorker Update with transaction)
+=======
 >>>>>>> parent of 895e6f6 (BankWorker Update with transaction)
                             // Send order to company space
                             RemoteSpace companySpace = new RemoteSpace(uriConnection);

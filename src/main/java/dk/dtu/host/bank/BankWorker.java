@@ -33,16 +33,13 @@ public class BankWorker implements Runnable {
                 Transaction transaction = (Transaction) result[2];
                 int amount;
                 String traderId;
-<<<<<<< HEAD
                 String buyerId;
                 String companyTicker;
                 BankAccount traderAccount;
-=======
->>>>>>> parent of 895e6f6 (BankWorker Update with transaction)
 
                 switch (transactionType) {
                     case "reserve money":
-                        String buyerId = transaction.getBuyerId();
+                        buyerId = transaction.getBuyerId();
                         float price = transaction.getAmountOfMoney();
                         amount = transaction.getAmountOfStocks();
 
@@ -72,7 +69,7 @@ public class BankWorker implements Runnable {
                         // in {tradeId, companyTicker, amount}
                         // out {BrokerID, response} // response = "enough stocks" or "not enough stocks"
                         traderId = transaction.getBuyerId();
-                        String companyTicker = transaction.getCompanyTicker();
+                        companyTicker = transaction.getCompanyTicker();
                         amount = transaction.getAmountOfStocks();
                         BankAccount account = getTraderAccount(traderId); // Get trader account from traderAccountSpace
                         String response = account.reserveStocksFromBalance(companyTicker, amount);
@@ -89,7 +86,6 @@ public class BankWorker implements Runnable {
                         putTraderAccount(bankAccount);
                         transactionResponseSpace.put(brokerId, "unreserved money");
                         break;
-<<<<<<< HEAD
                     case "establish account":
                         if (transaction.getBuyerId() != null) {
                             traderId = transaction.getBuyerId();
@@ -102,10 +98,7 @@ public class BankWorker implements Runnable {
                             putTraderAccount(traderAccount);
                             transactionResponseSpace.put(brokerId, "account established");
                         }
-=======
                     case "join bank":
-
->>>>>>> parent of 895e6f6 (BankWorker Update with transaction)
                         break;
                 }
 
