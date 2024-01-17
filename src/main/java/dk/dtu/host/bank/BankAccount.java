@@ -37,6 +37,10 @@ public class BankAccount {
         }
     }
 
+    public void changeMoney(float amount) {
+        this.moneyBalance += amount;
+    }
+
     public void reserveMoneyFromBalance(float amount) {
         this.moneyBalance -= amount;
         this.reservedMoneyBalance += amount;
@@ -61,7 +65,7 @@ public class BankAccount {
                         stock.setAmount(stock.getAmount() - amountToReserve);
                         reservedStockHoldings.add(new StockHolding(companyTicker, amountToReserve));
                     }
-                    return "enough stocks";
+                    return "stocks reserved";
                 } else {
                     return "not enough stocks";
                 }
@@ -92,4 +96,16 @@ public class BankAccount {
     }
 
 
+    public void changeStockHoldings(String companyTicker, int amount) {
+        boolean foundStock = false;
+        for (StockHolding stock : stockHoldings) {
+            if (stock.getCompanyTicker().equals(companyTicker)) {
+                foundStock = true;
+                stock.setAmount(stock.getAmount() + amount);
+            }
+        }
+        if (!foundStock) {
+            stockHoldings.add(new StockHolding(companyTicker, amount));
+        }
+    }
 }

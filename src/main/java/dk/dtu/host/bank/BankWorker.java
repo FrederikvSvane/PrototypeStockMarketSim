@@ -1,24 +1,26 @@
 package dk.dtu.host.bank;
 
-import org.jspace.ActualField;
-import org.jspace.FormalField;
-import org.jspace.Space;
-import org.jspace.SpaceRepository;
+import dk.dtu.client.ClientUtil;
+import dk.dtu.host.HostUtil;
+import dk.dtu.client.Order;
+import org.jspace.*;
 
+import java.io.IOException;
 import java.util.List;
 
 public class BankWorker implements Runnable {
     private SpaceRepository bankRepository;
-    private Space traderAccountSpace; // {traderId, BankAccount}
+    private Space traderAccountSpace; // {traderId, BankAccount} + token
     private Space bankRequestSpace; // {BrokerID, transactionType, Object[] transactionData}
     private Space transactionResponseSpace; // {BrokerID, response}
-    private Space completeOrderSpace; // {spaceName, obj[]}
+    private Space completeOrderSpace = new SequentialSpace(); // {spaceName, obj[]}
 
-    public BankWorker(SpaceRepository bankRepository) {
+    public BankWorker(SpaceRepository bankRepository) throws InterruptedException {
         this.bankRepository = bankRepository;
         traderAccountSpace = this.bankRepository.get("bankInformationSpace");
         bankRequestSpace = this.bankRepository.get("bankRequestSpace");
         transactionResponseSpace = this.bankRepository.get("transactionResponseSpace");
+        completeOrderSpace.put("readyToken");
     }
 
     @Override
@@ -27,16 +29,18 @@ public class BankWorker implements Runnable {
             try {
                 // Opdater folks bankbalance (aktiebeholdning og pengebalance)
                 // Listening for transactions in transactionSpace in bankRepository
-                Object[] result = bankRequestSpace.get(new FormalField(String.class), new FormalField(String.class), new FormalField(Object.class));
+                Object[] result = bankRequestSpace.get(new FormalField(String.class), new FormalField(String.class), new FormalField(Transaction.class));
                 String brokerId = (String) result[0];
                 String transactionType = (String) result[1];
                 Transaction transaction = (Transaction) result[2];
                 int amount;
                 String traderId;
+                String buyerId;
+                String companyTicker;
 
                 switch (transactionType) {
                     case "reserve money":
-                        String buyerId = transaction.getBuyerId();
+                        buyerId = transaction.getBuyerId();
                         float price = transaction.getAmountOfMoney();
                         amount = transaction.getAmountOfStocks();
 
@@ -54,19 +58,55 @@ public class BankWorker implements Runnable {
                         }
 
                         break;
-                    case "complete order":
+                    case "finalize transaction":
                         // in object[] = {Transaction transactionData}
                         // out {BrokerID, response} // response = "completed order" or "order not found"
                         // Skal følge petri net
 
 
+                        // "inGetBuyer", {tradeId, companyTicker, amount}
+                        // "inGetSeller", {tradeId, companyTicker, amount}
+                        // "inQueryInfo", {tradeId, companyTicker, amount}
+                        // "outGetBuyer",
 
+                        // initialize threads
+                        Thread getBuyerThread = new Thread(new InformationCollector(completeOrderSpace, "GetBuyer"));
+                        Thread getSellerThread = new Thread(new InformationCollector(completeOrderSpace, "GetSeller"));
+                        Thread queryInfoThread = new Thread(new InformationCollector(completeOrderSpace, "QueryInfo"));
+                        getBuyerThread.start();
+                        getSellerThread.start();
+                        queryInfoThread.start();
+
+                        buyerId = transaction.getBuyerId();
+                        completeOrderSpace.put("inGetBuyer", buyerId);
+                        String sellerId = transaction.getSellerId();
+                        completeOrderSpace.put("inGetSeller", sellerId);
+                        String orderId = transaction.getOrderId();
+                        companyTicker = transaction.getCompanyTicker();
+                        completeOrderSpace.put("inQueryInfo", orderId, companyTicker);
+
+
+
+                        get_token();
+
+                        // All 3 threads are done and dead
+                        Object[] getSellerInfo = completeOrderSpace.get(new ActualField("outGetSeller"), new FormalField(String.class), new FormalField(BankAccount.class));
+                        completeOrderSpace.get(new ActualField("outQueryInfo"));
+                        Object[] getBuyerInfo = completeOrderSpace.get(new ActualField("outGetBuyer"), new FormalField(String.class), new FormalField(BankAccount.class));
+
+                        BankAccount buyerAccount = (BankAccount) getBuyerInfo[2];
+                        BankAccount sellerAccount = (BankAccount) getSellerInfo[2];
+
+                        completeOrderSpace.put("readyToFinalize",buyerAccount,sellerAccount, transaction);
+
+                        finalizeTransaction();
+                        transactionResponseSpace.put(brokerId, "order: " + orderId + " fulfilled");
                         break;
                     case "enough stocks":
                         // in {tradeId, companyTicker, amount}
                         // out {BrokerID, response} // response = "enough stocks" or "not enough stocks"
                         traderId = transaction.getBuyerId();
-                        String companyTicker = transaction.getCompanyTicker();
+                        companyTicker = transaction.getCompanyTicker();
                         amount = transaction.getAmountOfStocks();
                         BankAccount account = getTraderAccount(traderId); // Get trader account from traderAccountSpace
                         String response = account.reserveStocksFromBalance(companyTicker, amount);
@@ -84,7 +124,14 @@ public class BankWorker implements Runnable {
                         transactionResponseSpace.put(brokerId, "unreserved money");
                         break;
                     case "join bank":
-
+                        if (transaction.getBuyerId() != null) {
+                            traderId = transaction.getBuyerId();
+                            BankAccount traderAccount1 = new BankAccount(traderId);
+                            putTraderAccount(traderAccount1);
+                            transactionResponseSpace.put(brokerId, "joined bank");
+                        } else {
+                            transactionResponseSpace.put(brokerId, "failed to join bank");
+                        }
                         break;
                 }
 
@@ -92,6 +139,50 @@ public class BankWorker implements Runnable {
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
+        }
+    }
+
+    private void finalizeTransaction() throws InterruptedException, IOException {
+        Object[] info = completeOrderSpace.get(new ActualField("readyToFinalize"), new FormalField(BankAccount.class), new FormalField(BankAccount.class), new FormalField(Transaction.class));
+        BankAccount buyerAccount = (BankAccount) info[1];
+        BankAccount sellerAccount = (BankAccount) info[2];
+        Transaction transaction = (Transaction) info[3];
+        int amount = transaction.getAmountOfStocks();
+        String orderId = transaction.getOrderId();
+        String companyTicker = transaction.getCompanyTicker();
+        RemoteSpace companyStockSpace = new RemoteSpace(ClientUtil.getHostUri(companyTicker, HostUtil.getBankPort(), "keep"));
+        // traderId, orderId, orderType, order, reservedAmount
+        Object[] orderInfo = companyStockSpace.get(new FormalField(String.class), new ActualField(orderId), new ActualField("sell"), new FormalField(Order.class), new FormalField(Integer.class));
+        Order order = (Order) orderInfo[3];
+        int reservedAmount = (int) orderInfo[4];
+        float price = order.getPrice();
+        float moneyToTransfer = price * amount;
+        sellerAccount.changeStockHoldings(companyTicker, -amount);
+        buyerAccount.changeReservedMoneyBalance(moneyToTransfer);
+        sellerAccount.changeMoney(moneyToTransfer);
+        buyerAccount.changeStockHoldings(companyTicker, amount);
+
+        putTraderAccount(buyerAccount);
+        putTraderAccount(sellerAccount);
+        if (!(order.getAmount() ==0 && reservedAmount == amount)) {
+            // we need to update the order and put it back in the companyStockSpace
+            order.setAmount(order.getAmount() - amount);
+            reservedAmount -= amount;
+            companyStockSpace.put(order.getTraderId(), order.getOrderId(), "sell", order, reservedAmount);
+        } // else the order is deleted
+
+        traderAccountSpace.put("token");
+        completeOrderSpace.put("readyToken");
+
+    }
+
+    private void get_token() {
+        try {
+            traderAccountSpace.get(new ActualField("token"));
+            completeOrderSpace.put("token");
+            completeOrderSpace.put("token");
+        } catch (InterruptedException e) {
+            e.printStackTrace();
         }
     }
 

@@ -115,13 +115,13 @@ public class Broker implements Runnable {
                         // {traderId, companyTicker, amount}
 
                         Object[] bankRequestSell = new Object[]{traderId, order.getTicker(), order.getAmount()};
-                        transactionsSpace.put(brokerId, "enough stocks", bankRequestSell);
+                        transactionsSpace.put(brokerId, "reserve stocks", bankRequestSell);
 
                         // response BrokerId, "reserved money"/"not enough money"
                         Object[] bankResponseSell = transactionResponseSpace.get(new ActualField(brokerId), new FormalField(String.class));
                         String responseStringSell = (String) bankResponseSell[1];
 
-                        if (responseStringSell.equals("enough stocks")) {
+                        if (responseStringSell.equals("stocks reserved")) {
                             // Send order to company space
                             RemoteSpace companySpace = new RemoteSpace(uriConnection);
                             // TraderId, OrderId, OrderType, Order, reservedAmount
@@ -148,7 +148,7 @@ public class Broker implements Runnable {
 
     private List<Object[]> querySellOrdersCompanySpace() throws IOException, InterruptedException {
         RemoteSpace companySpace = new RemoteSpace(uriConnection);
-        List<Object[]> result = companySpace.queryAll(new FormalField(String.class), new FormalField(String.class), new ActualField("sell"), new FormalField(Order.class), new FormalField(int.class));
+        List<Object[]> result = companySpace.queryAll(new FormalField(String.class), new FormalField(String.class), new ActualField("sell"), new FormalField(Order.class), new FormalField(Integer.class));
         return result;
     }
 
