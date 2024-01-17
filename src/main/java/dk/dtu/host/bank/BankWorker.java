@@ -83,6 +83,9 @@ public class BankWorker implements Runnable {
                         putTraderAccount(bankAccount);
                         transactionResponseSpace.put(brokerId, "unreserved money");
                         break;
+                    case "join bank":
+
+                        break;
                 }
 
 
