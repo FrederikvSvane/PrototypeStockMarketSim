@@ -4,24 +4,20 @@ import java.io.IOException;
 import java.time.LocalDateTime;
 
 import java.time.Month;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 import dk.dtu.client.ClientUtil;
-import dk.dtu.company.api.ApiDataFetcher;
-import dk.dtu.company.api.FinancialData;
 import dk.dtu.host.GlobalClock;
 import dk.dtu.client.Order;
+import dk.dtu.company.IRS;
 import org.apache.commons.math3.distribution.BinomialDistribution;
 import org.apache.commons.math3.distribution.NormalDistribution;
-
-import java.util.ArrayList;
-import java.util.HashMap;
 
 import org.jspace.*;
 
 
 public class Company implements Runnable{
+    protected static LocalDateTime ingameDate;
     protected final String companyId;
     protected final String companyName;
     protected final String companyTicker;
@@ -35,7 +31,7 @@ public class Company implements Runnable{
 
     protected boolean isPubliclyTraded = false;
 
-    protected final Space fundamentalsSpace;
+    protected static Space fundamentalsSpace;
 
     public Company(String companyName, String companyTicker, LocalDateTime ipoDateTime, Space fundamentalsSpace) {
         this.companyId = UUID.randomUUID().toString();
@@ -43,7 +39,7 @@ public class Company implements Runnable{
         this.companyTicker = companyTicker;
         this.ipoDateTime = ipoDateTime;
         this.totalNrShares = calculateTotalNrShares();
-        this.fundamentalsSpace = fundamentalsSpace;
+        Company.fundamentalsSpace = fundamentalsSpace;
 
     }
 
@@ -183,8 +179,13 @@ public class Company implements Runnable{
     }
 
 
-    public float getFundamentalData(String financialPost){
-        return 0; // TODO what is this supposed to do?
+    public static float getFundamentalDataOverview(String nameOrTicker, int year) throws InterruptedException {
+
+        //Querying tuple with the form (companyTicker, year, financialStatement, financialPost, financialValue)
+        Space companyFundamentalsSpace = IRS.getFundamentalsSpace(nameOrTicker);
+        Object[] data = companyFundamentalsSpace.query(new ActualField(nameOrTicker), new ActualField(year),new ActualField("income statement"),new ActualField("revenue"), new FormalField(Long.class)); //Retrieves fundamental data for a company
+        return (float) data[4];
+
     }
 
 

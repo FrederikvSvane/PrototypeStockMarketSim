@@ -31,6 +31,6 @@ public class Host {
         GlobalClock.initialize(clockRepo, startDateTime,1);
 
         SpaceRepository IrsRepo = new SpaceRepository();
-        new Thread(new IRS(IrsRepo, "stochastic" /*or "realistic"*/)).start();
+        new Thread(new IRS(IrsRepo, /*"stochastic" or */"realistic")).start();
     }
 }

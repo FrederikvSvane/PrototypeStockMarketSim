@@ -21,7 +21,7 @@ import java.util.Map;
  */
 public class IRS implements Runnable {
 
-    SpaceRepository IrsRepo;
+    static SpaceRepository IrsRepo;
     ArrayList<String> tickers = new ArrayList<>();
     Map<String, LocalDateTime> tickerIPODateTime  = new HashMap<>();
     Map<String,String> tickerCompanyName = new HashMap<>();
@@ -31,23 +31,23 @@ public class IRS implements Runnable {
 
     private void initializeTickers() {
         // Add ticker symbols to the list
-        tickers.add("IBM");
-        tickers.add("GE");
-        tickers.add("DIS");
-        tickers.add("KO");
-        tickers.add("MCD");
-        tickers.add("WMT");
-        tickers.add("PG");
-        tickers.add("JNJ");
-        tickers.add("XOM");
-        tickers.add("INTC");
-        tickers.add("AAPL");
+        //tickers.add("IBM");
+        //tickers.add("GE");
+        //tickers.add("DIS");
+        //tickers.add("KO");
+        //tickers.add("MCD");
+        //tickers.add("WMT");
+        //tickers.add("PG");
+        //tickers.add("JNJ");
+        //tickers.add("XOM");
+        //tickers.add("INTC");
+        //tickers.add("AAPL");
         tickers.add("MSFT");
-        tickers.add("CSCO");
-        tickers.add("HWP"); // Assuming HWP for Hewlett-Packard (now HPQ)
-        tickers.add("GS");
-        tickers.add("GOOG");
-        tickers.add("VOC");
+        //tickers.add("CSCO");
+        //tickers.add("HWP"); // Assuming HWP for Hewlett-Packard (now HPQ)
+        //tickers.add("GS");
+        //tickers.add("GOOG");
+        //tickers.add("VOC");
     }
 
     private void initializeCompanyIPOYears() {
@@ -105,7 +105,7 @@ public class IRS implements Runnable {
 
     public IRS(SpaceRepository IrsRepo, String companyType)
     {
-        this.IrsRepo = IrsRepo;
+        IRS.IrsRepo = IrsRepo;
         IrsRepo.addGate(ClientUtil.getHostUri("", HostUtil.getIrsPort(), "keep"));
         this.companyType = companyType;
     }
@@ -128,7 +128,7 @@ public class IRS implements Runnable {
                 IrsRepo.add("latent" + ticker, latentSpace);
                 latentSpace.put("readTicket");
                 ApiDataFetcher.sendRequestIncome(ticker,latentSpace);
-                ApiDataFetcher.sendRequestBalanceSheet(ticker,latentSpace);
+                //ApiDataFetcher.sendRequestBalanceSheet(ticker,latentSpace);
                 System.out.println("Starting realistic company: " + ticker);
                 new Thread(new RealisticCompany(companyName,ticker,ipoDateTime,fundamentalsSpace,latentSpace)).start();
 
@@ -137,6 +137,10 @@ public class IRS implements Runnable {
                 //TODO: Extract yearsOfFundamentalsUpdates'
                 //TODO: Instantiate API company
         }
+    }
+    public static Space getFundamentalsSpace(String ticker){
+        Space companyFundamentalsSpace = IrsRepo.get("fundamentals" + ticker);
+        return companyFundamentalsSpace;
     }
 
     public void run()

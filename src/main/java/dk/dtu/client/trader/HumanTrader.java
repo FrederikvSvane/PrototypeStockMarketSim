@@ -4,6 +4,7 @@ import dk.dtu.chat.ChatGetter;
 import dk.dtu.client.Order;
 import dk.dtu.host.HostUtil;
 import org.jspace.*;
+import dk.dtu.company.Company;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -52,6 +53,14 @@ public class HumanTrader extends Trader implements Runnable {
                     }
                     break;
                 }
+                case "Company Fundamentals": {
+                    try {
+                        showCompanyFundametals();
+                    } catch (Exception e) {
+                        throw new RuntimeException(e);
+                    }
+                    break;
+                }
             }
         }
     }
@@ -84,13 +93,15 @@ public class HumanTrader extends Trader implements Runnable {
 
     public String chooseMode(){
         Scanner terminalIn = new Scanner(System.in);
-        System.out.println("Choose mode: \n1. Create trade \n2. Open chat");
+        System.out.println("Choose mode: \n1. Create trade \n2. Open chat \n3. Look up company fundamentals");
         String mode = terminalIn.nextLine();
         if(mode.equals("1")){
             return "trade";
         }
         else if(mode.equals("2")){
             return "chat";
+        }else if(mode.equals("3")){
+            return "Company Fundamentals";
         }
         else{
             System.out.println("Invalid input");
@@ -230,5 +241,20 @@ public class HumanTrader extends Trader implements Runnable {
                 System.out.println(entry.get(0) + ": " + entry.get(1));
             }
         }
+    }
+
+    public void showCompanyFundametals() throws InterruptedException {
+        Scanner terminalIn = new Scanner(System.in);
+        System.out.println("Enter company or ticker name: ");
+        String companyName = terminalIn.nextLine();
+        System.out.println("Enter year of fundamentals you want to look at: ");
+        int year = terminalIn.nextInt();
+        float revenue = Company.getFundamentalDataOverview(companyName, year);
+
+        System.out.println("The revenue of " + companyName + " is " + revenue + " USD \n Press any key to go back to Main Menu");
+        terminalIn.nextLine();
+        chooseMode();
+
+
     }
 }
