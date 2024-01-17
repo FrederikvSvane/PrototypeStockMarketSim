@@ -17,6 +17,5 @@ public class StockHolding {
         return amount;
     }
 
-    public void setAmount(int i) { this.amount = i;
-    }
+    public void setAmount(int i) { this.amount = i; }
 }
