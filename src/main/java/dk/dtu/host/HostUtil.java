@@ -9,7 +9,7 @@ public class HostUtil {
     }
 
     public static void initialize() {
-        hostIp = "localhost";
+        hostIp = "10.209.107.10";
         hostPort = 10155;
     }
 

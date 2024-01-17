@@ -28,7 +28,7 @@ public class Bank implements Runnable {
     private List<BankWorker> bankWorkers;
     private int numberOfBankWorkers = 10;
 
-    public Bank(SpaceRepository bankRepository) throws InterruptedException {
+    public Bank(SpaceRepository bankRepository) {
         this.bankRepository = bankRepository;
         this.traderAccountSpace = new SequentialSpace();
         this.bankRequestSpace = new SequentialSpace();
@@ -42,19 +42,13 @@ public class Bank implements Runnable {
         int port = HostUtil.getBankPort();
         String URI = ClientUtil.getHostUri("", port, "keep");
         this.bankRepository.addGate(URI);
-        traderAccountSpace.put("token");
 
 
     }
 
     public void run() {
         for (int i = 0; i < numberOfBankWorkers; i++) {
-            BankWorker bankWorker = null;
-            try {
-                bankWorker = new BankWorker(bankRepository);
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
-            }
+            BankWorker bankWorker = new BankWorker(bankRepository);
             bankWorkers.add(bankWorker);
         }
         for (BankWorker worker : bankWorkers) {

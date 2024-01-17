@@ -112,10 +112,21 @@ public class Broker implements Runnable {
                         // Ask bank to reserve money for order
                         // {traderId, companyTicker, amount}
 
+<<<<<<< HEAD
                         transaction = new Transaction(traderId, order.getTicker(), order.getAmount());
                         responseString = sendAndReceiveRequest("reserve stocks", transaction);
 
                         if (responseString.equals("stocks reserved")) {
+=======
+                        Object[] bankRequestSell = new Object[]{traderId, order.getTicker(), order.getAmount()};
+                        transactionsSpace.put(brokerId, "enough stocks", bankRequestSell);
+
+                        // response BrokerId, "reserved money"/"not enough money"
+                        Object[] bankResponseSell = transactionResponseSpace.get(new ActualField(brokerId), new FormalField(String.class));
+                        String responseStringSell = (String) bankResponseSell[1];
+
+                        if (responseStringSell.equals("enough stocks")) {
+>>>>>>> parent of 895e6f6 (BankWorker Update with transaction)
                             // Send order to company space
                             RemoteSpace companySpace = new RemoteSpace(uriConnection);
                             // TraderId, OrderId, OrderType, Order, reservedAmount
@@ -155,7 +166,7 @@ public class Broker implements Runnable {
 
     private List<Object[]> querySellOrdersCompanySpace() throws IOException, InterruptedException {
         RemoteSpace companySpace = new RemoteSpace(uriConnection);
-        List<Object[]> result = companySpace.queryAll(new FormalField(String.class), new FormalField(String.class), new ActualField("sell"), new FormalField(Order.class), new FormalField(Integer.class));
+        List<Object[]> result = companySpace.queryAll(new FormalField(String.class), new FormalField(String.class), new ActualField("sell"), new FormalField(Order.class), new FormalField(int.class));
         return result;
     }
 
