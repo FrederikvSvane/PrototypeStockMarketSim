@@ -45,6 +45,7 @@ public class Trader {
         if (orderType.equals("buy") || orderType.equals("sell") || orderType.equals("establish account")) {
             sendOrder(traderId, broker, order, orderType);
         }
+
     }
 
 
@@ -67,6 +68,7 @@ public class Trader {
     }
 
     public void makeDataFetchers() throws InterruptedException {
+        companyPriceGraphs.put("ticket");
         NameDataFetcher nameDataFetcher = new NameDataFetcher(masterCompanyRegister);
         PriceGraphDataFetcher priceGraphDataFetcher = new PriceGraphDataFetcher(companyPriceGraphs);
         new Thread(nameDataFetcher).start();
