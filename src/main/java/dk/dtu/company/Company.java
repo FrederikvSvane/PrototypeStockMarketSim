@@ -81,13 +81,13 @@ public class Company implements Runnable{
 
             while(true)
             {
-                simulatedDateTime = GlobalClock.getSimulatedDateTimeNow();
+               /* simulatedDateTime = GlobalClock.getSimulatedDateTimeNow();
 
                 //We need to wait until the right time to update, to ensure, that we have enough financial date to last the game
                 if(isTimeToUpdateFundamentals(simulatedDateTime))
                 {
                     updateFundamentalData(simulatedDateTime);
-                }
+                }*/
             }
 
         }

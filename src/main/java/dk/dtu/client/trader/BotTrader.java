@@ -2,10 +2,12 @@ package dk.dtu.client.trader;
 
 import dk.dtu.client.Order;
 
+import java.io.IOException;
+
 public class BotTrader extends Trader implements Runnable {
     private String botType;
 
-    public BotTrader(String botType) throws InterruptedException {
+    public BotTrader(String botType) throws InterruptedException, IOException {
         super();
         this.botType = botType;
     }
