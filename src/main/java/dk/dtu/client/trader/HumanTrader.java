@@ -78,9 +78,7 @@ public class HumanTrader extends Trader implements Runnable {
     }
 
     private void showAllCompanies() throws InterruptedException {
-        System.out.println("før getticket");
         Object[] getticket = super.getCompanyPriceGraphs().get(new ActualField("ticket"));
-        System.out.println("efter getticket");
         List<Object[]> allCompanies = super.getCompanyPriceGraphs().queryAll(new FormalField(String.class), new FormalField(String.class), new FormalField(Float.class));
         super.getCompanyPriceGraphs().put("ticket");
         System.out.println("All companies traded at the exchange: " + allCompanies.size());

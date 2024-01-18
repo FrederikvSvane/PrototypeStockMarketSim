@@ -3,6 +3,7 @@ package dk.dtu.client.datafetcher;
 import dk.dtu.company.Company;
 import dk.dtu.company.StochasticCompany;
 import org.jspace.ActualField;
+import org.jspace.FormalField;
 import org.jspace.Space;
 
 import java.util.List;
@@ -31,7 +32,7 @@ public class PriceGraphDataFetcher extends DataFetcher implements Runnable {
                 // Vent på der er ticket fra traderDataSpace og tag den
                 traderDataSpace.get(new ActualField("ticket"));
                 // Fjern alle data fra traderDataSpace
-                traderDataSpace.getAll(new ActualField(String.class), new ActualField(String.class), new ActualField(Float.class));
+                traderDataSpace.getAll(new FormalField(String.class), new FormalField(String.class), new FormalField(Float.class));
                 updateCompanyData(companyData);
                 // Indsæt ticket i traderDataSpace
                 traderDataSpace.put("ticket");
