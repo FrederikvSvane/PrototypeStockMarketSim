@@ -110,11 +110,27 @@ public class BankAccount {
         }
     }
 
+    public String showStockHoldings(){
+        String data = "";
+        for (StockHolding stock : stockHoldings) {
+            data = (stock.getCompanyTicker() + ": " + stock.getAmount())+"\n";
+        }
+        return data;
+    }
+
+    public String showReservedStockHoldings(){
+        String data = "";
+        for (StockHolding stock : reservedStockHoldings) {
+            data = (stock.getCompanyTicker() + ": " + stock.getAmount())+"\n";
+        }
+        return data;
+    }
+
     public String showAccount(){
         return "TraderId: " + traderId + "\n" +
                 "MoneyBalance: " + moneyBalance + "\n" +
                 "ReservedMoneyBalance: " + reservedMoneyBalance + "\n" +
-                "StockHoldings: " + stockHoldings.get(0).getCompanyTicker() + ": " + stockHoldings.get(0).getAmount() + "\n" +
-                "ReservedStockHoldings: " + reservedStockHoldings + "\n";
+                "StockHoldings: \n" + showStockHoldings() + "\n" +
+                "ReservedStockHoldings: \n" + showReservedStockHoldings() + "\n";
     }
 }
