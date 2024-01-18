@@ -16,7 +16,7 @@ public class Broker implements Runnable {
     private SequentialSpace requestSpace;
     private String uriConnection;
     private int portBank = HostUtil.getBankPort();
-    private RemoteSpace bankRequestSpace;
+    private RemoteSpace transactionsSpace;
     private RemoteSpace transactionResponseSpace;
     private RemoteSpace companySpace;
 
@@ -34,9 +34,9 @@ public class Broker implements Runnable {
         while (true) { //TODO den skal måske ikke have et while overhovedet da det ikke bliver brugt
             try {
                 // UUID "buy/sell" order
-                Object[] request = this.requestSpace.get(new FormalField(String.class) /*traderId*/, new FormalField(String.class) /*orderId*/, new FormalField(String.class)/*orderType*/, new FormalField(Order.class)/*Order*/);
+                Object[] request = requestSpace.get(new FormalField(String.class) /*traderId*/, new FormalField(String.class) /*orderId*/, new FormalField(String.class)/*orderType*/, new FormalField(Order.class)/*Order*/);
                 Order order = (Order) request[3];
-                bankRequestSpace = new RemoteSpace(ClientUtil.getHostUri("bankRequestSpace", portBank, "keep"));
+                transactionsSpace = new RemoteSpace(ClientUtil.getHostUri("bankRequestSpace", portBank, "keep"));
                 transactionResponseSpace = new RemoteSpace(ClientUtil.getHostUri("transactionResponseSpace", portBank, "keep"));
                 String companyTicker = order.getTicker();
                 String uri = ClientUtil.getHostUri(companyTicker);
@@ -93,8 +93,8 @@ public class Broker implements Runnable {
                             }
                         } else {
                             System.out.println("not enough money");
-                            return;
                         }
+
 
                         // Reserved amount of money minus used amount of money = amount of money to return to trader account
                         float moneyToReturn = moneyReserved - moneyUsed;
@@ -129,10 +129,9 @@ public class Broker implements Runnable {
                     case "establish account":
                         // Ask bank to establish account
                         // {traderId}
-                        System.out.println("Was sent to establish account");
                         transaction = new Transaction(traderId);
                         responseString = sendAndReceiveRequest("establish account", transaction);
-
+                        System.out.println(responseString);
                         return;
                     default:
                         System.out.println("Broker " + request[0].toString() + " received unknown order" + request[2].toString());
@@ -150,21 +149,9 @@ public class Broker implements Runnable {
     }
 
     public String sendAndReceiveRequest(String command, Transaction transaction) throws InterruptedException {
-        String response = "I failed";
-        try{
-            System.out.println(brokerId + " " + command);
-            try{
-                bankRequestSpace.put(brokerId, command, transaction);
-            } catch(Exception e){
-                System.out.println(e);
-            }
-            Object[] bankResponse = transactionResponseSpace.get(new ActualField(brokerId), new FormalField(String.class));
-            response = (String) bankResponse[1];
-            System.out.println(response);
-        }catch(Exception e){
-            System.out.println(e);
-        }
-        return response;
+        transactionsSpace.put(brokerId, command, transaction);
+        Object[] bankResponse = transactionResponseSpace.get(new ActualField(brokerId), new FormalField(String.class));
+        return (String) bankResponse[1];
     }
 
     private List<Object[]> querySellOrdersCompanySpace() throws IOException, InterruptedException {
@@ -209,7 +196,6 @@ public class Broker implements Runnable {
             Transaction transaction = new Transaction(traderId, order.getTraderId(), order.getTicker(), order.getOrderId(), amount);
             String responseString = sendAndReceiveRequest("finalize transaction", transaction);
             companySpace.put("ticket");
-            System.out.println(responseString);
             if (responseString.equals("completed order")) {
                 return amount;
             } else {
@@ -241,7 +227,7 @@ public class Broker implements Runnable {
             companySpace.put((String) result[0], (String) result[1], (String) result[2], order, reservedAmount);
             companySpace.put("ticket");
             //Give order to bank
-            bankRequestSpace.put(brokerId, "buy", new Object[]{traderId, order.getPrice(), amount});
+            transactionsSpace.put(brokerId, "buy", new Object[]{traderId, order.getPrice(), amount});
             // get response from bank
             Object[] bankResponse = transactionResponseSpace.get(new ActualField(brokerId), new FormalField(String.class));
             String responseString = (String) bankResponse[1];

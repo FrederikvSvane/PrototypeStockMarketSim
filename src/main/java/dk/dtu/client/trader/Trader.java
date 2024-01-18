@@ -42,7 +42,7 @@ public class Trader {
         //TODO det skal faktisk bare sendes til brokeren, og så skal den sende det videre til exchange
         //TODO så både sendBuyOrder og sendSellOrder skal ligge inde i Broker.java
 
-        if (orderType.equals("buy") || orderType.equals("sell") || orderType.equals("establish account")) {
+        if (orderType.equals("buy")|| orderType.equals("sell")) {
             sendOrder(traderId, broker, order, orderType);
         }
 
@@ -50,13 +50,8 @@ public class Trader {
 
 
     public void sendOrder(String traderId, Broker broker, Order order, String orderType) throws IOException, InterruptedException {
-        try{
-            Space requestSpace = broker.getRequestSpace();
-            requestSpace.put(traderId, order.getOrderId(), orderType, order);
-        }catch(Exception e){
-            System.out.println(e);
-        }
-
+        Space requestSpace = broker.getRequestSpace();
+        requestSpace.put(traderId, order.getOrderId(), orderType, order);
         //TODO get response of order completion result from broker here?
     }
 

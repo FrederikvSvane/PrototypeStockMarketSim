@@ -33,7 +33,7 @@ public class IRS implements Runnable {
         tickers.add("DIS");
         tickers.add("KO");
         tickers.add("MCD");
-        /*tickers.add("WMT");
+        tickers.add("WMT");
         tickers.add("PG");
         tickers.add("JNJ");
         tickers.add("XOM");
@@ -44,7 +44,7 @@ public class IRS implements Runnable {
         tickers.add("HWP"); // Assuming HWP for Hewlett-Packard (now HPQ)
         tickers.add("GS");
         tickers.add("GOOG");
-        tickers.add("VOC");*/
+        tickers.add("VOC");
     }
 
     private void initializeCompanyIPOYears() {
