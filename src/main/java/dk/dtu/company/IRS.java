@@ -29,7 +29,7 @@ public class IRS implements Runnable {
     private void initializeTickers() {
         // Add ticker symbols to the list
         tickers.add("IBM");
-        tickers.add("GE");
+        /*tickers.add("GE");
         tickers.add("DIS");
         tickers.add("KO");
         tickers.add("MCD");
@@ -44,7 +44,7 @@ public class IRS implements Runnable {
         tickers.add("HWP"); // Assuming HWP for Hewlett-Packard (now HPQ)
         tickers.add("GS");
         tickers.add("GOOG");
-        tickers.add("VOC");
+        tickers.add("VOC");*/
     }
 
     private void initializeCompanyIPOYears() {
