@@ -3,6 +3,7 @@ package dk.dtu.company;
 import dk.dtu.client.ClientUtil;
 import dk.dtu.client.Order;
 import dk.dtu.client.broker.Broker;
+import dk.dtu.host.HostUtil;
 import org.jspace.FormalField;
 import org.jspace.RemoteSpace;
 import org.jspace.Space;
@@ -29,9 +30,11 @@ public class CompanyBroker extends Broker implements Runnable {
                 float price = order.getPrice();
 
                 if (orderType.equals("IPO")) {
-                    String uri = ClientUtil.getHostUri("exchangeRequestSpace");  //TODO den skal have et rigtig room navn
-                    String uriConnection = ClientUtil.setConnectType(uri,"keep");
+                    //String uri = ClientUtil.getHostUri("exchangeRequestSpace");  //TODO den skal have et rigtig room navn
+                    int port = HostUtil.getExchangePort();
+                    String uriConnection = ClientUtil.getHostUri("exchangeRequestSpace", port, "keep");
                     Space exchangeRequestSpace = new RemoteSpace(uriConnection);
+                    System.out.println("IPO request sent to exchange" + amount + " " + price);
                     exchangeRequestSpace.put(order.getOrderId(), orderType, companyID,companyName, companyTicker, amount, price); //TODO måske skal order bare sendes videre?
                     return;
                 } else if (orderType.equals("buy")) {

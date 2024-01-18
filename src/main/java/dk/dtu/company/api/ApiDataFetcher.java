@@ -14,7 +14,7 @@ import org.jspace.Space;
 
 public class ApiDataFetcher {
       //API key needed for access to the API
-    private static String apiKey = "eSpgWVgLc3Xde6SZK0m89gyThTBXfrLp";
+    private static String apiKey = "a6gXxYlIsBEUELQvxuIDexWvp2D12BwB";
     private static String stockTicker; //Ticker for det selskab vi vil have data fra.
 
 
