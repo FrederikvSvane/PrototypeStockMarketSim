@@ -20,6 +20,7 @@ abstract class DataFetcher {
     {
         this.traderDataSpace = traderDataSpace;
         this.hostDataSpaceName = hostDataSpaceName;
+        this.sleepTime = sleepTime;
     }
     public void connectToDataSpace() throws IOException
     {

@@ -3,9 +3,11 @@ package dk.dtu.client.trader;
 import dk.dtu.client.Order;
 import dk.dtu.client.trader.Trader;
 
+import java.io.IOException;
+
 public class SellBot extends Trader {
 
-    public SellBot() throws InterruptedException {
+    public SellBot() throws InterruptedException, IOException {
         super();
     }
 

@@ -33,11 +33,13 @@ public class CompanyBroker extends Broker implements Runnable {
                     String uriConnection = ClientUtil.setConnectType(uri,"keep");
                     Space exchangeRequestSpace = new RemoteSpace(uriConnection);
                     exchangeRequestSpace.put(order.getOrderId(), orderType, companyID,companyName, companyTicker, amount, price); //TODO måske skal order bare sendes videre?
-
+                    return;
                 } else if (orderType.equals("buy")) {
                     //TODO send buy request to exchange
+                    return;
                 } else if (orderType.equals("sell")) {
                     //TODO send sell request to exchange
+                    return;
                 }
 
 
