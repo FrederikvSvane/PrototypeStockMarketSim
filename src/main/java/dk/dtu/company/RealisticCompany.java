@@ -26,27 +26,27 @@ public class RealisticCompany extends Company{
                 int year = ingameDate.getYear();
                 fundamentalsSpace.getAll(new ActualField(this.companyTicker),new ActualField(LocalDateTime.class), new FormalField(String.class), new FormalField(String.class), new FormalField(Float.class));
                 Object[] incomeStatement = latentSpace.get(new ActualField(this.companyTicker),new ActualField("Income Statement"), new ActualField(year), new FormalField(FinancialData.class));
-                Object[] balanceSheet = latentSpace.get(new ActualField(this.companyTicker),new ActualField("Balance Sheet"), new ActualField(year), new FormalField(FinancialData.class));
-                FinancialData financialData = (FinancialData) incomeStatement[2];
-                FinancialData financialData2 = (FinancialData) balanceSheet[2];
+                //Object[] balanceSheet = latentSpace.get(new ActualField(this.companyTicker),new ActualField("Balance Sheet"), new ActualField(year), new FormalField(FinancialData.class));
+                FinancialData financialData = (FinancialData) incomeStatement[3];
+                //FinancialData financialData2 = (FinancialData) balanceSheet[2];
                 long newRevenue = financialData.getRevenue();
                 long newCost = financialData.getCostOfRevenue();
                 long newGrossProfit = financialData.getGrossProfit();
-                long newAssets = financialData2.getTotalAssets();
-                long newLiabilities = financialData2.getTotalDebt();
-                long newEquity = financialData2.getNetReceiveable();
-                long newCash = financialData2.getCash();
+                //long newAssets = financialData2.getTotalAssets();
+                //long newLiabilities = financialData2.getTotalDebt();
+                //long newEquity = financialData2.getNetReceiveable();
+                //long newCash = financialData2.getCash();
 
-
-
-                fundamentalsSpace.put(this.companyTicker, GlobalClock.getIRLDateTimeNow(),"income statement","revenue",newRevenue);
-                fundamentalsSpace.put(this.companyTicker, GlobalClock.getIRLDateTimeNow(),"income statement","cost of revenue",newCost);
-                fundamentalsSpace.put(this.companyTicker, GlobalClock.getIRLDateTimeNow(),"income statement","gross profit",newGrossProfit);
-                fundamentalsSpace.put(this.companyTicker, GlobalClock.getIRLDateTimeNow(),"balance sheet","total assets",newAssets);
-                fundamentalsSpace.put(this.companyTicker, GlobalClock.getIRLDateTimeNow(),"balance sheet","total liabilities",newLiabilities);
-                fundamentalsSpace.put(this.companyTicker, GlobalClock.getIRLDateTimeNow(),"balance sheet","total stockholders equity",newEquity);
-                fundamentalsSpace.put(this.companyTicker, GlobalClock.getIRLDateTimeNow(),"balance sheet","cash",newCash);
-
+                System.out.println("Fundamentals is updated for " + this.companyTicker + " with the following data: " + newRevenue + " " + newCost + " " + newGrossProfit);
+                fundamentalsSpace.put(this.companyTicker, 2019,"income statement","revenue",newRevenue);
+                fundamentalsSpace.put(this.companyTicker, 2019,"income statement","cost of revenue",newCost);
+                fundamentalsSpace.put(this.companyTicker, ingameDate.getYear(),"income statement","gross profit",newGrossProfit);
+                //fundamentalsSpace.put(this.companyTicker, ingameDate.getYear(),"balance sheet","total assets",newAssets);
+                //fundamentalsSpace.put(this.companyTicker, ingameDate.getYear(),"balance sheet","total liabilities",newLiabilities);
+                //fundamentalsSpace.put(this.companyTicker, ingameDate.getYear(),"balance sheet","total stockholders equity",newEquity);
+                //fundamentalsSpace.put(this.companyTicker, ingameDate.getYear(),"balance sheet","cash",newCash);
+                //TODO: Add more fundamentals
+                //TODO: Maybe just add the FinancialData Object to the tuple space instead.
 
             }else{
                 System.out.println("Company " + this.companyTicker + " is not publicly traded yet, so it cannot update its fundamentals");
@@ -67,4 +67,6 @@ public class RealisticCompany extends Company{
             return true;
         }
     }
+
+
 }
