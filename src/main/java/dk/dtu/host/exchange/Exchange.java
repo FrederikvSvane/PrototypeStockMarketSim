@@ -35,7 +35,7 @@ public class Exchange implements Runnable {
         while (true) {
             try {
                 // Structure: orderId, orderType, Company, amount, price
-                Object[] currentRequest = exchangeRequestSpace.getp(new FormalField(String.class), new FormalField(String.class), new FormalField(String.class), new FormalField(String.class), new FormalField(String.class), new FormalField(Integer.class), new FormalField(Float.class));
+                Object[] currentRequest = exchangeRequestSpace.get(new FormalField(String.class), new FormalField(String.class), new FormalField(String.class), new FormalField(String.class), new FormalField(String.class), new FormalField(Integer.class), new FormalField(Float.class));
                 if (currentRequest != null) {
                     String orderType = currentRequest[1].toString();
                     switch (orderType) {

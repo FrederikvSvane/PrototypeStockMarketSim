@@ -16,7 +16,7 @@ public class Broker implements Runnable {
     private SequentialSpace requestSpace;
     private String uriConnection;
     private int portBank = HostUtil.getBankPort();
-    private RemoteSpace transactionsSpace;
+    private RemoteSpace bankRequestSpace;
     private RemoteSpace transactionResponseSpace;
     private RemoteSpace companySpace;
 
@@ -36,7 +36,7 @@ public class Broker implements Runnable {
                 // UUID "buy/sell" order
                 Object[] request = requestSpace.get(new FormalField(String.class) /*traderId*/, new FormalField(String.class) /*orderId*/, new FormalField(String.class)/*orderType*/, new FormalField(Order.class)/*Order*/);
                 Order order = (Order) request[3];
-                transactionsSpace = new RemoteSpace(ClientUtil.getHostUri("bankRequestSpace", portBank, "keep"));
+                bankRequestSpace = new RemoteSpace(ClientUtil.getHostUri("bankRequestSpace", portBank, "keep"));
                 transactionResponseSpace = new RemoteSpace(ClientUtil.getHostUri("transactionResponseSpace", portBank, "keep"));
                 String companyTicker = order.getTicker();
                 String uri = ClientUtil.getHostUri(companyTicker);
@@ -93,6 +93,7 @@ public class Broker implements Runnable {
                             }
                         } else {
                             System.out.println("not enough money");
+                            return;
                         }
 
 
@@ -149,7 +150,7 @@ public class Broker implements Runnable {
     }
 
     public String sendAndReceiveRequest(String command, Transaction transaction) throws InterruptedException {
-        transactionsSpace.put(brokerId, command, transaction);
+        bankRequestSpace.put(brokerId, command, transaction);
         Object[] bankResponse = transactionResponseSpace.get(new ActualField(brokerId), new FormalField(String.class));
         return (String) bankResponse[1];
     }
@@ -227,7 +228,7 @@ public class Broker implements Runnable {
             companySpace.put((String) result[0], (String) result[1], (String) result[2], order, reservedAmount);
             companySpace.put("ticket");
             //Give order to bank
-            transactionsSpace.put(brokerId, "buy", new Object[]{traderId, order.getPrice(), amount});
+            bankRequestSpace.put(brokerId, "buy", new Object[]{traderId, order.getPrice(), amount});
             // get response from bank
             Object[] bankResponse = transactionResponseSpace.get(new ActualField(brokerId), new FormalField(String.class));
             String responseString = (String) bankResponse[1];
