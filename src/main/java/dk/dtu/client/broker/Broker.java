@@ -213,7 +213,7 @@ public class Broker implements Runnable {
             if (responseString.equals("completed order")) {
                 return amount;
             } else {
-                System.out.println("order not found"); // dette burde ikke kunne ske
+               // dette burde ikke kunne ske
                 return 0;
             }
 
