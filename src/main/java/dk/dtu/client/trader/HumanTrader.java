@@ -280,13 +280,14 @@ public class HumanTrader extends Trader implements Runnable {
 
     public void showCompanyFundametals() throws InterruptedException, IOException {
         Scanner terminalIn = new Scanner(System.in);
-        System.out.println("Enter company or ticker name: ");
+        System.out.println("Enter company ticker: ");
         String input = terminalIn.nextLine();
         String companyName = input.toUpperCase();
         Object[] companyData = super.getMasterCompanyRegister().queryp(new FormalField(String.class), new ActualField(companyName), new FormalField(String.class));
 
         if (companyData == null) {
             // Så man kan skriver ticker i stedet for navn
+
             companyData = super.getMasterCompanyRegister().queryp(new FormalField(String.class), new FormalField(String.class), new ActualField(companyName.toUpperCase()));
 
             if (companyData == null) {

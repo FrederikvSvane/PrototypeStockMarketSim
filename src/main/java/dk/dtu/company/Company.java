@@ -60,6 +60,7 @@ public class Company implements Runnable {
                 //First things first; we have to IPO
                 if (isTimeToIPO(ipoDateTime, simulatedDateTime)) {
                     //Calculate fundamentals and push them to fundamentals space
+                    this.isPubliclyTraded = true;
                     updateFundamentalData(simulatedDateTime);
 
                     System.out.println("The date is now " + simulatedDateTime + " and company " + this.companyTicker + " has IPO'd.\nIts original IPO date was: " + ipoDateTime);
@@ -70,7 +71,7 @@ public class Company implements Runnable {
                     this.sharesOutstanding = getIPOSharesFloated();
                     Order IPO = makeOrder(IPOFloating, IPOSharePrice);
                     sendRequestToCompanyBroker("IPO", IPO);
-                    this.isPubliclyTraded = true;
+
                 }
             } catch (Exception e) {
                 System.out.println("Company got error");
