@@ -114,7 +114,7 @@ public class BankAccount {
         return "TraderId: " + traderId + "\n" +
                 "MoneyBalance: " + moneyBalance + "\n" +
                 "ReservedMoneyBalance: " + reservedMoneyBalance + "\n" +
-                "StockHoldings: " + stockHoldings.get(0) + "\n" +
+                "StockHoldings: " + stockHoldings.get(0).getCompanyTicker() + ": " + stockHoldings.get(0).getAmount() + "\n" +
                 "ReservedStockHoldings: " + reservedStockHoldings + "\n";
     }
 }

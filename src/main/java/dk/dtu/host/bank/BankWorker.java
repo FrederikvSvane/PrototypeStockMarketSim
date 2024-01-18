@@ -104,6 +104,7 @@ public class BankWorker implements Runnable {
 
                         finalizeTransaction();
                         transactionResponseSpace.put(brokerId, "order: " + orderId + " fulfilled");
+                        System.out.println(buyerAccount.showAccount());
                         break;
                     case "reserve stocks":
                         // in {tradeId, companyTicker, amount}
@@ -144,7 +145,7 @@ public class BankWorker implements Runnable {
 
 
             } catch (Exception e) {
-                throw new RuntimeException(e);
+                System.err.println(e);
             }
         }
     }
