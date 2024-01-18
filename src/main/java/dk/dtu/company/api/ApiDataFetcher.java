@@ -63,9 +63,6 @@ public class ApiDataFetcher {
                 tupleSpace.put(ticker,"Income Statement", yearInt, data);
                 System.out.println("date:"+year+"Revenue: " + revenue + " Cost of Revenue: " + costOfRevenue + " Gross Profit: " + grossProfit);
             }
-
-            // Print the response
-            //System.out.println(response.toString());
         } else {
             System.out.println("GET request not worked");
             System.out.println("Response Code: " + responseCode);

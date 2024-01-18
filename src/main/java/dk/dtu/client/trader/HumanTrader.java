@@ -4,11 +4,13 @@ import dk.dtu.chat.ChatGetter;
 import dk.dtu.client.Order;
 import dk.dtu.company.IRS;
 import dk.dtu.company.api.FinancialData;
+import dk.dtu.host.GlobalClock;
 import dk.dtu.host.HostUtil;
 import org.jspace.*;
 import dk.dtu.company.Company;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
@@ -294,12 +296,20 @@ public class HumanTrader extends Trader implements Runnable {
                 return;
             }
         }
-        System.out.println("Enter year of fundamentals you want to look at: ");
-        int year = terminalIn.nextInt();
+        //System.out.println("Enter year of fundamentals you want to look at: ");
+        LocalDateTime simulatedDateTime = GlobalClock.getSimulatedDateTimeNow();
+        int year = simulatedDateTime.getYear();
         FinancialData data = Company.getFundamentalDataOverview(companyName, year);
-
-        System.out.println("The revenue of " + companyName + " is " + data.getRevenue() + " USD \n You will be directed back to the main menu in 5 seconds");
-        Thread.sleep(5000);
+        System.out.println("For the fiscal year " + year + " the fundamentals of " + companyName + " are: ");
+        System.out.println("The revenue of " + companyName + " is " + data.getRevenue() + " USD \n " +
+                "The cost of revenue of " + companyName + " is " + data.getCostOfRevenue() + " USD \n " +
+                "The gross profit of " + companyName + " is " + data.getGrossProfit() + " USD \n " +
+                "The total assets of " + companyName + " is " + data.getTotalAssets() + " USD \n " +
+                "The total liabilities of " + companyName + " is " + data.getTotalDebt() + " USD \n " +
+                "The net receiveables of " + companyName + " is " + data.getNetReceiveable() + " USD \n " +
+                "The cash on hand of " + companyName + " is " + data.getCash() + " USD \n " +
+                "You will be directed back to the main menu in 10 seconds");
+        Thread.sleep(10000);
 
 
     }

@@ -40,15 +40,6 @@ public class RealisticCompany extends Company{
                 FinancialData financialData3 = new FinancialData(newRevenue,newCost,newGrossProfit,newAssets,newLiabilities,newEquity,newCash);
                 System.out.println("Fundamentals is updated for " + this.companyTicker + " with the following data: " + financialData3.getRevenue() + " " + financialData3.getCostOfRevenue()+ " " + financialData3.getGrossProfit());
                 fundamentalsSpace.put(this.companyTicker, year,"Finance Statement",financialData3);
-//                fundamentalsSpace.put(this.companyTicker, 2019,"income statement","revenue",newRevenue);
-//                fundamentalsSpace.put(this.companyTicker, 2019,"income statement","cost of revenue",newCost);
-//                fundamentalsSpace.put(this.companyTicker, ingameDate.getYear(),"income statement","gross profit",newGrossProfit);
-                //fundamentalsSpace.put(this.companyTicker, ingameDate.getYear(),"balance sheet","total assets",newAssets);
-                //fundamentalsSpace.put(this.companyTicker, ingameDate.getYear(),"balance sheet","total liabilities",newLiabilities);
-                //fundamentalsSpace.put(this.companyTicker, ingameDate.getYear(),"balance sheet","total stockholders equity",newEquity);
-                //fundamentalsSpace.put(this.companyTicker, ingameDate.getYear(),"balance sheet","cash",newCash);
-                //TODO: Add more fundamentals
-                //TODO: Maybe just add the FinancialData Object to the tuple space instead.
 
             }else{
                 System.out.println("Company " + this.companyTicker + " is not publicly traded yet, so it cannot update its fundamentals");
