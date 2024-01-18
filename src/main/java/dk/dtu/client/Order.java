@@ -50,7 +50,12 @@ public class Order {
      * Construct an order without any data
      */
     public Order() {
-
+        this.traderId = "";
+        this.orderId = UUID.randomUUID().toString();
+        this.stockName = "";
+        this.companyTicker = "";
+        this.amount = 0;
+        this.price = 0;
     }
 
     @Override

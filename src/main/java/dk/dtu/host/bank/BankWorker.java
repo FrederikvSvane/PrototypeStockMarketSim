@@ -128,6 +128,7 @@ public class BankWorker implements Runnable {
                         if (transaction.getBuyerId() != null) {
                             traderId = transaction.getBuyerId();
                             Object[] traderAcc = traderAccountSpace.queryp(new ActualField(traderId), new FormalField(BankAccount.class));
+
                             if (traderAcc != null) {
                                 transactionResponseSpace.put(brokerId, "trader already has account");
                                 break;
@@ -147,6 +148,7 @@ public class BankWorker implements Runnable {
     }
 
     private void finalizeTransaction() throws InterruptedException, IOException {
+        System.out.println("Start finalize");
         Object[] info = completeOrderSpace.get(new ActualField("readyToFinalize"), new FormalField(BankAccount.class), new FormalField(BankAccount.class), new FormalField(Transaction.class));
         BankAccount buyerAccount = (BankAccount) info[1];
         BankAccount sellerAccount = (BankAccount) info[2];
@@ -154,9 +156,9 @@ public class BankWorker implements Runnable {
         int amount = transaction.getAmountOfStocks();
         String orderId = transaction.getOrderId();
         String companyTicker = transaction.getCompanyTicker();
-        RemoteSpace companyStockSpace = new RemoteSpace(ClientUtil.getHostUri(companyTicker, HostUtil.getBankPort(), "keep"));
+        RemoteSpace companyStockSpace = new RemoteSpace(ClientUtil.getHostUri(companyTicker, HostUtil.getExchangePort(), "keep"));
         // traderId, orderId, orderType, order, reservedAmount
-        Object[] orderInfo = companyStockSpace.get(new FormalField(String.class), new ActualField(orderId), new ActualField("sell"), new FormalField(Order.class), new FormalField(Integer.class));
+        Object[] orderInfo = companyStockSpace.getp(new FormalField(String.class), new ActualField(orderId), new ActualField("sell"), new FormalField(Order.class), new FormalField(Integer.class));
         Order order = (Order) orderInfo[3];
         int reservedAmount = (int) orderInfo[4];
         float price = order.getPrice();
@@ -177,10 +179,10 @@ public class BankWorker implements Runnable {
 
         traderAccountSpace.put("token");
         completeOrderSpace.put("readyToken");
-
     }
 
     private void get_token() {
+        System.out.println("Im in get:token");
         try {
             traderAccountSpace.get(new ActualField("token"));
             completeOrderSpace.put("token");

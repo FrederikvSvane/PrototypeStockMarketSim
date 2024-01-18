@@ -22,6 +22,7 @@ public class BankAccount {
         this.reservedMoneyBalance = 0;
         this.stockHoldings = new ArrayList<>();
         this.reservedStockHoldings = new ArrayList<>();
+        stockHoldings.add(new StockHolding("IBM", 100));
     }
 
     public void mergeReservedMoneyAndMoneyBalance() {
@@ -71,7 +72,7 @@ public class BankAccount {
                 }
             }
         }
-        return "you don't own this stock";
+        return "'t own this stock";
     }
 
 

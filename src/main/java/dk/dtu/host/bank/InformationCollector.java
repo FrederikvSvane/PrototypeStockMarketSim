@@ -51,7 +51,7 @@ public class InformationCollector implements Runnable {
             Object[] info = informationSpace.get(new ActualField("in" + name), new FormalField(String.class), new FormalField(String.class));
             String orderId = (String) info[1];
             String companyTicker = (String) info[2];
-            RemoteSpace companyStockSpace = new RemoteSpace(ClientUtil.getHostUri(companyTicker, portBank, "keep"));
+            RemoteSpace companyStockSpace = new RemoteSpace(ClientUtil.getHostUri(companyTicker, HostUtil.getExchangePort(), "keep"));
             // TraderId, OrderId, OrderType, Order, reservedAmount
             Object[] order = companyStockSpace.query(new FormalField(String.class), new ActualField(orderId), new ActualField("sell"), new FormalField(Order.class), new FormalField(Integer.class));
             informationSpace.put(("out" + name));
