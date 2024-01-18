@@ -22,6 +22,7 @@ public class BankAccount {
         this.reservedMoneyBalance = 0;
         this.stockHoldings = new ArrayList<>();
         this.reservedStockHoldings = new ArrayList<>();
+        stockHoldings.add(new StockHolding("IBM", 100));
     }
 
     public void mergeReservedMoneyAndMoneyBalance() {
@@ -71,7 +72,7 @@ public class BankAccount {
                 }
             }
         }
-        return "you don't own this stock";
+        return "'t own this stock";
     }
 
 
@@ -107,5 +108,13 @@ public class BankAccount {
         if (!foundStock) {
             stockHoldings.add(new StockHolding(companyTicker, amount));
         }
+    }
+
+    public String showAccount(){
+        return "TraderId: " + traderId + "\n" +
+                "MoneyBalance: " + moneyBalance + "\n" +
+                "ReservedMoneyBalance: " + reservedMoneyBalance + "\n" +
+                "StockHoldings: " + stockHoldings.get(0).getCompanyTicker() + ": " + stockHoldings.get(0).getAmount() + "\n" +
+                "ReservedStockHoldings: " + reservedStockHoldings + "\n";
     }
 }

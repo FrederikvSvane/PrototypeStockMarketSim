@@ -29,22 +29,22 @@ public class IRS implements Runnable {
     private void initializeTickers() {
         // Add ticker symbols to the list
         tickers.add("IBM");
-        //tickers.add("GE");
+        tickers.add("GE");
         tickers.add("DIS");
-        //tickers.add("KO");
-//        tickers.add("MCD");
-        //tickers.add("WMT");
-        //tickers.add("PG");
-        //tickers.add("JNJ");
-        //tickers.add("XOM");
+        tickers.add("KO");
+        tickers.add("MCD");
+        /*tickers.add("WMT");
+        tickers.add("PG");
+        tickers.add("JNJ");
+        tickers.add("XOM");
         tickers.add("INTC");
         tickers.add("AAPL");
         tickers.add("MSFT");
-        //tickers.add("CSCO");
-        //tickers.add("HWP"); // Assuming HWP for Hewlett-Packard (now HPQ)
-        //tickers.add("GS");
+        tickers.add("CSCO");
+        tickers.add("HWP"); // Assuming HWP for Hewlett-Packard (now HPQ)
+        tickers.add("GS");
         tickers.add("GOOG");
-        //tickers.add("VOC");
+        tickers.add("VOC");*/
     }
 
     private void initializeCompanyIPOYears() {

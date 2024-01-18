@@ -94,14 +94,17 @@ public class BankWorker implements Runnable {
                         Object[] getSellerInfo = completeOrderSpace.get(new ActualField("outGetSeller"), new FormalField(String.class), new FormalField(BankAccount.class));
                         completeOrderSpace.get(new ActualField("outQueryInfo"));
                         Object[] getBuyerInfo = completeOrderSpace.get(new ActualField("outGetBuyer"), new FormalField(String.class), new FormalField(BankAccount.class));
+                        System.out.println(getBuyerInfo[1] + " " + getSellerInfo[1]);
 
                         BankAccount buyerAccount = (BankAccount) getBuyerInfo[2];
                         BankAccount sellerAccount = (BankAccount) getSellerInfo[2];
+                        System.out.println(buyerAccount + " " + sellerAccount);
 
                         completeOrderSpace.put("readyToFinalize",buyerAccount,sellerAccount, transaction);
 
                         finalizeTransaction();
                         transactionResponseSpace.put(brokerId, "order: " + orderId + " fulfilled");
+                        System.out.println(buyerAccount.showAccount());
                         break;
                     case "reserve stocks":
                         // in {tradeId, companyTicker, amount}
@@ -128,6 +131,7 @@ public class BankWorker implements Runnable {
                         if (transaction.getBuyerId() != null) {
                             traderId = transaction.getBuyerId();
                             Object[] traderAcc = traderAccountSpace.queryp(new ActualField(traderId), new FormalField(BankAccount.class));
+
                             if (traderAcc != null) {
                                 transactionResponseSpace.put(brokerId, "trader already has account");
                                 break;
@@ -141,7 +145,7 @@ public class BankWorker implements Runnable {
 
 
             } catch (Exception e) {
-                throw new RuntimeException(e);
+                System.err.println(e);
             }
         }
     }
@@ -154,9 +158,9 @@ public class BankWorker implements Runnable {
         int amount = transaction.getAmountOfStocks();
         String orderId = transaction.getOrderId();
         String companyTicker = transaction.getCompanyTicker();
-        RemoteSpace companyStockSpace = new RemoteSpace(ClientUtil.getHostUri(companyTicker, HostUtil.getBankPort(), "keep"));
+        RemoteSpace companyStockSpace = new RemoteSpace(ClientUtil.getHostUri(companyTicker, HostUtil.getExchangePort(), "keep"));
         // traderId, orderId, orderType, order, reservedAmount
-        Object[] orderInfo = companyStockSpace.get(new FormalField(String.class), new ActualField(orderId), new ActualField("sell"), new FormalField(Order.class), new FormalField(Integer.class));
+        Object[] orderInfo = companyStockSpace.getp(new FormalField(String.class), new ActualField(orderId), new ActualField("sell"), new FormalField(Order.class), new FormalField(Integer.class));
         Order order = (Order) orderInfo[3];
         int reservedAmount = (int) orderInfo[4];
         float price = order.getPrice();
@@ -177,10 +181,10 @@ public class BankWorker implements Runnable {
 
         traderAccountSpace.put("token");
         completeOrderSpace.put("readyToken");
-
     }
 
     private void get_token() {
+        System.out.println("Im in get:token");
         try {
             traderAccountSpace.get(new ActualField("token"));
             completeOrderSpace.put("token");
