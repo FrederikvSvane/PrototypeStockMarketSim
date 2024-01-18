@@ -31,7 +31,7 @@ public class PriceGraphDataFetcher extends DataFetcher implements Runnable {
                 // Vent på der er ticket fra traderDataSpace og tag den
                 traderDataSpace.get(new ActualField("ticket"));
                 // Fjern alle data fra traderDataSpace
-                traderDataSpace.getAll(new ActualField(String.class), new ActualField(String.class), new ActualField(Float.class));
+                traderDataSpace.queryAll(new ActualField(String.class), new ActualField(String.class), new ActualField(String.class), new ActualField(Queue.class));
                 updateCompanyData(companyData);
                 // Indsæt ticket i traderDataSpace
                 traderDataSpace.put("ticket");
@@ -48,12 +48,12 @@ public class PriceGraphDataFetcher extends DataFetcher implements Runnable {
     void updateCompanyData(List<Object[]> companyData) throws InterruptedException {
         for (Object[] companyList : companyData) {
             // extract data from company
-            String companyName = (String) companyList[1];
-            String companyTicker = (String) companyList[2];
-            // Queue<Object[]> priceHistory = (Queue<Object[]>) companyList[3];
-            float price = (float) companyList[3];
+            Company company = (StochasticCompany) companyList[1];
+            String companyName = company.getCompanyName();
+            String companyTicker = company.getCompanyTicker();
+            Queue<Object[]> priceHistory = (Queue<Object[]>) companyList[3];
             // add price history to traderDataSpace
-            traderDataSpace.put(companyName, companyTicker, price);
+            traderDataSpace.put(companyName, companyTicker, priceHistory);
         }
     }
 }
