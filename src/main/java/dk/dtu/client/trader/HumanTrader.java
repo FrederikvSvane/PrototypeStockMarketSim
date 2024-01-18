@@ -3,6 +3,7 @@ package dk.dtu.client.trader;
 import dk.dtu.chat.ChatGetter;
 import dk.dtu.client.Order;
 import dk.dtu.company.IRS;
+import dk.dtu.company.api.FinancialData;
 import dk.dtu.host.HostUtil;
 import org.jspace.*;
 import dk.dtu.company.Company;
@@ -262,12 +263,11 @@ public class HumanTrader extends Trader implements Runnable {
         }
         System.out.println("Enter year of fundamentals you want to look at: ");
         int year = terminalIn.nextInt();
-        float revenue = Company.getFundamentalDataOverview(companyName, year);
+        terminalIn.nextLine();
+        FinancialData data = Company.getFundamentalDataOverview(companyName, year);
 
-        System.out.println("The revenue of " + companyName + " is " + revenue + " USD \n You will be directed back to the main menu in 5 seconds");
+        System.out.println("The revenue of " + companyName + " is " + data.getRevenue() + " USD \n You will be directed back to the main menu in 5 seconds");
         Thread.sleep(5000);
-
-
 
     }
 }

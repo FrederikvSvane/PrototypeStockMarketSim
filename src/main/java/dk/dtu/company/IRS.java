@@ -143,24 +143,9 @@ public class IRS implements Runnable {
         RemoteSpace companyFundamentalsSpace = new RemoteSpace(ClientUtil.getHostUri(access, HostUtil.getIrsPort(), "keep"));
         return companyFundamentalsSpace;
     }
-    //write method that checks if the company is already established
-    public static boolean isCompanyEstablished(String ticker) throws IOException, InterruptedException {
-        boolean exists = tickerCompanyName.containsKey(ticker);
-        boolean exists2 = tickerCompanyName.containsValue(ticker);
-        if (exists || exists2)
-        {
-            System.out.println("Company " + ticker + " is already established");
-            return true;
-        }
-        else
-        {
-            return false;
-        }
-    }
 
     public void run()
     {
-
         System.out.println("Started the IRS thread");
         initializeTickers();
         initializeCompanyNames();
@@ -169,7 +154,6 @@ public class IRS implements Runnable {
             for (String ticker : this.tickers)
             {
                 try {
-                    //establishCompany(this.tickerCompanyName.get(ticker),ticker,this.tickerIPODateTime.get(ticker),"stochastic");
                     establishCompany(this.tickerCompanyName.get(ticker), ticker, this.tickerIPODateTime.get(ticker), this.companyType);
                 } catch (Exception e) {
                     throw new RuntimeException(e);

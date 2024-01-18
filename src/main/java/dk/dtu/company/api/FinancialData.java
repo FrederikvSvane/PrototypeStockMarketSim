@@ -22,6 +22,15 @@ public class FinancialData {
         this.costOfRevenue = costOfRevenue;
         this.grossProfit = grossProfit;
     }
+    public FinancialData(long revenue, long costOfRevenue, long grossProfit, long cash, long netReceiveable, long totalAssets, long totalDebt) {
+        this.revenue = revenue;
+        this.costOfRevenue = costOfRevenue;
+        this.grossProfit = grossProfit;
+        this.cash = cash;
+        this.netReceiveable = netReceiveable;
+        this.totalAssets = totalAssets;
+        this.totalDebt = totalDebt;
+    }
 
 
     // Getters
