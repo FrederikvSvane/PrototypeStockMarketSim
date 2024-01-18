@@ -94,9 +94,11 @@ public class BankWorker implements Runnable {
                         Object[] getSellerInfo = completeOrderSpace.get(new ActualField("outGetSeller"), new FormalField(String.class), new FormalField(BankAccount.class));
                         completeOrderSpace.get(new ActualField("outQueryInfo"));
                         Object[] getBuyerInfo = completeOrderSpace.get(new ActualField("outGetBuyer"), new FormalField(String.class), new FormalField(BankAccount.class));
+                        System.out.println(getBuyerInfo[1] + " " + getSellerInfo[1]);
 
                         BankAccount buyerAccount = (BankAccount) getBuyerInfo[2];
                         BankAccount sellerAccount = (BankAccount) getSellerInfo[2];
+                        System.out.println(buyerAccount + " " + sellerAccount);
 
                         completeOrderSpace.put("readyToFinalize",buyerAccount,sellerAccount, transaction);
 
@@ -148,7 +150,6 @@ public class BankWorker implements Runnable {
     }
 
     private void finalizeTransaction() throws InterruptedException, IOException {
-        System.out.println("Start finalize");
         Object[] info = completeOrderSpace.get(new ActualField("readyToFinalize"), new FormalField(BankAccount.class), new FormalField(BankAccount.class), new FormalField(Transaction.class));
         BankAccount buyerAccount = (BankAccount) info[1];
         BankAccount sellerAccount = (BankAccount) info[2];

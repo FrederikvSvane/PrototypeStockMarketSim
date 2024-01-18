@@ -109,4 +109,12 @@ public class BankAccount {
             stockHoldings.add(new StockHolding(companyTicker, amount));
         }
     }
+
+    public String showAccount(){
+        return "TraderId: " + traderId + "\n" +
+                "MoneyBalance: " + moneyBalance + "\n" +
+                "ReservedMoneyBalance: " + reservedMoneyBalance + "\n" +
+                "StockHoldings: " + stockHoldings.get(0) + "\n" +
+                "ReservedStockHoldings: " + reservedStockHoldings + "\n";
+    }
 }
