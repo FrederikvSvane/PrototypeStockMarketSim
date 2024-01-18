@@ -15,6 +15,9 @@ Live Updates: The stock prices update in real-time, so there's always something 
 Chat with Peers: Jump into public or private chat rooms to discuss strategies or just chat about the market.
 
 ### Quick Start
+Before running the program: you'll need to edit configuration and add VM options under "modify options", and add the following line:
+`--add-opens java.base/java.time=ALL-UNNAMED` (For the clock to work properly)
+
 Set Up: Start by setting up your host server.
 
 Connect & Play: Log in as a client, connect to the host, and start trading.
