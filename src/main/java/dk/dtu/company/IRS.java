@@ -14,39 +14,36 @@ import java.util.Map;
 
 
 /**
- *
  * The IRS establishes companies by giving them a company name, a ticker, an IPO year and a fundamentalsSpace where they kan keep their fundamentals.
- *
  */
 public class IRS implements Runnable {
 
     static SpaceRepository IrsRepo;
 
     ArrayList<String> tickers = new ArrayList<>();
-    Map<String, LocalDateTime> tickerIPODateTime  = new HashMap<>();
-    static Map<String,String> tickerCompanyName = new HashMap<>();
+    Map<String, LocalDateTime> tickerIPODateTime = new HashMap<>();
+    static Map<String, String> tickerCompanyName = new HashMap<>();
     private String companyType;
-
 
 
     private void initializeTickers() {
         // Add ticker symbols to the list
-        //tickers.add("IBM");
+        tickers.add("IBM");
         //tickers.add("GE");
-        //tickers.add("DIS");
+        tickers.add("DIS");
         //tickers.add("KO");
-        //tickers.add("MCD");
+//        tickers.add("MCD");
         //tickers.add("WMT");
         //tickers.add("PG");
         //tickers.add("JNJ");
         //tickers.add("XOM");
-        //tickers.add("INTC");
-        //tickers.add("AAPL");
+        tickers.add("INTC");
+        tickers.add("AAPL");
         tickers.add("MSFT");
         //tickers.add("CSCO");
         //tickers.add("HWP"); // Assuming HWP for Hewlett-Packard (now HPQ)
         //tickers.add("GS");
-        //tickers.add("GOOG");
+        tickers.add("GOOG");
         //tickers.add("VOC");
     }
 
@@ -97,40 +94,37 @@ public class IRS implements Runnable {
         tickerCompanyName.put("VOC", "Verenigde Oostindische Compagnie");
     }
 
-    public static String getFundamentalsSpaceName(String ticker)
-    {
+    public static String getFundamentalsSpaceName(String ticker) {
         return "fundamentals" + ticker;
     }
 
 
-    public IRS(SpaceRepository IrsRepo, String companyType)
-    {
+    public IRS(SpaceRepository IrsRepo, String companyType) {
         IRS.IrsRepo = IrsRepo;
         IrsRepo.addGate(ClientUtil.getHostUri("", HostUtil.getIrsPort(), "keep"));
         this.companyType = companyType;
     }
 
-    public void establishCompany(String companyName , String ticker, LocalDateTime ipoDateTime, String typeOfCompany) throws Exception {
+    public void establishCompany(String companyName, String ticker, LocalDateTime ipoDateTime, String typeOfCompany) throws Exception {
         //TODO: Test this!!!
 
         //TODO: Add an option to select if we want realistic or dummy companies
         Space fundamentalsSpace = new SequentialSpace();
         IrsRepo.add("fundamentals" + ticker, fundamentalsSpace);
         fundamentalsSpace.put("readTicket");
-        switch (typeOfCompany)
-        {
+        switch (typeOfCompany) {
             case "stochastic":
                 System.out.println("Starting stochastic company: " + ticker);
-                new Thread(new StochasticCompany(companyName,ticker,ipoDateTime,fundamentalsSpace)).start();
+                new Thread(new StochasticCompany(companyName, ticker, ipoDateTime, fundamentalsSpace)).start();
                 break;
             case "realistic":
                 Space latentSpace = new SequentialSpace();
                 IrsRepo.add("latent" + ticker, latentSpace);
                 latentSpace.put("readTicket");
-                ApiDataFetcher.sendRequestIncome(ticker,latentSpace);
+                ApiDataFetcher.sendRequestIncome(ticker, latentSpace);
                 //ApiDataFetcher.sendRequestBalanceSheet(ticker,latentSpace);
                 System.out.println("Starting realistic company: " + ticker);
-                new Thread(new RealisticCompany(companyName,ticker,ipoDateTime,fundamentalsSpace,latentSpace)).start();
+                new Thread(new RealisticCompany(companyName, ticker, ipoDateTime, fundamentalsSpace, latentSpace)).start();
 
 
                 //TODO: GetAPI data for that ticker
@@ -138,42 +132,39 @@ public class IRS implements Runnable {
                 //TODO: Instantiate API company
         }
     }
+
     public static Space getFundamentalsSpace(String ticker) throws IOException {
         String access = "fundamentals" + ticker;
         RemoteSpace companyFundamentalsSpace = new RemoteSpace(ClientUtil.getHostUri(access, HostUtil.getIrsPort(), "keep"));
         return companyFundamentalsSpace;
     }
+
     //write method that checks if the company is already established
     public static boolean isCompanyEstablished(String ticker) throws IOException, InterruptedException {
         boolean exists = tickerCompanyName.containsKey(ticker);
         boolean exists2 = tickerCompanyName.containsValue(ticker);
-        if (exists || exists2)
-        {
+        if (exists || exists2) {
             System.out.println("Company " + ticker + " is already established");
             return true;
-        }
-        else
-        {
+        } else {
             return false;
         }
     }
 
-    public void run()
-    {
+    public void run() {
 
         System.out.println("Started the IRS thread");
         initializeTickers();
         initializeCompanyNames();
         initializeCompanyIPOYears();
-            //Establish companies
-            for (String ticker : this.tickers)
-            {
-                try {
-                    //establishCompany(this.tickerCompanyName.get(ticker),ticker,this.tickerIPODateTime.get(ticker),"stochastic");
-                    establishCompany(this.tickerCompanyName.get(ticker), ticker, this.tickerIPODateTime.get(ticker), this.companyType);
-                } catch (Exception e) {
-                    throw new RuntimeException(e);
-                }
+        //Establish companies
+        for (String ticker : this.tickers) {
+            try {
+                //establishCompany(this.tickerCompanyName.get(ticker),ticker,this.tickerIPODateTime.get(ticker),"stochastic");
+                establishCompany(this.tickerCompanyName.get(ticker), ticker, this.tickerIPODateTime.get(ticker), this.companyType);
+            } catch (Exception e) {
+                throw new RuntimeException(e);
             }
+        }
     }
 }
