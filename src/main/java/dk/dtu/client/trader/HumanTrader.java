@@ -74,10 +74,24 @@ public class HumanTrader extends Trader implements Runnable {
         }
     }
 
-    private void showAllCompanies() {
-        List<Object[]> allCompanies = super.getMasterCompanyRegister().queryAll(new FormalField(String.class), new FormalField(String.class), new FormalField(String.class));
+    private void showAllCompanies() throws InterruptedException {
+        System.out.println("før getticket");
+        Object[] getticket = super.getCompanyPriceGraphs().get(new ActualField("ticket"));
+        System.out.println("efter getticket");
+        List<Object[]> allCompanies = super.getCompanyPriceGraphs().queryAll(new FormalField(String.class), new FormalField(String.class), new FormalField(Float.class));
+        super.getCompanyPriceGraphs().put("ticket");
+        System.out.println("All companies traded at the exchange: " + allCompanies.size());
         for (Object[] company : allCompanies) {
-            System.out.println(company[1] + " | " + company[2]);
+            System.out.println("name: "+company[0] + " | ticker: " + company[1] + " | price: " + company[2]);
+        }
+//        for (Object[] company : allCompanies) {
+//            System.out.println("name: " + company[1] + " | ticker: " + company[2]);
+//        }
+        System.out.println("You will be directed back to the main menu in 5 seconds");
+        try {
+            Thread.sleep(5000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
         }
     }
 
