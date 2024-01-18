@@ -1,11 +1,13 @@
 package dk.dtu.client.trader;
 
 import dk.dtu.chat.ChatGetter;
+import dk.dtu.client.ClientUtil;
 import dk.dtu.client.Order;
 import dk.dtu.company.IRS;
 import dk.dtu.company.api.FinancialData;
 import dk.dtu.host.GlobalClock;
 import dk.dtu.host.HostUtil;
+import dk.dtu.host.bank.BankAccount;
 import org.jspace.*;
 import dk.dtu.company.Company;
 
@@ -73,8 +75,23 @@ public class HumanTrader extends Trader implements Runnable {
                     }
                     break;
                 }
+                case "Show bank account": {
+                    try {
+                        showBankAccount();
+                    } catch (Exception e) {
+                        throw new RuntimeException(e);
+                    }
+                    break;
+                }
             }
         }
+    }
+
+    private void showBankAccount() throws IOException, InterruptedException {
+        RemoteSpace bankAccount = new RemoteSpace(ClientUtil.getHostUri("bankInformationSpace", HostUtil.getBankPort(), "keep"));
+        Object[] data = bankAccount.query(new ActualField(super.getTraderId()), new FormalField(BankAccount.class));
+        BankAccount account = (BankAccount) data[1];
+        System.out.println(account.showAccount());
     }
 
     private void showAllCompanies() throws InterruptedException {
@@ -125,7 +142,7 @@ public class HumanTrader extends Trader implements Runnable {
 
     public String chooseMode() {
         Scanner terminalIn = new Scanner(System.in);
-        System.out.println("Choose mode: \n1. Create trade \n2. Open chat \n3. Look up company fundamentals \n4. Show all companies traded at exchange");
+        System.out.println("Choose mode: \n1. Create trade \n2. Open chat \n3. Look up company fundamentals \n4. Show all companies traded at exchange \n5. Show bank account");
         String mode = terminalIn.nextLine();
         if (mode.equals("1")) {
             return "trade";
@@ -135,6 +152,8 @@ public class HumanTrader extends Trader implements Runnable {
             return "Company Fundamentals";
         } else if (mode.equals("4")) {
             return "All companies";
+        } else if (mode.equals("5")) {
+            return "Show bank account";
         } else {
             System.out.println("Invalid input");
             return chooseMode();
