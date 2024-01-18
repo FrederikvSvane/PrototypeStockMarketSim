@@ -24,5 +24,6 @@ public class HostUtil {
     public static int getBankPort() { return hostPort + 3; }
     public static int getClockPort() { return hostPort + 4; }
     public static int getIrsPort() { return hostPort + 5; }
+    public static int getFundamentalPort() { return hostPort + 6; }
 
 }

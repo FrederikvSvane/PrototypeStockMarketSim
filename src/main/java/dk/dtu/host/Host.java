@@ -8,11 +8,12 @@ import dk.dtu.host.exchange.Exchange;
 import org.jspace.SpaceRepository;
 
 
+import java.io.IOException;
 import java.time.LocalDateTime;
 
 public class Host {
 
-    public static void main(String[] args) throws InterruptedException {
+    public static void main(String[] args) throws InterruptedException, IOException {
         System.out.println("Starting client");
         HostUtil.initialize();
         ClientUtil.initialize();

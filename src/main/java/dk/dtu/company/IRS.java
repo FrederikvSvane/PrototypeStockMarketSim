@@ -4,10 +4,9 @@ import dk.dtu.company.api.ApiDataFetcher;
 import dk.dtu.host.HostUtil;
 import dk.dtu.client.ClientUtil;
 
-import org.jspace.SequentialSpace;
-import org.jspace.Space;
-import org.jspace.SpaceRepository;
+import org.jspace.*;
 
+import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -22,9 +21,10 @@ import java.util.Map;
 public class IRS implements Runnable {
 
     static SpaceRepository IrsRepo;
+
     ArrayList<String> tickers = new ArrayList<>();
     Map<String, LocalDateTime> tickerIPODateTime  = new HashMap<>();
-    Map<String,String> tickerCompanyName = new HashMap<>();
+    static Map<String,String> tickerCompanyName = new HashMap<>();
     private String companyType;
 
 
@@ -138,13 +138,29 @@ public class IRS implements Runnable {
                 //TODO: Instantiate API company
         }
     }
-    public static Space getFundamentalsSpace(String ticker){
-        Space companyFundamentalsSpace = IrsRepo.get("fundamentals" + ticker);
+    public static Space getFundamentalsSpace(String ticker) throws IOException {
+        String access = "fundamentals" + ticker;
+        RemoteSpace companyFundamentalsSpace = new RemoteSpace(ClientUtil.getHostUri(access, HostUtil.getIrsPort(), "keep"));
         return companyFundamentalsSpace;
+    }
+    //write method that checks if the company is already established
+    public static boolean isCompanyEstablished(String ticker) throws IOException, InterruptedException {
+        boolean exists = tickerCompanyName.containsKey(ticker);
+        boolean exists2 = tickerCompanyName.containsValue(ticker);
+        if (exists || exists2)
+        {
+            System.out.println("Company " + ticker + " is already established");
+            return true;
+        }
+        else
+        {
+            return false;
+        }
     }
 
     public void run()
     {
+
         System.out.println("Started the IRS thread");
         initializeTickers();
         initializeCompanyNames();

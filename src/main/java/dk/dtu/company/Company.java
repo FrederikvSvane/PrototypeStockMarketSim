@@ -179,12 +179,12 @@ public class Company implements Runnable{
     }
 
 
-    public static float getFundamentalDataOverview(String nameOrTicker, int year) throws InterruptedException {
+    public static float getFundamentalDataOverview(String nameOrTicker, int year) throws InterruptedException, IOException {
 
         //Querying tuple with the form (companyTicker, year, financialStatement, financialPost, financialValue)
         Space companyFundamentalsSpace = IRS.getFundamentalsSpace(nameOrTicker);
         Object[] data = companyFundamentalsSpace.query(new ActualField(nameOrTicker), new ActualField(year),new ActualField("income statement"),new ActualField("revenue"), new FormalField(Long.class)); //Retrieves fundamental data for a company
-        return (float) data[4];
+        return (long) data[4];
 
     }
 
