@@ -65,6 +65,10 @@ public class Exchange implements Runnable {
                                 // Here the currentStockPrice is set as the IPO price. This is an exception. Normally the currentStockPrice is set by latest sold price
                                 //TODO den skal laves om til en Queue, så vi kan se historikken
                                 companiesAndPricesSpace.put(companyId, companyName, companyTicker, price);
+                                Object[] resultingStockOrder = companyStockSpace.get(new ActualField(companyTicker), new FormalField(String.class), new FormalField(String.class), new FormalField(Order.class));
+                                String currCompanyTicker = (String) resultingStockOrder[0];
+                                Order resultingOrder = (Order) resultingStockOrder[3];
+                                System.out.println("IPO order added to the space of " + currCompanyTicker + ": " + resultingOrder.toString());
 
                             }
                             break;

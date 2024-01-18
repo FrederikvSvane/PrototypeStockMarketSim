@@ -36,31 +36,35 @@ public class StochasticCompany extends Company {
     }
 
     @Override
-    public void updateFundamentalData(LocalDateTime ingameDate) {
+    public void updateFundamentalData(LocalDateTime ingameDate) throws InterruptedException {
         try {
             //If we've already published fundamentals for this date, then we just need to update
             if (isPubliclyTraded) {
                 NormalDistribution growthDetermination = new NormalDistribution(0.2, 0.2);
                 List<Object[]> previousFundamentals = getFundamentalsFromSpace(this.companyTicker);
-                float previousRevenue = (float) previousFundamentals.get(0)[5];
-                float revenueGrowth = (float) (previousRevenue * growthDetermination.sample());
-                float newRevenue = revenueGrowth + previousRevenue;
-                //System.out.println("We're updating the fundamentals for " + this.companyTicker + " from " + previousRevenue + " to " + newRevenue + " on " + GlobalCock.getSimulatedDateTimeNow());
-                putFundamentals(companyTicker, GlobalClock.getIRLDateTimeNow(), GlobalClock.getSimulatedDateTimeNow(), "income statement", "revenue", newRevenue);
-            } else //otherwise we need to create some initial
-            {
+                if (previousFundamentals.size() == 0) {
+                    //System.out.println("Company " + this.companyTicker + " is not publicly traded yet, so it cannot update its fundamentals");
+                    fundamentalsSpace.get(new ActualField("readTicket"));
+                    NormalDistribution X = new NormalDistribution(100, 10);
+                    putFundamentals(companyTicker, GlobalClock.getIRLDateTimeNow(), GlobalClock.getSimulatedDateTimeNow(), "income statement", "revenue", (float) X.sample());
+                } else {
+                    float previousRevenue = (float) previousFundamentals.get(0)[5];
+                    float revenueGrowth = (float) (previousRevenue * growthDetermination.sample());
+                    float newRevenue = revenueGrowth + previousRevenue;
+                    //System.out.println("We're updating the fundamentals for " + this.companyTicker + " from " + previousRevenue + " to " + newRevenue + " on " + GlobalCock.getSimulatedDateTimeNow());
+                    putFundamentals(companyTicker, GlobalClock.getIRLDateTimeNow(), GlobalClock.getSimulatedDateTimeNow(), "income statement", "revenue", newRevenue);
+                }
+            } else {
                 //System.out.println("Company " + this.companyTicker + " is not publicly traded yet, so it cannot update its fundamentals");
                 fundamentalsSpace.get(new ActualField("readTicket"));
                 NormalDistribution X = new NormalDistribution(100, 10);
                 putFundamentals(companyTicker, GlobalClock.getIRLDateTimeNow(), GlobalClock.getSimulatedDateTimeNow(), "income statement", "revenue", (float) X.sample());
             }
-
-
-        } catch (InterruptedException e) {
+        } catch (
+                InterruptedException e) {
             System.out.println("Error in updateFundamentalData");
             e.printStackTrace();
             throw new RuntimeException(e);
         }
-
     }
 }

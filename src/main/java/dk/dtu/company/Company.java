@@ -17,7 +17,7 @@ import org.apache.commons.math3.distribution.NormalDistribution;
 import org.jspace.*;
 
 
-public class Company implements Runnable{
+public class Company implements Runnable {
     protected static LocalDateTime ingameDate;
     protected final String companyId;
     protected final String companyName;
@@ -47,52 +47,35 @@ public class Company implements Runnable{
     @Override
     public void run() {
 
-        while(!isPubliclyTraded)
-        {
-            if (this.companyTicker == "VOC")
-            {
+        while (!isPubliclyTraded) {
+            if (this.companyTicker == "VOC") {
                 System.out.println("Getting the datetime");
             }
 
             LocalDateTime simulatedDateTime = GlobalClock.getSimulatedDateTimeNow();
 
-        try {
+            try {
 
-            //System.out.println("The date is now " + simulatedDateTime + " and company " + this.companyTicker  + " has not IPO'd yet.\nIts original IPO date was: " + ipoDateTime);
-            //First things first; we have to IPO
-            if(isTimeToIPO(ipoDateTime,simulatedDateTime))
-            {
-                //Calculate fundamentals and push them to fundamentals space
-                this.isPubliclyTraded = true;
-                updateFundamentalData(simulatedDateTime);
-
-                System.out.println("The date is now " + simulatedDateTime + " and company " + this.companyTicker  + " has IPO'd.\nIts original IPO date was: " + ipoDateTime);
-
-                //Then we IPO!!!
-                int IPOFloating = this.getIPOSharesFloated();
-                float IPOSharePrice = this.calculateIPOPrice();
-                this.sharesOutstanding = getIPOSharesFloated();
-                Order IPO = makeOrder(IPOFloating, IPOSharePrice);
-                sendRequestToCompanyBroker("IPO", IPO);
-            }
-
-            while(true)
-            {
-               /* simulatedDateTime = GlobalClock.getSimulatedDateTimeNow();
-
-                //We need to wait until the right time to update, to ensure, that we have enough financial date to last the game
-                if(isTimeToUpdateFundamentals(simulatedDateTime))
-                {
+                //System.out.println("The date is now " + simulatedDateTime + " and company " + this.companyTicker  + " has not IPO'd yet.\nIts original IPO date was: " + ipoDateTime);
+                //First things first; we have to IPO
+                if (isTimeToIPO(ipoDateTime, simulatedDateTime)) {
+                    //Calculate fundamentals and push them to fundamentals space
                     updateFundamentalData(simulatedDateTime);
-                }*/
-            }
 
-        }
-        catch (Exception e)
-        {
-            System.out.println("Company got error");
-            e.printStackTrace(System.out);
-            throw new RuntimeException(e);
+                    System.out.println("The date is now " + simulatedDateTime + " and company " + this.companyTicker + " has IPO'd.\nIts original IPO date was: " + ipoDateTime);
+
+                    //Then we IPO!!!
+                    int IPOFloating = this.getIPOSharesFloated();
+                    float IPOSharePrice = this.calculateIPOPrice();
+                    this.sharesOutstanding = getIPOSharesFloated();
+                    Order IPO = makeOrder(IPOFloating, IPOSharePrice);
+                    sendRequestToCompanyBroker("IPO", IPO);
+                    this.isPubliclyTraded = true;
+                }
+            } catch (Exception e) {
+                System.out.println("Company got error");
+                e.printStackTrace(System.out);
+                throw new RuntimeException(e);
             }
         }
     }
@@ -101,12 +84,12 @@ public class Company implements Runnable{
     private void sendRequestToCompanyBroker(String orderType, Order order) throws InterruptedException, IOException {
         CompanyBroker companyBroker = new CompanyBroker();
         new Thread(companyBroker).start();
-        companyBroker.getRequestSpace().put(orderType, companyId,companyName,companyTicker, order);
+        companyBroker.getRequestSpace().put(orderType, companyId, companyName, companyTicker, order);
     }
 
     private void sendIpoRequestToExchange(CompanyBroker companyBroker, Order order) throws IOException, InterruptedException {
         String uri = ClientUtil.getHostUri("exchangeRequestSpace");  //TODO den skal have et rigtig room navn
-        String uriConnection = ClientUtil.setConnectType(uri,"keep");
+        String uriConnection = ClientUtil.setConnectType(uri, "keep");
         //TODO er keep den rigtige forbindelse her? Og hvad med alle andre steder? STOR TODO
         Space exchangeRequestSpace = new RemoteSpace(uriConnection);
         exchangeRequestSpace.put(order.getOrderId());
@@ -125,51 +108,58 @@ public class Company implements Runnable{
     }
 
     //Total numbers of shares at IPO
-    public int calculateTotalNrShares(){
-        BinomialDistribution binomialDistribution = new BinomialDistribution(10000,0.9);
+    public int calculateTotalNrShares() {
+        BinomialDistribution binomialDistribution = new BinomialDistribution(10000, 0.9);
         return binomialDistribution.sample();
     }
 
     //Number of shares floated (offered publicly) at IPO
-    public int getIPOSharesFloated(){
-        BinomialDistribution binomialDistribution = new BinomialDistribution(getTotalNrShares(),0.2);
+    public int getIPOSharesFloated() {
+        BinomialDistribution binomialDistribution = new BinomialDistribution(getTotalNrShares(), 0.2);
         return binomialDistribution.sample();
     }
 
-    public float calculateIPOPrice(){
-        NormalDistribution normalDistribution = new NormalDistribution(100,10);
+    public float calculateIPOPrice() {
+        NormalDistribution normalDistribution = new NormalDistribution(100, 10);
         return (float) normalDistribution.sample();
     }
 
     //Is it time for IPO?
-    public boolean isTimeToIPO(LocalDateTime ipoYear, LocalDateTime ingameDateTime){
+    public boolean isTimeToIPO(LocalDateTime ipoYear, LocalDateTime ingameDateTime) {
         return (ipoYear.isBefore(ingameDateTime));
     }
 
 
-    public String getCompanyName() { return companyName; }
-    public String getCompanyTicker() { return companyTicker; }
-    public String getCompanyId() { return companyId; }
+    public String getCompanyName() {
+        return companyName;
+    }
 
-    public int getIpoDateTime(){ return ipoDateTime.getYear();}
+    public String getCompanyTicker() {
+        return companyTicker;
+    }
 
-    public void updateFundamentalData(LocalDateTime ingameDate){
+    public String getCompanyId() {
+        return companyId;
+    }
+
+    public int getIpoDateTime() {
+        return ipoDateTime.getYear();
+    }
+
+    public void updateFundamentalData(LocalDateTime ingameDate) throws InterruptedException {
         try {
-            if(isPubliclyTraded)
-            {
-                NormalDistribution growthDetermination = new NormalDistribution(0.2,0.2);
+            if (isPubliclyTraded) {
+                NormalDistribution growthDetermination = new NormalDistribution(0.2, 0.2);
 
-                List<Object[]> previousFundamentals = fundamentalsSpace.getAll(new ActualField(this.companyTicker),new ActualField(LocalDateTime.class), new FormalField(String.class), new FormalField(String.class), new FormalField(Float.class));
+                List<Object[]> previousFundamentals = fundamentalsSpace.getAll(new ActualField(this.companyTicker), new ActualField(LocalDateTime.class), new FormalField(String.class), new FormalField(String.class), new FormalField(Float.class));
                 float previousRevenue = (float) previousFundamentals.get(0)[0];
-                float revenueGrowth = (float) (previousRevenue*growthDetermination.sample());
+                float revenueGrowth = (float) (previousRevenue * growthDetermination.sample());
                 float newRevenue = revenueGrowth + previousRevenue;
-                fundamentalsSpace.put(this.companyTicker, GlobalClock.getIRLDateTimeNow(),"income statement","revenue",newRevenue);
-            }
-            else
-            {
+                fundamentalsSpace.put(this.companyTicker, GlobalClock.getIRLDateTimeNow(), "income statement", "revenue", newRevenue);
+            } else {
                 System.out.println("Company " + this.companyTicker + " is not publicly traded yet, so it cannot update its fundamentals");
-                NormalDistribution X = new NormalDistribution(100,10);
-                fundamentalsSpace.put(this.companyTicker, GlobalClock.getIRLDateTimeNow(),"income statement","revenue",(float) X.sample());
+                NormalDistribution X = new NormalDistribution(100, 10);
+                fundamentalsSpace.put(this.companyTicker, GlobalClock.getIRLDateTimeNow(), "income statement", "revenue", (float) X.sample());
                 System.out.println("Put fundamentals");
             }
         } catch (InterruptedException e) {
@@ -184,7 +174,7 @@ public class Company implements Runnable{
 
         //Querying tuple with the form (companyTicker, year, financialStatement, financialPost, financialValue)
         Space companyFundamentalsSpace = IRS.getFundamentalsSpace(nameOrTicker);
-        Object[] data = companyFundamentalsSpace.query(new ActualField(nameOrTicker), new ActualField(year),new ActualField("Finance Statement"), new FormalField(FinancialData.class)); //Retrieves fundamental data for a company
+        Object[] data = companyFundamentalsSpace.query(new ActualField(nameOrTicker), new ActualField(year), new ActualField("Finance Statement"), new FormalField(FinancialData.class)); //Retrieves fundamental data for a company
         FinancialData financialData = (FinancialData) data[3];
         return financialData;
     }
@@ -212,10 +202,8 @@ public class Company implements Runnable{
         fundamentalsSpace.put("readTicket");
     }
 
-    public boolean isTimeToUpdateFundamentals(LocalDateTime ingameDateTime)
-    {
-        if(ingameDateTime.getMonth() != Month.JANUARY)
-        {
+    public boolean isTimeToUpdateFundamentals(LocalDateTime ingameDateTime) {
+        if (ingameDateTime.getMonth() != Month.JANUARY) {
             //System.out.println(ingameDateTime + " vs " + GlobalCock.getIRLDateTimeNow());
         }
         return (ingameDateTime.getDayOfMonth() == 1 || ingameDateTime.getMonth() == Month.JANUARY || ingameDateTime.getMonth() == Month.APRIL || ingameDateTime.getMonth() == Month.JULY || ingameDateTime.getMonth() == Month.NOVEMBER);
