@@ -45,7 +45,6 @@ public class Trader {
         if (orderType.equals("buy")|| orderType.equals("sell")) {
             sendOrder(traderId, broker, order, orderType);
         }
-
     }
 
 
