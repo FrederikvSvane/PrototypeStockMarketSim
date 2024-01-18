@@ -18,6 +18,7 @@ public class Broker implements Runnable {
     private int portBank = HostUtil.getBankPort();
     private RemoteSpace transactionsSpace;
     private RemoteSpace transactionResponseSpace;
+    private RemoteSpace companySpace;
 
     public Broker() throws IOException {
         this.brokerId = UUID.randomUUID().toString();
@@ -35,15 +36,16 @@ public class Broker implements Runnable {
                 // UUID "buy/sell" order
                 Object[] request = requestSpace.get(new FormalField(String.class) /*traderId*/, new FormalField(String.class) /*orderId*/, new FormalField(String.class)/*orderType*/, new FormalField(Order.class)/*Order*/);
                 Order order = (Order) request[3];
-                transactionsSpace = new RemoteSpace(ClientUtil.getHostUri("transactionSpace", portBank, "keep"));
+                transactionsSpace = new RemoteSpace(ClientUtil.getHostUri("bankRequestSpace", portBank, "keep"));
                 transactionResponseSpace = new RemoteSpace(ClientUtil.getHostUri("transactionResponseSpace", portBank, "keep"));
                 String companyTicker = order.getTicker();
                 String uri = ClientUtil.getHostUri(companyTicker);
                 uriConnection = ClientUtil.setConnectType(uri, "keep");
+                companySpace = new RemoteSpace(uriConnection);
 
-                traderId = request[0].toString();
+                traderId = (String) request[0];
 
-                String orderType = request[2].toString();
+                String orderType = (String) request[2];
                 Transaction transaction;
                 String responseString;
 
@@ -70,7 +72,7 @@ public class Broker implements Runnable {
                             int maxAmountWanted = order.getAmount();
                             for (Order sellOrder : sortedSellOrders) {
                                 int amountRemaning = maxAmountWanted - currentAmountBought;
-                                if (sellOrder.getPrice() <= priceMaxBid || !(currentAmountBought >= maxAmountWanted)) { //TODO burde være ==, ikke >=, men vi skriver det alligevel. Kan throw error her
+                                if (sellOrder.getPrice() <= priceMaxBid || !(currentAmountBought > maxAmountWanted)) { //TODO burde være ==, ikke >=, men vi skriver det alligevel. Kan throw error her
                                     //Her har vi fundet en salgsorder, som udbyder til en pris som vi gerne vil give
                                     //Vi skal så handle ud fra hvor mange aktier, som ordren udbyder
                                     int sellOrderStockAmount = sellOrder.getAmount();
@@ -117,7 +119,6 @@ public class Broker implements Runnable {
 
                         if (responseString.equals("stocks reserved")) {
                             // Send order to company space
-                            RemoteSpace companySpace = new RemoteSpace(uriConnection);
                             // TraderId, OrderId, OrderType, Order, reservedAmount
                             companySpace.put((String) request[0], (String) request[1], (String) request[2], (Order) request[3], 0);
                             System.out.println("Sell order sent to company space");
@@ -154,7 +155,6 @@ public class Broker implements Runnable {
     }
 
     private List<Object[]> querySellOrdersCompanySpace() throws IOException, InterruptedException {
-        RemoteSpace companySpace = new RemoteSpace(uriConnection);
         List<Object[]> result = companySpace.queryAll(new FormalField(String.class), new FormalField(String.class), new ActualField("sell"), new FormalField(Order.class), new FormalField(Integer.class));
         return result;
     }
@@ -181,7 +181,6 @@ public class Broker implements Runnable {
 
     private int buyEntireOrder(Order sellOrder) throws IOException, InterruptedException {
         // get ticket from companyspace
-        RemoteSpace companySpace = new RemoteSpace(uriConnection);
         Object[] ticket = companySpace.get(new ActualField("ticket"));
         // TraderId, OrderId, OrderType, Order, reservedAmount
         Object[] result = companySpace.getp(new FormalField(String.class), new ActualField(sellOrder.getOrderId()), new FormalField(String.class), new FormalField(Order.class), new FormalField(Integer.class));
@@ -189,15 +188,16 @@ public class Broker implements Runnable {
             Order order = (Order) result[3];
             int amount = order.getAmount();
             int reservedAmount = (int) result[4];
-            int possibleAmount = amount - reservedAmount;
-            reservedAmount += possibleAmount;
+            reservedAmount += amount;
+            order.setAmount(0);
             companySpace.put((String) result[0], (String) result[1], (String) result[2], order, reservedAmount);
             companySpace.put("ticket");
             //Give order to bank
-            Transaction transaction = new Transaction(traderId, order.getTraderId(), order.getTicker(), order.getOrderId(), possibleAmount);
+            Transaction transaction = new Transaction(traderId, order.getTraderId(), order.getTicker(), order.getOrderId(), amount);
             String responseString = sendAndReceiveRequest("finalize transaction", transaction);
+            companySpace.put("ticket");
             if (responseString.equals("completed order")) {
-                return possibleAmount;
+                return amount;
             } else {
                 System.out.println("order not found"); // dette burde ikke kunne ske
                 return 0;
@@ -212,7 +212,6 @@ public class Broker implements Runnable {
 
     private int buyPartialOrder(Order sellOrder, int amountWanted) throws IOException, InterruptedException {
         // get ticket from companyspace
-        RemoteSpace companySpace = new RemoteSpace(uriConnection);
         Object[] ticket = companySpace.get(new ActualField("ticket"));
         // TraderId, OrderId, OrderType, Order, reservedAmount
         Object[] result = companySpace.getp(new FormalField(String.class), new ActualField(sellOrder.getOrderId()), new FormalField(String.class), new FormalField(Order.class), new FormalField(Integer.class));
@@ -232,6 +231,7 @@ public class Broker implements Runnable {
             // get response from bank
             Object[] bankResponse = transactionResponseSpace.get(new ActualField(brokerId), new FormalField(String.class));
             String responseString = (String) bankResponse[1];
+            companySpace.put("ticket");
             if (responseString.equals("reserved money")) {
                 return amount;
             } else {
