@@ -63,8 +63,9 @@ public class Company implements Runnable{
             if(isTimeToIPO(ipoDateTime,simulatedDateTime))
             {
                 //Calculate fundamentals and push them to fundamentals space
-                updateFundamentalData(simulatedDateTime);
                 this.isPubliclyTraded = true;
+                updateFundamentalData(simulatedDateTime);
+
 
                 System.out.println("The date is now " + simulatedDateTime + " and company " + this.companyTicker  + " has IPO'd.\nIts original IPO date was: " + ipoDateTime);
 
@@ -185,7 +186,10 @@ public class Company implements Runnable{
         //Querying tuple with the form (companyTicker, year, financialStatement, financialPost, financialValue)
         Space companyFundamentalsSpace = IRS.getFundamentalsSpace(nameOrTicker);
         Object[] data = companyFundamentalsSpace.query(new ActualField(nameOrTicker), new ActualField(year),new ActualField("Finance Statement"), new FormalField(FinancialData.class)); //Retrieves fundamental data for a company
-        return (FinancialData) data[4];
+        FinancialData financialData = (FinancialData) data[3];
+        System.out.println("Got fundamentals" + financialData.getRevenue() + " " + financialData.getCostOfRevenue() + " " + financialData.getGrossProfit());
+        return financialData;
+
 
     }
 

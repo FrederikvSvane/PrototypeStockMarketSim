@@ -128,7 +128,7 @@ public class IRS implements Runnable {
                 IrsRepo.add("latent" + ticker, latentSpace);
                 latentSpace.put("readTicket");
                 ApiDataFetcher.sendRequestIncome(ticker,latentSpace);
-                //ApiDataFetcher.sendRequestBalanceSheet(ticker,latentSpace);
+                ApiDataFetcher.sendRequestBalanceSheet(ticker,latentSpace);
                 System.out.println("Starting realistic company: " + ticker);
                 new Thread(new RealisticCompany(companyName,ticker,ipoDateTime,fundamentalsSpace,latentSpace)).start();
 
