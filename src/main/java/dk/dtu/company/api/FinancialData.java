@@ -23,6 +23,16 @@ public class FinancialData {
         this.grossProfit = grossProfit;
     }
 
+    public FinancialData(long newRevenue, long newCost, long newGrossProfit, long newAssets, long newLiabilities, long newEquity, long newCash) {
+        this.revenue = newRevenue;
+        this.costOfRevenue = newCost;
+        this.grossProfit = newGrossProfit;
+        this.totalAssets = newAssets;
+        this.totalDebt = newLiabilities;
+        this.netReceiveable = newEquity;
+        this.cash = newCash;
+    }
+
 
     // Getters
     public long getRevenue() {

@@ -7,6 +7,7 @@ import java.time.Month;
 import java.util.*;
 
 import dk.dtu.client.ClientUtil;
+import dk.dtu.company.api.FinancialData;
 import dk.dtu.host.GlobalClock;
 import dk.dtu.client.Order;
 import dk.dtu.company.IRS;
@@ -62,8 +63,8 @@ public class Company implements Runnable{
             if(isTimeToIPO(ipoDateTime,simulatedDateTime))
             {
                 //Calculate fundamentals and push them to fundamentals space
-                updateFundamentalData(simulatedDateTime);
                 this.isPubliclyTraded = true;
+                updateFundamentalData(simulatedDateTime);
 
                 System.out.println("The date is now " + simulatedDateTime + " and company " + this.companyTicker  + " has IPO'd.\nIts original IPO date was: " + ipoDateTime);
 
@@ -179,13 +180,13 @@ public class Company implements Runnable{
     }
 
 
-    public static float getFundamentalDataOverview(String nameOrTicker, int year) throws InterruptedException, IOException {
+    public static FinancialData getFundamentalDataOverview(String nameOrTicker, int year) throws InterruptedException, IOException {
 
         //Querying tuple with the form (companyTicker, year, financialStatement, financialPost, financialValue)
         Space companyFundamentalsSpace = IRS.getFundamentalsSpace(nameOrTicker);
-        Object[] data = companyFundamentalsSpace.query(new ActualField(nameOrTicker), new ActualField(year),new ActualField("income statement"),new ActualField("revenue"), new FormalField(Long.class)); //Retrieves fundamental data for a company
-        return (long) data[4];
-
+        Object[] data = companyFundamentalsSpace.query(new ActualField(nameOrTicker), new ActualField(year),new ActualField("Finance Statement"), new FormalField(FinancialData.class)); //Retrieves fundamental data for a company
+        FinancialData financialData = (FinancialData) data[3];
+        return financialData;
     }
 
 

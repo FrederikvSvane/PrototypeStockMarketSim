@@ -29,10 +29,10 @@ public class IRS implements Runnable {
     private void initializeTickers() {
         // Add ticker symbols to the list
         tickers.add("IBM");
-        tickers.add("GE");
-        tickers.add("DIS");
-        tickers.add("KO");
-        tickers.add("MCD");
+//        tickers.add("GE");
+//        tickers.add("DIS");
+//        tickers.add("KO");
+//        tickers.add("MCD");
         /*tickers.add("WMT");
         tickers.add("PG");
         tickers.add("JNJ");
@@ -122,7 +122,7 @@ public class IRS implements Runnable {
                 IrsRepo.add("latent" + ticker, latentSpace);
                 latentSpace.put("readTicket");
                 ApiDataFetcher.sendRequestIncome(ticker, latentSpace);
-                //ApiDataFetcher.sendRequestBalanceSheet(ticker,latentSpace);
+                ApiDataFetcher.sendRequestBalanceSheet(ticker,latentSpace);
                 System.out.println("Starting realistic company: " + ticker);
                 new Thread(new RealisticCompany(companyName, ticker, ipoDateTime, fundamentalsSpace, latentSpace)).start();
 
